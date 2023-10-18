@@ -1,0 +1,18 @@
+{
+  "id": "socket(domain:10, type:3, protocol:58){addr:0.0.0.0; port:0}",
+  "kind": "inet6_socket",
+  "used": true,
+  "score": 1.0,
+  "executables": [
+    {
+      "id": "/userfs/bin/radvd",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 2,
+      "num_processes": 2,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

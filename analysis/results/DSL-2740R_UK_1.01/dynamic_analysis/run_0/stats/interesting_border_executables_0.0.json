@@ -1,0 +1,1367 @@
+[
+  {
+    "id": "/sbin/init",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/usr/etc/init.d/rcS",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/etc/init.d/rcS",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/busybox",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/sh",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/sbin/ifconfig",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/sbin/ifconfig",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/ether_mac.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_start.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/sh",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/sbin/ifconfig",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/sbin/ifconfig",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/userfs/bin/radvd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/radvd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/radvd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/boa",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/dhcp6s",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/sbin/udhcpd",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/usr/sbin/udhcpd",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/userfs/bin/dnsmasq",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/sh",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/userfs/bin/upnpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/upnpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/upnpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/sh",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/bin/sh",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/bin/sh",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/userfs/bin/inetd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/radvd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/radvd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/upnpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/upnpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/upnpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/upnpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_stop.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/wan_stop.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/sh",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/usr/script/fw_stop.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/spi_fw_stop.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/bin/sh",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/userfs/bin/dnsmasq",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/ntpclient",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/ntpclient",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/ntpclient",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/dnsmasq",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/ntpclient",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/ntpclient",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/ntpclient",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/dnsmasq",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/dnsmasq",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/dnsmasq",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/userfs/bin/dnsmasq",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/usr/script/vserver.sh",
+    "type": "script",
+    "interpreter": "sh",
+    "is_proprietary": true,
+    "symlink_target": null
+  }
+]

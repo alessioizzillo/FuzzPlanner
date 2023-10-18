@@ -1,0 +1,18 @@
+{
+  "id": "file{path:/userfs/profile.cfg}",
+  "kind": "file",
+  "used": true,
+  "score": 0.5,
+  "executables": [
+    {
+      "id": "/usr/etc/init.d/rcS",
+      "type": "script",
+      "is_proprietary": false,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 2,
+      "num_processes": 2,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

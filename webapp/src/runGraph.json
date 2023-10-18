@@ -1,0 +1,90 @@
+{
+  "nodes": [
+    {
+      "type": "executable",
+      "subtype": "binary"
+    },
+    {
+      "type": "executable",
+      "subtype": "script"
+    },
+    {
+      "type": "executable",
+      "subtype": "symlink"
+    },
+    {
+      "type": "channel",
+      "subtype": "channel_category"
+    },
+    {
+      "type": "process",
+      "subtype": "null"
+    },
+    {
+      "id": "ext",
+      "type": "aux",
+      "subtype": null
+    },
+    {
+      "id": "root",
+      "type": "aux",
+      "subtype": null
+    }
+  ],
+  "edges": [
+    {
+      "type": "symbolink",
+      "subtype": null,
+      "src": "executable.symlink",
+      "trg": "executable.binary"
+    },
+    {
+      "type": "execute",
+      "subtype": null,
+      "src": "process",
+      "trg": "executable"
+    },
+    {
+      "type": "event",
+      "subtype": "init",
+      "src": "root",
+      "trg": "process"
+    },
+    {
+      "type": "event",
+      "subtype": "spawn",
+      "src": "process",
+      "trg": "process"
+    },
+    {
+      "type": "event",
+      "subtype": "listen",
+      "src": "channel",
+      "trg": "process"
+    },
+    {
+      "type": "event",
+      "subtype": "border_write",
+      "src": "ext",
+      "trg": "channel"
+    },
+    {
+      "type": "event",
+      "subtype": "border_read",
+      "src": "channel",
+      "trg": "process"
+    },
+    {
+      "type": "event",
+      "subtype": "within_write",
+      "src": "process",
+      "trg": "channel"
+    },
+    {
+      "type": "event",
+      "subtype": "within_read",
+      "src": "channel",
+      "trg": "process"
+    }
+  ]
+}

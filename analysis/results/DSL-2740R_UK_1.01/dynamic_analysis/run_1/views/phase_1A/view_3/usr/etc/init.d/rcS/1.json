@@ -1,0 +1,68 @@
+{
+  "id": "file{path:/etc/mac.conf}",
+  "kind": "file",
+  "used": true,
+  "score": 0.5,
+  "executables": [
+    {
+      "id": "/usr/etc/init.d/rcS",
+      "type": "script",
+      "is_proprietary": false,
+      "num_interactions_as_source": 1,
+      "num_interactions_as_sink": 0,
+      "num_processes": 1,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/bin/sh",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 3,
+      "num_processes": 3,
+      "first_as_source": false,
+      "first_as_sink": true
+    },
+    {
+      "id": "/sbin/ifconfig",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 8,
+      "num_interactions_as_sink": 0,
+      "num_processes": 8,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/script/wan_start.sh",
+      "type": "script",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 3,
+      "num_processes": 3,
+      "first_as_source": false,
+      "first_as_sink": true
+    },
+    {
+      "id": "/usr/script/ether_mac.sh",
+      "type": "script",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 2,
+      "num_processes": 2,
+      "first_as_source": false,
+      "first_as_sink": true
+    },
+    {
+      "id": "/usr/script/wan_stop.sh",
+      "type": "script",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "num_processes": 1,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

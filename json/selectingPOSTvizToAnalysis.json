@@ -1,0 +1,12 @@
+{
+  "selectingPOSTvizToAnalysis": [
+    {
+      "executable_id": "executable_path_0",
+      "data_channel_id": "channel_name_0"
+    },
+    {
+      "executable_id": "executable_path_1",
+      "data_channel_id": "channel_name_1"
+    }
+  ]
+}

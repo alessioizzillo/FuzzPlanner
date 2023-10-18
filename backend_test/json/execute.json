@@ -1,0 +1,30 @@
+{
+  "experiments": [
+    {
+      "executableId": "httpd",
+      "data_channel_id": "socket(domain:10, type:2, protocol:6){addr:0.0.0.0; port:80}",
+      "chosen_dictionary_type": "http",
+      "chosen_parameters":
+        {
+          "syscall": 4003,
+          "pc": "0x40958c"
+        },
+      "fuzzing_timeout": 60,
+      "child_timeout": 1,
+      "set_engine_features": [
+        {
+          "name": "AFL_INST_RATIO",
+          "type": "integer",
+          "value": "90",
+          "default": "100"
+        },
+        {
+          "name": "AFL_SKIP_CPUFREQ",
+          "type": "boolean",
+          "value": "true",
+          "default": "false"
+        }
+      ]
+    }
+  ]
+}

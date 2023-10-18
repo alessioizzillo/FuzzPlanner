@@ -1,0 +1,32 @@
+{
+  "num_client_executables": 1,
+  "num_server_executables": 0,
+  "data_channels": [
+    {
+      "id": "pipe_1333_3_4",
+      "kind": "pipe",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 8,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 7,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "socket(domain:10, type:2, protocol:0){addr:0.0.0.0; port:23}",
+      "kind": "inet6_socket",
+      "used": true,
+      "score": 1.0,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 150,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 150,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

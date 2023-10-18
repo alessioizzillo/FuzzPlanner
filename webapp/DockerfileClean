@@ -1,0 +1,8 @@
+FROM nikolaik/python-nodejs@sha256:08ff9735ee59d1ec5652aa53bc9101566f02af3d54442da35ebc4447cdc8f8f6 as base
+USER pn
+WORKDIR /home/pn/app
+COPY --chown=1000:1000 . .
+RUN npm ci
+ENV NODE_ENV=production
+RUN npm run build
+CMD npm run start

@@ -1,0 +1,7 @@
+{
+    "seed_type": "socket",
+    "syscall_init": 4169,
+    "syscall_injected": 4003,
+    "fork_point_address": 2007963136,
+    "dictionary_type": "http"
+}

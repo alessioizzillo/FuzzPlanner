@@ -1,0 +1,58 @@
+{
+  "num_client_executables": 0,
+  "num_server_executables": 1,
+  "data_channels": [
+    {
+      "id": "pipe_4419_4_5",
+      "kind": "pipe",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 9,
+      "num_interactions_as_source": 8,
+      "num_interactions_as_sink": 0,
+      "first_as_sink": false,
+      "first_as_source": true
+    },
+    {
+      "id": "file{path:/etc/passwd}",
+      "kind": "file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:stunnel/key.pem}",
+      "kind": "file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:stunnel/cert.pem}",
+      "kind": "file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

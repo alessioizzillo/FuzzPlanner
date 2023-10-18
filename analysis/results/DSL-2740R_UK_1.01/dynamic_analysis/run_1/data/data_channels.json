@@ -1,0 +1,3506 @@
+[
+  {
+    "id": "file{path:../lib/libgcc_s.so.1}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:../lib/libc.so.0}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "device{path:/dev/ttyS0}",
+    "kind": "device",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/TZ}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "device{path:/dev/console}",
+    "kind": "device",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/inittab}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/init.d/rcS}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/userfs/profile.cfg}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/fstab}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "device{path:/dev/null}",
+    "kind": "device",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/RT30xxEEPROM.bin}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/meminfo}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/RT30xxEEPROM.bin}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/Wireless}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/Wireless/RT2860AP}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/Wireless/RT2860AP/RT2860AP.dat}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/Wireless/RT2860AP/RT2860AP.dat}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/bftpd.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/bftpd.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/cert.pem}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/cert.pem}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/config}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/defaultWan.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/defaultWan.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "device{path:/usr/etc/devInf.conf}",
+    "kind": "device",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "device{path:/tmp/etc/devInf.conf}",
+    "kind": "device",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/dhcp6c.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/dhcp6c.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/dhcp6s.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/dhcp6s.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/dhcpd}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/dproxy.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/dproxy.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/ethertypes}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/ethertypes}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/fstab}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/fwTCver.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/fwTCver.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/fwTCver.conf~}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/fwTCver.conf~}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/fwver.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/fwver.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/fwver.conf~}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/fwver.conf~}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/group}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/group}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/hosts}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/hosts}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/igd}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/igd/gateconnSCPD.xml}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/igd/gateconnSCPD.xml}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/igd/gatedesc.xml}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/igd/gatedesc.xml}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/igd/gateicfgSCPD.xml}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/igd/gateicfgSCPD.xml}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/igd/gateinfoSCPD.xml}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/igd/gateinfoSCPD.xml}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/igd/igd.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/tmp/etc/igd/igd.sh}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/usr/etc/igd/portmap.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/igd/portmap.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/inetd.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/inetd.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/init.d}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/init.d/rcS}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/inittab}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/inittab_no_ra_menu}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/inittab_no_ra_menu}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/inittab_ra_menu}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/inittab_ra_menu}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/iproute2}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/iproute2/ematch_map}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/iproute2/ematch_map}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/iproute2/rt_dsfield}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/iproute2/rt_dsfield}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/iproute2/rt_protos}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/iproute2/rt_protos}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/iproute2/rt_realms}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/iproute2/rt_realms}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/iproute2/rt_scopes}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/iproute2/rt_scopes}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/iproute2/rt_tables}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/iproute2/rt_tables}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/key.pem}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/key.pem}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/l7-protocols}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/l7-protocols/aim.pat}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/l7-protocols/aim.pat}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/l7-protocols/msnmessenger.pat}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/l7-protocols/msnmessenger.pat}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/l7-protocols/rtp.pat}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/l7-protocols/rtp.pat}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/l7-protocols/rtsp.pat}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/l7-protocols/rtsp.pat}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/l7-protocols/yahoo.pat}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/l7-protocols/yahoo.pat}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc0}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc1}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10/dummy.file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc10/dummy.file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_0}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_0/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc10_0/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_1}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_1/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc10_1/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_2}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_2/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc10_2/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_3}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_3/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc10_3/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_4}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_4/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc10_4/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_5}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_5/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc10_5/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_6}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_6/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc10_6/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_7}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc10_7/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc10_7/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc2}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc3}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc4}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc5}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc6}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc7}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8/dummy.file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc8/dummy.file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_0}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_0/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc8_0/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_1}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_1/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc8_1/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_2}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_2/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc8_2/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_3}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_3/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc8_3/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_4}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_4/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc8_4/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_5}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_5/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc8_5/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_6}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_6/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc8_6/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_7}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc8_7/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc8_7/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9/dummy.file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc9/dummy.file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_0}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_0/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc9_0/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_1}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_1/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc9_1/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_2}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_2/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc9_2/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_3}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_3/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc9_3/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_4}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_4/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc9_4/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_5}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_5/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc9_5/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_6}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_6/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc9_6/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_7}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/nat_pvc9_7/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/nat_pvc9_7/dummy_file}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/net-snmp}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/net-snmp/snmp}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/passwd}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/tmp/etc/passwd}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/usr/etc/ppp}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/ppp/ipv6-up}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/ppp/ipv6-up}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/ppp/peers}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/ppp/peers/ppp_connect}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/ppp/peers/ppp_connect}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/ppp/peers/ppp_on_dialer.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/tmp/etc/ppp/peers/ppp_on_dialer.sh}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/usr/etc/ppp/peers/wcdma}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/ppp/peers/wcdma}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/protocols}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/protocols}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/radvd.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/radvd.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/resolv.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/resolv.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/resolv_ipv4.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/resolv_ipv4.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/resolv_ipv6.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/resolv_ipv6.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/samba}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/services}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/services}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/shaper}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/shaper/groups}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/shaper/users}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/snmp}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/snmp/snmpd.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/snmp/snmpd.conf}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/snmpd.conf.tmp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/snmpd.conf.tmp}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "virtual_file{path:/usr/etc/sysconfig}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/usr/etc/sysconfig/network}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/tmp/etc/sysconfig/network}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/usr/etc/system}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/trx_config}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/trx_config}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/usertty}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/etc/usertty}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/voip_sys.cfg}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/voip_sys.cfg}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/xml}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/etc/xml/WFADeviceDesc.xml}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/xml/WFADeviceDesc.xml}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/usr/etc/xml/WFAWLANConfigSCPD.xml}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/tmp/etc/xml/WFAWLANConfigSCPD.xml}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/lib/modules/tcfullcone.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/lib/modules/module_sel.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/lib/modules/brg_shortcut.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv4/ip_forward}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv4/tcp_syncookies}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/nf_conntrack_max}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv6/neigh/default/gc_stale_time}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv6/conf/all/forwarding}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id":
+      "virtual_file{path:/proc/sys/net/netfilter/nf_conntrack_icmp_timeout}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id":
+      "virtual_file{path:/proc/sys/net/ipv4/conf/default/accept_source_route}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv4/conf/all/accept_source_route}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/lib/modules/tcledctrl.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/lib/modules/tccicmd.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "pipe_91_3_4",
+    "kind": "pipe",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/userfs/romfile.cfg}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "virtual_file{path:/proc/mtd}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/kernel/modprobe}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/boot.bin}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "device{path:/dev/mtd0}",
+    "kind": "device",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/RT30xxEEPROM.bin}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/arp_info}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:16, type:3, protocol:0){pid:0; groups:0}",
+    "kind": "netlink_socket",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/lib/modules/tc3162l2mac.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/lib/modules/tc3162l2sar.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/lib/modules/tc3162_dmt.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id":
+      "file{path:/lib/modules/2.6.22.15/kernel/net/bridge/netfilter/ebtables.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id":
+      "file{path:/lib/modules/2.6.22.15/kernel/net/bridge/netfilter/ebtable_filter.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id":
+      "file{path:/lib/modules/2.6.22.15/kernel/net/bridge/netfilter/ebt_ip.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id":
+      "file{path:/lib/modules/2.6.22.15/kernel/net/bridge/netfilter/ebt_ip6.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/lib/modules/igmpsnoop.ko}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv6/conf/lo/disable_ipv6}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv6/conf/eth0/disable_ipv6}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/script/br_conf.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "pipe_50_3_4",
+    "kind": "pipe",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "pipe_50_4_5",
+    "kind": "pipe",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/mac.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "virtual_file{path:/proc/net/dev}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "virtual_file{path:/proc/net/if_inet6}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/etc/Wireless/WLAN_APOn}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:1, type:2, protocol:0){path:/tmp/tcapi_sock}",
+    "kind": "unix_socket",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/hostname}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:2, type:2, protocol:0){addr:0.0.0.0; port:23}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561600831, "pid": "242" }],
+    "score": 1.0
+  },
+  {
+    "id": "file{path:boa.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "socket(domain:10, type:2, protocol:6){addr:0.65.139.180; port:80}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561601077, "pid": "249" }],
+    "score": 1.0
+  },
+  {
+    "id": "file{path:/etc/passwd}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/etc/group}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/script/wan_start.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/etc/isp0.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/var/run/nas0.pid}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/ethertypes}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/script/ether_mac.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/tmp/qoslockfd}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/isp1.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/isp2.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/isp3.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/isp4.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/isp5.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/isp6.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/isp7.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/lanconfig.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv6/conf/br0/disable_ipv6}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/etc/radvd.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/var/run/radvd.pid}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv6/conf/br0/hop_limit}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/net/igmp6}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/etc/dhcp6s.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/udhcpd.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/var/run/udhcpd.pid}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:17){addr:0.0.0.0; port:547}",
+    "kind": "inet6_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "file{path:/etc/udhcpd_option.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:17){addr:0.0.0.0; port:67}",
+    "kind": "inet_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:16, type:3, protocol:0){pid:0; groups:1088}",
+    "kind": "netlink_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "device{path:/dev/urandom}",
+    "kind": "device",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:2, type:2, protocol:0){addr:0.0.0.0; port:53}",
+    "kind": "inet_socket",
+    "used": false,
+    "listening_pids": [{ "time": 1688561611659, "pid": "578" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:2, protocol:0){addr:0.0.0.0; port:53}",
+    "kind": "inet6_socket",
+    "used": false,
+    "listening_pids": [{ "time": 1688561611666, "pid": "578" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:53}",
+    "kind": "inet6_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:0.0.0.0; port:53}",
+    "kind": "inet_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "pipe_578_8_9",
+    "kind": "pipe",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "pipe_578_10_11",
+    "kind": "pipe",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/var/run/dnsmasq.pid}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/resolv.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/hosts}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/rt_device}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/1/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/2/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/3/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/4/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/5/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/6/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/7/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/8/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/9/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/10/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/11/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/12/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/13/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/14/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/15/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/16/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/17/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/18/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/35/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/36/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/37/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/38/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/39/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/40/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/41/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/44/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/45/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/46/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/47/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/49/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/50/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/54/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/57/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/91/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/93/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/94/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/243/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/245/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/249/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/257/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/399/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/401/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/559/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/563/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/565/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/567/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/568/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/570/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/571/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/574/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/576/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/579/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/580/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/583/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/584/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/var/run/wscd.pid.ra0}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "pipe_586_8_9",
+    "kind": "pipe",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:16, type:3, protocol:0){pid:0; groups:1}",
+    "kind": "netlink_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/adsl.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "socket(domain:16, type:3, protocol:0){pid:0; groups:1024}",
+    "kind": "netlink_socket",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/var/log/upnpd.pid}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/igd/igd.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "socket(domain:16, type:3, protocol:0){pid:0; groups:64}",
+    "kind": "netlink_socket",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/igd/gatedesc.xml}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/igd/portmap.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id":
+      "socket(domain:2, type:1, protocol:0){addr:239.255.255.250; port:1900}",
+    "kind": "inet_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:0.0.0.0; port:1900}",
+    "kind": "inet_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:2, protocol:0){addr:0.0.0.0; port:5555}",
+    "kind": "inet_socket",
+    "used": false,
+    "listening_pids": [{ "time": 1688561612756, "pid": "609" }],
+    "score": 1.0
+  },
+  {
+    "id": "file{path:/usr/script/filter_forward_start.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/tmp/etc/acl.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/tmp/etc/AppFilter.sh}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/tmp/etc/UrlFilter.sh}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "virtual_file{path:/proc/586/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/609/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/759/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/760/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/tmp/syslogd.pid}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/761/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/762/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/autoexec.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/boaroot/cgi-bin/index.asp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/var/tmp/admin}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/cgi-bin/login.asp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/stylemain.css}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/util.js}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/kernel/panic}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/img_masthead.jpg}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/img_bottom.gif}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/core/netdev_max_backlog}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/var/log/inetd.pid}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:17){addr:0.0.0.0; port:69}",
+    "kind": "inet_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "file{path:/etc/inetd.conf}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/etc/services}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/vm/drop_caches}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:2, type:2, protocol:6){addr:0.0.0.0; port:21}",
+    "kind": "inet_socket",
+    "used": false,
+    "listening_pids": [{ "time": 1688561616725, "pid": "798" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:3, protocol:58){addr:0.0.0.0; port:0}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [
+      { "time": 1688561621546, "pid": "559" },
+      { "time": 1688561621569, "pid": "559" }
+    ],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:3, protocol:58){addr:0.0.0.0; port:58}",
+    "kind": "inet6_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "file{path:/boaroot/cgi-bin/wan.asp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/blkstat.js}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/cgi-bin/menu.asp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/offline.gif}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/logo.gif}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/cgi-bin/euhelp.asp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/cgi-bin/Wizard.asp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/time_style2.js}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/Isplist.js}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/tmp/boa-temp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:192.168.1.2; port:55748}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [
+      { "time": 1688561711431, "pid": "609" },
+      { "time": 1688561712432, "pid": "609" },
+      { "time": 1688561713439, "pid": "609" },
+      { "time": 1688561714438, "pid": "609" }
+    ],
+    "score": 1.0
+  },
+  {
+    "id": "file{path:/usr/script/wan_stop.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "pipe_889_7_9",
+    "kind": "pipe",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/var/run/udhcpc-nas0.pid}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/script/ipmacfilter_stop.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/usr/script/fw_stop.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "virtual_file{path:/proc/sys/net/ipv4/tcp_max_syn_backlog}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id":
+      "virtual_file{path:/proc/sys/net/netfilter/nf_conntrack_tcp_timeout_syn_recv}",
+    "kind": "virtual_file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/script/spi_fw_stop.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "virtual_file{path:/proc/798/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/801/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/807/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/808/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/810/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/816/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/1054/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/1106/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/1112/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/1227/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/1228/stat}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/ntp.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:17){addr:0.0.0.0; port:0}",
+    "kind": "inet_socket",
+    "used": false,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:17){addr:127.0.0.1; port:53}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:127.0.0.1; port:39764}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561722069, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:17){addr:127.0.0.1; port:53}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:37330}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561722084, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:127.0.0.1; port:35309}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561722089, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:58678}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561722097, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:127.0.0.1; port:35306}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561722099, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:54999}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561722105, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "file{path:/tmp/var/romfile.cfg}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.5
+  },
+  {
+    "id": "file{path:/boaroot/cgi-bin/portforwarding.asp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/cgi-bin/advhelp.asp}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/usr/script/vserver.sh}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:/etc/nat_pvc0/vserver0}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/nat_pvc0/ipmode}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/edit.gif}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/boaroot/html/del.gif}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:192.168.1.2; port:36841}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [
+      { "time": 1688561879068, "pid": "609" },
+      { "time": 1688561879069, "pid": "609" },
+      { "time": 1688561879069, "pid": "609" },
+      { "time": 1688561879071, "pid": "609" }
+    ],
+    "score": 1.0
+  },
+  {
+    "id": "device{path:/dev/ptmx}",
+    "kind": "device",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "device{path:/dev/pts/0}",
+    "kind": "device",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "device{path:/dev/pts/}",
+    "kind": "device",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/usertty}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:.}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "file{path:/etc/protocols}",
+    "kind": "file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "socket(domain:2, type:3, protocol:1){addr:192.168.1.1; port:0}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [
+      { "time": 1688561907111, "pid": "2210" },
+      { "time": 1688561907111, "pid": "2210" },
+      { "time": 1688561908114, "pid": "2210" },
+      { "time": 1688561908114, "pid": "2210" },
+      { "time": 1688561909118, "pid": "2210" },
+      { "time": 1688561909118, "pid": "2210" },
+      { "time": 1688561910122, "pid": "2210" },
+      { "time": 1688561910122, "pid": "2210" },
+      { "time": 1688561911126, "pid": "2210" },
+      { "time": 1688561911126, "pid": "2210" },
+      { "time": 1688561912130, "pid": "2210" },
+      { "time": 1688561912130, "pid": "2210" }
+    ],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:192.168.1.2; port:37739}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [
+      { "time": 1688561951458, "pid": "609" },
+      { "time": 1688561952463, "pid": "609" },
+      { "time": 1688561953470, "pid": "609" },
+      { "time": 1688561954478, "pid": "609" }
+    ],
+    "score": 1.0
+  },
+  {
+    "id": "file{path:aa}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  },
+  {
+    "id": "virtual_file{path:/proc/net/tcp}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:127.0.0.1; port:44677}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957873, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:54709}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957878, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:127.0.0.1; port:55491}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957880, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:41797}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957882, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:127.0.0.1; port:39380}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957886, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:49306}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957890, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:127.0.0.1; port:33241}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957899, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:49703}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957901, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:127.0.0.1; port:57081}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957906, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:41653}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957908, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:2, type:1, protocol:0){addr:127.0.0.1; port:48384}",
+    "kind": "inet_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957910, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "socket(domain:10, type:1, protocol:0){addr:0.0.0.0; port:47801}",
+    "kind": "inet6_socket",
+    "used": true,
+    "listening_pids": [{ "time": 1688561957914, "pid": "580" }],
+    "score": 1.0
+  },
+  {
+    "id": "virtual_file{path:/proc/net/tcp6}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "virtual_file{path:/proc/net/udp}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "virtual_file{path:/proc/net/udp6}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "virtual_file{path:/proc/net/raw}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "virtual_file{path:/proc/net/raw6}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "virtual_file{path:/proc/net/unix}",
+    "kind": "virtual_file",
+    "used": true,
+    "listening_pids": [],
+    "score": 0.15
+  },
+  {
+    "id": "file{path:..}",
+    "kind": "file",
+    "used": false,
+    "listening_pids": [],
+    "score": 0.0
+  }
+]

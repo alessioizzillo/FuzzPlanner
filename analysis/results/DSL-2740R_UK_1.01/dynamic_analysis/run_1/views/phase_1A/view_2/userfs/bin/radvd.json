@@ -1,0 +1,58 @@
+{
+  "num_client_executables": 1,
+  "num_server_executables": 0,
+  "data_channels": [
+    {
+      "id": "file{path:/etc/radvd.conf}",
+      "kind": "file",
+      "used": true,
+      "score": 0.5,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/proc/net/igmp6}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 2,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 2,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "socket(domain:10, type:3, protocol:58){addr:0.0.0.0; port:0}",
+      "kind": "inet6_socket",
+      "used": true,
+      "score": 1.0,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 2,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 2,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/proc/sys/net/ipv6/conf/all/forwarding}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 5,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 3,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "file{path:/etc/templates/misc/timezone_setup.php}",
+  "kind": "file",
+  "used": true,
+  "score": 0.0,
+  "executables": [
+    {
+      "id": "/usr/sbin/xmldb",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 5,
+      "num_processes": 5,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

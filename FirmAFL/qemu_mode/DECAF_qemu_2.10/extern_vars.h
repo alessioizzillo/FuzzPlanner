@@ -1,0 +1,10 @@
+extern int debug;
+extern int fuzz;
+extern int target_syscall;
+extern unsigned long target_pc;
+extern int execution_mode;
+extern char *target_exec;
+extern char *target_channel;
+extern int init_syscalls[4];
+extern int target_syscalls[4];
+extern unsigned long cur_program_pc;

@@ -1,0 +1,48 @@
+{
+  "id": "file{path:/var/run/rgdb.xml.gz}",
+  "kind": "file",
+  "used": true,
+  "score": 0.5,
+  "executables": [
+    {
+      "id": "/bin/cp",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 2,
+      "num_interactions_as_sink": 0,
+      "num_processes": 2,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/bin/gunzip",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 3,
+      "num_processes": 3,
+      "first_as_source": false,
+      "first_as_sink": true
+    },
+    {
+      "id": "/bin/gzip",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 3,
+      "num_interactions_as_sink": 0,
+      "num_processes": 3,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/devconf",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 3,
+      "num_processes": 3,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

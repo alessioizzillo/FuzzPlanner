@@ -1,0 +1,18 @@
+{
+  "id": "socket(domain:10, type:2, protocol:0){addr:0.0.0.0; port:23}",
+  "kind": "inet6_socket",
+  "used": true,
+  "score": 1.0,
+  "executables": [
+    {
+      "id": "/usr/sbin/telnetd",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 150,
+      "num_processes": 150,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

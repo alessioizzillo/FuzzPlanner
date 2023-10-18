@@ -1,0 +1,97 @@
+{
+  "num_client_executables": 0,
+  "num_server_executables": 0,
+  "data_channels": [
+    {
+      "id": "virtual_file{path:/proc/net/tcp}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/proc/net/tcp6}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/proc/net/udp}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/proc/net/udp6}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/proc/net/raw}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/proc/net/raw6}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/proc/net/unix}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

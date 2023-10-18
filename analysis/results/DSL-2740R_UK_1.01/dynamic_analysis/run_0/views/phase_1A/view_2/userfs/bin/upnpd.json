@@ -1,0 +1,58 @@
+{
+  "num_client_executables": 0,
+  "num_server_executables": 0,
+  "data_channels": [
+    {
+      "id": "file{path:/etc/igd/igd.conf}",
+      "kind": "file",
+      "used": true,
+      "score": 0.5,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/etc/igd/gatedesc.xml}",
+      "kind": "file",
+      "used": true,
+      "score": 0.5,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/etc/igd/portmap.conf}",
+      "kind": "file",
+      "used": true,
+      "score": 0.5,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "socket(domain:2, type:1, protocol:0){addr:192.168.1.2; port:55748}",
+      "kind": "inet_socket",
+      "used": true,
+      "score": 1.0,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 4,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 4,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

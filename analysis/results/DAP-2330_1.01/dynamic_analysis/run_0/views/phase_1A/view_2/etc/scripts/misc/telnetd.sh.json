@@ -1,0 +1,32 @@
+{
+  "num_client_executables": 2,
+  "num_server_executables": 0,
+  "data_channels": [
+    {
+      "id": "pipe_1292_3_4",
+      "kind": "pipe",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 3,
+      "num_processes": 39,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 31,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/etc/scripts/misc/telnetd.sh}",
+      "kind": "file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 2,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 2,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

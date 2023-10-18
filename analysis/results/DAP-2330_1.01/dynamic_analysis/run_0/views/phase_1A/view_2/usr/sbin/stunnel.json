@@ -1,0 +1,71 @@
+{
+  "num_client_executables": 1,
+  "num_server_executables": 1,
+  "data_channels": [
+    {
+      "id": "socket(domain:1, type:1, protocol:0){path:/dev/log}",
+      "kind": "unix_socket",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 4,
+      "num_interactions_as_source": 2,
+      "num_interactions_as_sink": 0,
+      "first_as_sink": false,
+      "first_as_source": true
+    },
+    {
+      "id": "device{path:/dev/urandom}",
+      "kind": "device",
+      "used": true,
+      "score": 0.0,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/var/etc/stunnel/cert.pem}",
+      "kind": "file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/var/etc/stunnel/key.pem}",
+      "kind": "file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/var/etc/stunnel.conf}",
+      "kind": "file",
+      "used": true,
+      "score": 0.5,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 1347,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1346,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

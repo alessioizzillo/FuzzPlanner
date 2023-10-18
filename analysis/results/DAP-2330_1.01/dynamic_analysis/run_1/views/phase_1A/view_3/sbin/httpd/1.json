@@ -1,0 +1,208 @@
+{
+  "id": "socket(domain:1, type:2, protocol:0){path:/var/run/xmldb_sock}",
+  "kind": "unix_socket",
+  "used": true,
+  "score": 0.0,
+  "executables": [
+    {
+      "id": "/usr/sbin/rgdb",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 504,
+      "num_interactions_as_sink": 252,
+      "num_processes": 756,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/xmldb",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 8262,
+      "num_interactions_as_sink": 10085,
+      "num_processes": 18347,
+      "first_as_source": false,
+      "first_as_sink": true
+    },
+    {
+      "id": "/usr/sbin/xmldbc",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 396,
+      "num_interactions_as_sink": 82,
+      "num_processes": 478,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/sbin/genZoneInfo",
+      "type": "binary",
+      "is_proprietary": false,
+      "num_interactions_as_source": 6,
+      "num_interactions_as_sink": 6,
+      "num_processes": 12,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/sbin/syslogd",
+      "type": "binary",
+      "is_proprietary": false,
+      "num_interactions_as_source": 5,
+      "num_interactions_as_sink": 5,
+      "num_processes": 10,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/genchanneltable",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 60,
+      "num_interactions_as_sink": 21,
+      "num_processes": 81,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/getsys",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 7303,
+      "num_interactions_as_sink": 5484,
+      "num_processes": 12787,
+      "first_as_source": false,
+      "first_as_sink": true
+    },
+    {
+      "id": "/usr/sbin/genVLANTableByPort",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 116,
+      "num_interactions_as_sink": 92,
+      "num_processes": 208,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/sendtrapbin",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 1,
+      "num_interactions_as_sink": 1,
+      "num_processes": 2,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/fresetd",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 94,
+      "num_interactions_as_sink": 58,
+      "num_processes": 152,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/brctl",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 62,
+      "num_interactions_as_sink": 61,
+      "num_processes": 123,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/sbin/httpd",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 75,
+      "num_interactions_as_sink": 44,
+      "num_processes": 119,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/sbin/atp",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 62,
+      "num_interactions_as_sink": 542,
+      "num_processes": 604,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/bin/sh",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 36,
+      "num_interactions_as_sink": 12,
+      "num_processes": 48,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/submit",
+      "type": "script",
+      "is_proprietary": true,
+      "num_interactions_as_source": 1,
+      "num_interactions_as_sink": 0,
+      "num_processes": 1,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/trap_monitor",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 726,
+      "num_interactions_as_sink": 342,
+      "num_processes": 1068,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/CheckFreeMEM",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "num_processes": 1,
+      "first_as_source": false,
+      "first_as_sink": true
+    },
+    {
+      "id": "/sbin/iwlist",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 3522,
+      "num_interactions_as_sink": 1957,
+      "num_processes": 5479,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/login",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 2,
+      "num_interactions_as_sink": 1,
+      "num_processes": 3,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/cli",
+      "type": "binary",
+      "is_proprietary": false,
+      "num_interactions_as_source": 227,
+      "num_interactions_as_sink": 134,
+      "num_processes": 361,
+      "first_as_source": true,
+      "first_as_sink": false
+    }
+  ]
+}

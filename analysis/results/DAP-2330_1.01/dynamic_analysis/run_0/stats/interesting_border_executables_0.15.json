@@ -1,0 +1,72 @@
+[
+  {
+    "id": "/sbin/ifconfig",
+    "type": "symlink",
+    "interpreter": null,
+    "is_proprietary": false,
+    "symlink_target": "/bin/busybox"
+  },
+  {
+    "id": "/sbin/httpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/sbin/httpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/sbin/httpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/sbin/httpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/sbin/httpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/sbin/httpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/sbin/httpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/sbin/httpd",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  },
+  {
+    "id": "/sbin/atp",
+    "type": "binary",
+    "interpreter": null,
+    "is_proprietary": true,
+    "symlink_target": null
+  }
+]

@@ -227,13 +227,9 @@ target_ulong kernel_base = 0xc0000000;
 #endif
 
 #ifdef TARGET_WORDS_BIGENDIAN
-    target_ulong crash_addr1 = 0x8013a9d8; // do_group_exit offset (Linux 2.6.32.70) (vmlinux.mipseb.2)
-    target_ulong crash_addr2 = 0x80127f9c; // do_group_exit offset (Linux 3.2.1) (vmlinux.mipseb_DECAF)
-    target_ulong crash_addr3 = 0x80123e4c; // do_group_exit offset (Linux 4.1.17+) (vmlinux.mipseb.4_DECAF) (vmlinux.mipseb.4)
+target_ulong do_coredump_addr = 0x801f04c8; // do_coredump offset (Linux 4.1.17+) (vmlinux.mipseb.4_DECAF) (vmlinux.mipseb.4)
 #else
-    target_ulong crash_addr1 = 0x8013a6d0; // do_group_exit offset (Linux 2.6.32.70) (vmlinux.mipsel.2)
-    target_ulong crash_addr2 = 0x80127f7c; // do_group_exit offset (Linux 3.2.1) (vmlinux.mipsel_DECAF)
-    target_ulong crash_addr3 = 0x80123df0; // do_group_exit offset (Linux 4.1.17+) (vmlinux.mipsel.4_DECAF) (vmlinux.mipsel.4)
+target_ulong do_coredump_addr = 0x801f03e8; // do_coredump offset (Linux 4.1.17+) (vmlinux.mipsel.4_DECAF) (vmlinux.mipsel.4)
 #endif
 
 target_ulong handle_addr;
@@ -809,7 +805,7 @@ static void do_block_begin(DECAF_Callback_Params* param)
 #endif
 
 #ifdef FUZZ
-    if(afl_user_fork && (pc == crash_addr3))
+    if(afl_user_fork && (pc == do_coredump_addr))
     {
         target_ulong pgd = DECAF_getPGD(cpu);
         if(pgd == target_pgd)
@@ -3080,17 +3076,7 @@ skip_to_pos:
 #ifdef FUZZ
 #ifdef FORK_OR_NOT
 
-#ifdef TARGET_WORDS_BIGENDIAN
-                target_ulong crash_addr1 = 0x8013a9d8; // do_group_exit offset (Linux 2.6.32.70) (vmlinux.mipseb.2)
-                target_ulong crash_addr2 = 0x80127f9c; // do_group_exit offset (Linux 3.2.1) (vmlinux.mipseb_DECAF)
-                target_ulong crash_addr3 = 0x80123e4c; // do_group_exit offset (Linux 4.1.17+) (vmlinux.mipseb.4_DECAF) (vmlinux.mipseb.4)
-#else
-                target_ulong crash_addr1 = 0x8013a6d0; // do_group_exit offset (Linux 2.6.32.70) (vmlinux.mipsel.2)
-                target_ulong crash_addr2 = 0x80127f7c; // do_group_exit offset (Linux 3.2.1) (vmlinux.mipsel_DECAF)
-                target_ulong crash_addr3 = 0x80123df0; // do_group_exit offset (Linux 4.1.17+) (vmlinux.mipsel.4_DECAF) (vmlinux.mipsel.4)
-#endif
-
-                if (pc == crash_addr3)
+                if (pc == do_coredump_addr)
                 {
                     target_ulong pgd = DECAF_getPGD(cpu);
 
@@ -3159,7 +3145,7 @@ skip_to_pos:
                         }
                     }
 
-                    if(pc == crash_addr3)
+                    if(pc == do_coredump_addr)
                     {
                         printf("into kernel error addr:%x\n", handle_addr);
                         into_normal_execution = 0;
@@ -3361,7 +3347,7 @@ skip_to_pos:
 
                 if(afl_user_fork) last_pc = pc;
 
-                if(afl_user_fork && pc == crash_addr3)
+                if(afl_user_fork && pc == do_coredump_addr)
                 {
                     target_ulong pgd = DECAF_getPGD(cpu);
                     if(pgd == target_pgd)
@@ -3396,17 +3382,7 @@ skip_to_pos:
 
                 if (afl_user_fork == 0)
                 {
-#ifdef TARGET_WORDS_BIGENDIAN
-                    target_ulong crash_addr1 = 0x8013a9d8; // do_group_exit offset (Linux 2.6.32.70) (vmlinux.mipseb.2)
-                    target_ulong crash_addr2 = 0x80127f9c; // do_group_exit offset (Linux 3.2.1) (vmlinux.mipseb_DECAF)
-                    target_ulong crash_addr3 = 0x80123e4c; // do_group_exit offset (Linux 4.1.17+) (vmlinux.mipseb.4_DECAF) (vmlinux.mipseb.4)
-#else
-                    target_ulong crash_addr1 = 0x8013a6d0; // do_group_exit offset (Linux 2.6.32.70) (vmlinux.mipsel.2)
-                    target_ulong crash_addr2 = 0x80127f7c; // do_group_exit offset (Linux 3.2.1) (vmlinux.mipsel_DECAF)
-                    target_ulong crash_addr3 = 0x80123df0; // do_group_exit offset (Linux 4.1.17+) (vmlinux.mipsel.4_DECAF) (vmlinux.mipsel.4)
-#endif
-
-                    if (pc == crash_addr3)
+                    if (pc == do_coredump_addr)
                     {
                         target_ulong pgd = DECAF_getPGD(cpu);
                         char procname[64];
@@ -4458,7 +4434,7 @@ void *qemu_handle_addr_thread_fn(void *arg)
                         }                     
                         
                     }
-                    if(cur_pc == crash_addr3)
+                    if(cur_pc == do_coredump_addr)
 	                {
 	                	target_ulong pgd = DECAF_getPGD(cpu);
                         if(pgd == target_pgd)

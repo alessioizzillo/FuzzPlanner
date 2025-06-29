@@ -4,6 +4,8 @@ import sys
 import tarfile
 import subprocess
 import psycopg2
+import os
+import csv
 
 archMap = {"MIPS64":"mips64", "MIPS":"mips", "ARM64":"arm64", "ARM":"arm", "Intel 80386":"intel", "x86-64":"intel64", "PowerPC":"ppc", "unknown":"unknown"}
 
@@ -23,7 +25,7 @@ def getEndian(filetype):
 
 infile = sys.argv[1]
 psql_ip = sys.argv[2]
-tool = sys.argv[3]
+mode = sys.argv[3]
 base = infile[infile.rfind("/") + 1:]
 iid = base[:base.find(".")]
 
@@ -38,7 +40,7 @@ for info in tar.getmembers():
         infos.append(info)
     fileList.append(info.name)
 
-with open("scratch/" + tool + "/" + iid + "/fileList", "w") as f:
+with open("scratch/" + mode + "/" + iid + "/fileList", "w") as f:
     for filename in fileList:
         try:
             f.write(filename + "\n")
@@ -46,27 +48,61 @@ with open("scratch/" + tool + "/" + iid + "/fileList", "w") as f:
             continue
 
 for info in infos:
-    tar.extract(info, path="/tmp/" + tool + "/" + iid)
-    filepath = "/tmp/" + tool + "/" + iid + "/" + info.name
+    tar.extract(info, path="/tmp/" + mode + "/" + iid)
+    filepath = "/tmp/" + mode + "/" + iid + "/" + info.name
     filetype = subprocess.check_output(["file", filepath]).decode()
 
     arch = getArch(filetype)
     endian = getEndian(filetype)
     if arch and endian:
         print(arch + endian)
-        subprocess.call(["rm", "-rf", "/tmp/" + tool + "/" + iid])
-        dbh = psycopg2.connect(database="firmware_%s" % tool,
-                               user="firmadyne",
-                               password="firmadyne",
-                               host=psql_ip, port=6666)
-        cur = dbh.cursor()
-        query = """UPDATE image SET arch = '%s' WHERE id = %s;"""
-        cur.execute(query % (arch+endian, iid))
-        dbh.commit()
+        subprocess.call(["rm", "-rf", "/tmp/" + mode + "/" + iid])
 
-        with open("scratch/" + tool + "/" + iid + "/fileType", "w") as f:
-            f.write(filetype)
+        value = os.getenv("NO_PSQL")
+
+        if value == "1":
+            csv_file_path = "/FuzzPlanner/FirmAE/firm_db_%s.csv"%(mode)
+            try:
+                updated_rows = []
+                found = False
+
+                with open(csv_file_path, mode='r') as csvfile:
+                    csv_reader = csv.DictReader(csvfile)
+                    for row in csv_reader:
+                        if row['id'] == str(iid):
+                            row['arch'] = arch + endian
+                            found = True
+                        updated_rows.append(row)
+                
+                if not found:
+                    print(f"ID {iid} not found in CSV file.")
+                    exit(1)
+                
+                with open(csv_file_path, mode='w', newline='') as csvfile:
+                    fieldnames = ['id', 'firmware', 'brand', 'arch', 'result']
+                    csv_writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    csv_writer.writeheader()
+                    csv_writer.writerows(updated_rows)
+
+            except FileNotFoundError:
+                print(f"CSV file not found: {csv_file_path}")
+                exit(1)
+            except Exception as e:
+                print(f"Error reading or writing CSV file: {e}")
+                exit(1)
+        else:
+            dbh = psycopg2.connect(database="firmware_%s" % mode,
+                                user="firmadyne",
+                                password="firmadyne",
+                                host=psql_ip, port=6666)
+            cur = dbh.cursor()
+            query = """UPDATE image SET arch = '%s' WHERE id = %s;"""
+            cur.execute(query % (arch+endian, iid))
+            dbh.commit()
+
+            with open("scratch/" + mode + "/" + iid + "/fileType", "w") as f:
+                f.write(filetype)
 
         break
 
-subprocess.call(["rm", "-rf", "/tmp/" + tool + "/" + iid])
+subprocess.call(["rm", "-rf", "/tmp/" + mode + "/" + iid])

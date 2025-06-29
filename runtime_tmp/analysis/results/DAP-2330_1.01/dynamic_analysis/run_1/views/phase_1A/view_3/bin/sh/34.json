@@ -1,0 +1,18 @@
+{
+  "id": "file{path:/etc/templates/loadbalance.sh}",
+  "kind": "file",
+  "used": true,
+  "score": 0.15,
+  "executables": [
+    {
+      "id": "/bin/sh",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 2,
+      "num_processes": 2,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

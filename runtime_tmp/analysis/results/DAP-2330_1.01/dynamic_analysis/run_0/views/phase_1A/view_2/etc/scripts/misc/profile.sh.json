@@ -1,0 +1,58 @@
+{
+  "num_client_executables": 1,
+  "num_server_executables": 0,
+  "data_channels": [
+    {
+      "id": "file{path:/etc/scripts/misc/profile.sh}",
+      "kind": "file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 5,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 5,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "pipe_156_3_4",
+      "kind": "pipe",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 2,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "pipe_1226_3_4",
+      "kind": "pipe",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 2,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "pipe_3406_4_5",
+      "kind": "pipe",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 2,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

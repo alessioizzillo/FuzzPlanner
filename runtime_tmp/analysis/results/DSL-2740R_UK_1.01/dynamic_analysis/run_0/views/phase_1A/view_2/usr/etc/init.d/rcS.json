@@ -1,0 +1,71 @@
+{
+  "num_client_executables": 1,
+  "num_server_executables": 1,
+  "data_channels": [
+    {
+      "id": "pipe_50_4_5",
+      "kind": "pipe",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 2,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/etc/mac.conf}",
+      "kind": "file",
+      "used": true,
+      "score": 0.5,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 2,
+      "num_interactions_as_source": 1,
+      "num_interactions_as_sink": 0,
+      "first_as_sink": false,
+      "first_as_source": true
+    },
+    {
+      "id": "file{path:/usr/etc/init.d/rcS}",
+      "kind": "file",
+      "used": true,
+      "score": 0.0,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 5,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 5,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/userfs/profile.cfg}",
+      "kind": "file",
+      "used": true,
+      "score": 0.5,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 2,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 2,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/etc/Wireless/WLAN_APOn}",
+      "kind": "file",
+      "used": true,
+      "score": 0.0,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

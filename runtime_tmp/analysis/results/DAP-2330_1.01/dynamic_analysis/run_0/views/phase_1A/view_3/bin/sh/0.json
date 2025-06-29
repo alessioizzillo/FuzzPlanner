@@ -1,0 +1,28 @@
+{
+  "id": "pipe_165_3_4",
+  "kind": "pipe",
+  "used": true,
+  "score": 0.0,
+  "executables": [
+    {
+      "id": "/usr/bin/expr",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 66,
+      "num_interactions_as_sink": 0,
+      "num_processes": 66,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/bin/sh",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 178,
+      "num_processes": 178,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

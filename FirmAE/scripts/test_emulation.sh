@@ -17,15 +17,20 @@ else
     exit 1
 fi
 
-TOOL=${1}
+./flush_interface.sh
+
+MODE=${1}
 IID=${2}
-WORK_DIR=`get_scratch ${IID} ${TOOL}`
+WORK_DIR=`get_scratch ${IID} ${MODE}`
 ARCH=${3}
 
 echo "[*] test emulator"
-${WORK_DIR}/run_$TOOL.sh 1 2>&1 >${WORK_DIR}/emulation.log &
 
-sleep 10
+if [[ ${MODE} = "run" ]]; then
+  EXEC_MODE=RUN TAINT=1 FD_DEPENDENCIES_TRACK=1 ${WORK_DIR}/run.sh 1 2>&1 >${WORK_DIR}/emulation.log &
+else
+  EXEC_MODE=RUN TAINT=1 FD_DEPENDENCIES_TRACK=1 ${WORK_DIR}/run_$MODE.sh 1 2>&1 >${WORK_DIR}/emulation.log &
+fi
 
 echo ""
 
@@ -43,6 +48,7 @@ fi
 
 echo -e "[*] Waiting web service... from ${IPS[@]}"
 read IP PING_RESULT WEB_RESULT TIME_PING TIME_WEB < <(check_network "${IPS[@]}" false)
+echo -e "IP=$IP, PING_RESULT=$PING_RESULT, WEB_RESULT=$WEB_RESULT, TIME_PING=$TIME_PING, TIME_WEB=$TIME_WEB"
 
 if (${PING_RESULT}); then
     echo true > ${WORK_DIR}/ping

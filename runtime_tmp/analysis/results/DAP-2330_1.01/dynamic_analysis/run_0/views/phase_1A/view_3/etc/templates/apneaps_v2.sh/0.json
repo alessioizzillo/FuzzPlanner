@@ -1,0 +1,18 @@
+{
+  "id": "file{path:/etc/templates/apneaps_v2.sh}",
+  "kind": "file",
+  "used": true,
+  "score": 0.15,
+  "executables": [
+    {
+      "id": "/etc/templates/apneaps_v2.sh",
+      "type": "script",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 2,
+      "num_processes": 2,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

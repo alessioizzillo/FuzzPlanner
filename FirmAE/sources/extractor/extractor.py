@@ -17,6 +17,7 @@ import pathlib
 
 import magic
 import binwalk
+import csv
 
 class Extractor(object):
     """
@@ -35,7 +36,7 @@ class Extractor(object):
     visited_lock = multiprocessing.Lock()
 
     def __init__(self, tool, indir, outdir=None, rootfs=True, kernel=True,
-                 numproc=True, server=None, brand=None, debug=False):
+                 numproc=True, server=None, brand=None, debug=False, no_psql=None):
         # Tool
         self.tool = tool
         # Input firmware update file or directory
@@ -55,6 +56,7 @@ class Extractor(object):
         self.brand = brand
 
         # Hostname of SQL server
+        self.no_psql = no_psql
         self.database = server
 
         self.debug = debug
@@ -210,7 +212,7 @@ class Extractor(object):
         method.
         """
 
-        ExtractionItem(self, path, 0, None, self.debug).extract()
+        ExtractionItem(self, path, 0, None, self.debug, self.no_psql).extract()
 
 class ExtractionItem(object):
     """
@@ -222,7 +224,7 @@ class ExtractionItem(object):
     RECURSION_DEPTH = 3
     database = None
 
-    def __init__(self, extractor, path, depth, tag=None, debug=False):
+    def __init__(self, extractor, path, depth, tag=None, debug=False, no_psql=None):
         # Temporary directory
         self.temp = None
 
@@ -238,12 +240,17 @@ class ExtractionItem(object):
         self.debug = debug
 
         # Database connection
-        if self.extractor.database:
-            import psycopg2
-            self.database = psycopg2.connect(database="firmware_%s" % self.extractor.tool,
-                                             user="firmadyne",
-                                             password="firmadyne",
-                                             host=self.extractor.database, port=6666)
+        self.no_psql = no_psql
+
+        if self.no_psql != "1":
+            if self.extractor.database:
+                import psycopg2
+                self.database = psycopg2.connect(database="firmware_%s" % self.extractor.tool,
+                                                user="firmadyne",
+                                                password="firmadyne",
+                                                host=self.extractor.database, port=6666)
+        else:
+            self.database = None
 
         # Checksum
         self.checksum = Extractor.io_md5(path)
@@ -261,8 +268,9 @@ class ExtractionItem(object):
         self.update_status()
 
     def __del__(self):
-        if self.database:
-            self.database.close()
+        if self.no_psql != "1":
+            if self.database:
+                self.database.close()
 
         if self.temp:
             self.printf(">> Cleaning up %s..." % self.temp)
@@ -280,45 +288,85 @@ class ExtractionItem(object):
         """
         Generate the filename tag.
         """
-        if not self.database:
-            return os.path.basename(self.item) + "_" + self.checksum
+        if self.no_psql == "1":
+            csv_file_path = "/FuzzPlanner/FirmAE/firm_db_%s.csv"%(self.extractor.tool)
 
-        try:
-            image_id = None
-            cur = self.database.cursor()
-            if self.extractor.brand:
-                brand = self.extractor.brand
-            else:
-                brand = os.path.relpath(self.item).split(os.path.sep)[0]
-            cur.execute("SELECT id FROM brand WHERE name=%s", (brand, ))
-            brand_id = cur.fetchone()
-            if not brand_id:
-                cur.execute("INSERT INTO brand (name) VALUES (%s) RETURNING id",
-                            (brand, ))
+            try:
+                os.makedirs(os.path.dirname(csv_file_path), exist_ok=True)
+                
+                if not os.path.exists(csv_file_path):
+                    with open(csv_file_path, mode='w', newline='') as csvfile:
+                        csv_writer = csv.writer(csvfile)
+                        csv_writer.writerow(['id', 'firmware', 'brand', 'arch', 'result'])
+
+                existing_ids = set()
+                existing_id = None
+
+                with open(csv_file_path, mode='r') as csvfile:
+                    csv_reader = csv.reader(csvfile)
+                    next(csv_reader)
+                    for row in csv_reader:
+                        if row[0].isdigit():
+                            existing_ids.add(int(row[0]))
+                        if row[1] == os.path.basename(self.item):
+                            existing_id = row[0]
+
+                if existing_id:
+                    return existing_id
+
+                next_id = max(existing_ids) + 1 if existing_ids else 1
+
+                with open(csv_file_path, mode='a', newline='') as csvfile:
+                    csv_writer = csv.writer(csvfile)
+                    csv_writer.writerow([next_id, os.path.basename(self.item), self.extractor.brand, "none", "none"])
+
+                return str(next_id)
+            except FileNotFoundError:
+                print("CSV file not found.")
+                exit(1)
+            except Exception as e:
+                print(f"Error handling CSV file: {e}")
+                exit(1)
+        else:
+            if not self.database:
+                return os.path.basename(self.item) + "_" + self.checksum
+
+            try:
+                image_id = None
+                cur = self.database.cursor()
+                if self.extractor.brand:
+                    brand = self.extractor.brand
+                else:
+                    brand = os.path.relpath(self.item).split(os.path.sep)[0]
+                cur.execute("SELECT id FROM brand WHERE name=%s", (brand, ))
                 brand_id = cur.fetchone()
-            if brand_id:
-                cur.execute("SELECT id FROM image WHERE hash=%s AND filename=%s",
-                            (self.checksum, os.path.basename(self.item), ))
-                image_id = cur.fetchone()
-                if not image_id:
-                    cur.execute("INSERT INTO image (filename, brand_id, hash) \
-                                VALUES (%s, %s, %s) RETURNING id",
-                                (os.path.basename(self.item), brand_id[0],
-                                 self.checksum))
+                if not brand_id:
+                    cur.execute("INSERT INTO brand (name) VALUES (%s) RETURNING id",
+                                (brand, ))
+                    brand_id = cur.fetchone()
+                if brand_id:
+                    cur.execute("SELECT id FROM image WHERE hash=%s AND filename=%s",
+                                (self.checksum, os.path.basename(self.item), ))
                     image_id = cur.fetchone()
-            self.database.commit()
-        except BaseException:
-            traceback.print_exc()
-            self.database.rollback()
-        finally:
-            if cur:
-                cur.close()
+                    if not image_id:
+                        cur.execute("INSERT INTO image (filename, brand_id, hash) \
+                                    VALUES (%s, %s, %s) RETURNING id",
+                                    (os.path.basename(self.item), brand_id[0],
+                                    self.checksum))
+                        image_id = cur.fetchone()
+                self.database.commit()
+            except BaseException:
+                traceback.print_exc()
+                self.database.rollback()
+            finally:
+                if cur:
+                    cur.close()
 
-        if image_id:
-            self.printf(">> Database Image ID: %s" % image_id[0])
+            if image_id:
+                self.printf(">> Database Image ID: %s" % image_id[0])
 
-        return str(image_id[0]) if \
-               image_id else os.path.basename(self.item) + "_" + self.checksum
+            return str(image_id[0]) if \
+                image_id else os.path.basename(self.item) + "_" + self.checksum
 
     def get_kernel_status(self):
         """
@@ -348,11 +396,12 @@ class ExtractionItem(object):
         self.extractor.kernel_done = kernel_done
         self.extractor.rootfs_done = rootfs_done
 
-        if self.database and kernel_done and self.extractor.do_kernel:
-            self.update_database("kernel_extracted", "True")
+        if self.no_psql != "1":
+            if self.database and kernel_done and self.extractor.do_kernel:
+                self.update_database("kernel_extracted", "True")
 
-        if self.database and rootfs_done and self.extractor.do_rootfs:
-            self.update_database("rootfs_extracted", "True")
+            if self.database and rootfs_done and self.extractor.do_rootfs:
+                self.update_database("rootfs_extracted", "True")
 
         return self.get_status()
 
@@ -556,7 +605,7 @@ class ExtractionItem(object):
                         Extractor.io_dd(self.item, kernel_offset,
                                         kernel_size, tmp_path)
                         kernel = ExtractionItem(self.extractor, tmp_path,
-                                                self.depth, self.tag, self.debug)
+                                                self.depth, self.tag, self.debug, self.no_psql)
                         return kernel.extract()
                 # elif "RAMDisk Image" in entry.description:
                 #     self.printf(">>>> %s" % entry.description)
@@ -620,7 +669,7 @@ class ExtractionItem(object):
                     Extractor.io_dd(self.item, kernel_offset, kernel_size,
                                     tmp_path)
                     kernel = ExtractionItem(self.extractor, tmp_path,
-                                            self.depth, self.tag, self.debug)
+                                            self.depth, self.tag, self.debug, self.no_psql)
                     kernel.extract()
 
                     tmp_fd, tmp_path = tempfile.mkstemp(dir=self.temp)
@@ -628,7 +677,7 @@ class ExtractionItem(object):
                     Extractor.io_dd(self.item, rootfs_offset, rootfs_size,
                                     tmp_path)
                     rootfs = ExtractionItem(self.extractor, tmp_path,
-                                            self.depth, self.tag, self.debug)
+                                            self.depth, self.tag, self.debug, self.no_psql)
                     rootfs.extract()
                     return True
         return False
@@ -728,7 +777,7 @@ class ExtractionItem(object):
                                                   path,
                                                   self.depth + 1,
                                                   self.tag,
-                                                  self.debug)
+                                                  self.debug, self.no_psql)
                         if new_item.extract():
                             if self.update_status():
                                 return True
@@ -737,17 +786,22 @@ class ExtractionItem(object):
         return False
 
 def psql_check(psql_ip, tool):
-    try:
-        import psycopg2
-        psycopg2.connect(database="firmware_%s" % tool,
-                         user="firmadyne",
-                         password="firmadyne",
-                         host=psql_ip, port=6666)
+    value = os.getenv("NO_PSQL")
 
+    if value == "1":
         return True
+    else:
+        try:
+            import psycopg2
+            psycopg2.connect(database="firmware_%s" % tool,
+                            user="firmadyne",
+                            password="firmadyne",
+                            host=psql_ip, port=6666)
 
-    except:
-        return False
+            return True
+
+        except:
+            return False
 
 def main():
     parser = argparse.ArgumentParser(description="Extracts filesystem and \
@@ -777,7 +831,7 @@ def main():
     if psql_check(result.sql, result.tool):
         extract = Extractor(result.tool, result.input, result.output, result.rootfs,
                             result.kernel, result.parallel, result.sql,
-                            result.brand, result.debug)
+                            result.brand, result.debug, os.getenv("NO_PSQL"))
         extract.extract()
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ const FILES = {
 }
 
 //
-const DIR_ROOT = path.join(process.cwd(), 'src', 'data')
+const DIR_ROOT = path.join('/', 'FuzzPlanner', 'runtime_tmp', 'analysis', 'results')
 function getStaticDir (fwId) { return path.join(DIR_ROOT, fwId, 'static_analysis', 'data') }
 function getRunDir (fwId, runId) { return path.join(DIR_ROOT, fwId, 'dynamic_analysis', runId, 'data') }
 

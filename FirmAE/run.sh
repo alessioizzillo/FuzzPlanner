@@ -2,12 +2,13 @@
 
 function print_usage()
 {
-    echo "Usage: ${0} [mode]... [brand] [firmware|firmware_directory] [tool] [psql_ip]"
+    echo "Usage: ${0} [mode]... [brand] [firmware|firmware_directory] [mode]"
     echo "mode: use one option at once"
-    echo "      -r, --run     : run mode         - run emulation"
-    echo "      -c, --check   : check mode       - check network reachable and web access"
-    echo "      -f, --fuzz    : fuzz mode        - fuzz"
-    echo "      -re, --replay : replay mode      - replay testcases on Full"
+    echo "      -r, --run           : run mode         - run emulation"
+    echo "      -ra, --run_analysis : analysis mode    - run_analysis emulation"
+    echo "      -c, --check         : check mode       - check network reachable and web access"
+    echo "      -f, --fuzz          : fuzz mode        - fuzz"
+    echo "      -re, --replay       : replay mode      - replay testcases on Full"
 }
 
 if [ $# -ne 5 ]; then
@@ -27,6 +28,8 @@ else
     exit 1
 fi
 
+trap cleanup_on_exit EXIT
+
 function get_option()
 {
     OPTION=${1}
@@ -36,8 +39,6 @@ function get_option()
         echo "run"
     elif [ ${OPTION} = "-f" ] || [ ${OPTION} = "--fuzz" ]; then
         echo "fuzz"
-    elif [ ${OPTION} = "-re" ] || [ ${OPTION} = "--replay" ]; then
-        echo "replay"
     else
         echo "none"
     fi
@@ -48,7 +49,7 @@ function get_brand()
   INFILE=${1}
   BRAND=${2}
   if [ ${BRAND} = "auto" ]; then
-    echo `./scripts/util.py get_brand ${INFILE} ${PSQL_IP} ${TOOL}`
+    echo `./scripts/util.py get_brand ${INFILE} ${PSQL_IP} ${MODE}`
   else
     echo ${2}
   fi
@@ -67,16 +68,70 @@ if (! id | egrep -sqi "root"); then
 fi
 
 BRAND=${2}
-TOOL=${4}
+MODE=${4}
 WORK_DIR=""
 IID=-1
+
+function cleanup_on_exit() {
+    if egrep -sqi "true" "${WORK_DIR}/web_check"; then
+        WEB_RESULT=true
+    else
+        echo "web_check is FALSE. Firmware not allowed!"
+        exit 1
+    fi
+
+    echo -e "\n[IID] ${IID}\n[\033[33mMODE\033[0m] ${OPTION}"
+    if ($PING_RESULT); then
+        echo -e "[\033[32m+\033[0m] Network will be reachable on ${IP}!"
+    fi
+    if ($WEB_RESULT); then
+        echo -e "[\033[32m+\033[0m] Web service is getting ready on ${IP}"
+        echo true > ${WORK_DIR}/result
+    else
+        echo false > ${WORK_DIR}/result
+    fi
+
+    if [ ! -f "$csv_file_path" ]; then
+        echo "$csv_file_path does not exist!"
+        exit 1
+    fi
+
+    existing_id=""
+    temp_file="$(mktemp)"
+
+    while IFS=, read -r id firmware brand arch result; do
+        if [[ "$id" == "id" ]]; then
+            echo "$id,$firmware,$brand,$arch,$result" > "$temp_file"
+        elif [[ "$firmware" == "$(basename "$INFILE")" ]]; then
+            existing_id="$id"
+            echo "$id,$firmware,$brand,$arch,$WEB_RESULT" >> "$temp_file"
+        else
+            echo "$id,$firmware,$brand,$arch,$result" >> "$temp_file"
+        fi
+    done < "$csv_file_path"
+
+    mv "$temp_file" "$csv_file_path"
+    chmod 777 "$csv_file_path"
+
+    if [ ! ${OPTION} = "check" ]; then
+        if [[ ${MODE} = "run" ]]; then
+            ${WORK_DIR}/run.sh 1
+
+            echo "[*] cleanup"
+            ./flush_interface.sh > /dev/null 2>&1;
+            echo "======================================"
+        else
+            ${WORK_DIR}/run_${MODE}.sh 1
+        fi
+    fi
+}
 
 function run_emulation()
 {
     echo "[*] ${1} emulation start!!!"
     INFILE=${1}
     BRAND=`get_brand ${INFILE} ${BRAND}`
-    FILENAME=`basename ${INFILE}`
+    FILENAME=`basename ${INFILE%.*}`
     PING_RESULT=false
     WEB_RESULT=false
     IP=''
@@ -87,7 +142,7 @@ function run_emulation()
     fi
 
     if [ -n "${FIRMAE_DOCKER-}" ]; then
-      if ( ! ./scripts/util.py check_connection _ $PSQL_IP $TOOL ); then
+      if ( ! ./scripts/util.py check_connection _ $PSQL_IP $MODE ); then
         echo -e "[\033[31m-\033[0m] docker container failed to connect to the hosts' postgresql!"
         return
       fi
@@ -98,10 +153,10 @@ function run_emulation()
     # ================================
     t_start="$(date -u +%s.%N)"
     timeout --preserve-status --signal SIGINT 300 \
-        ./sources/extractor/extractor.py -t $TOOL -b $BRAND -sql $PSQL_IP -np -nk $INFILE images/$TOOL \
+        ./sources/extractor/extractor.py -t $MODE -b $BRAND -sql $PSQL_IP -np -nk $INFILE images/$MODE \
         2>&1 >/dev/null
 
-    IID=`./scripts/util.py get_iid $INFILE $PSQL_IP $TOOL`
+    IID=`./scripts/util.py get_iid $INFILE $PSQL_IP $MODE`
     if [ ! "${IID}" ]; then
         echo -e "[\033[31m-\033[0m] extractor.py failed!"
         return
@@ -111,10 +166,12 @@ function run_emulation()
     # extract kernel from firmware
     # ================================
     timeout --preserve-status --signal SIGINT 300 \
-        ./sources/extractor/extractor.py -b $BRAND -sql $PSQL_IP -np -nf $INFILE images \
+        ./sources/extractor/extractor.py -t $MODE -b $BRAND -sql $PSQL_IP -np -nf $INFILE images/$MODE \
         2>&1 >/dev/null
 
-    WORK_DIR=`get_scratch ${IID} ${TOOL}`
+    WORK_DIR=`get_scratch ${IID} ${MODE}`
+    csv_file_path="/FuzzPlanner/FirmAE/firm_db_${MODE}.csv"
+
     mkdir -p ${WORK_DIR}
     chmod a+rwx "${WORK_DIR}"
     chown -R "${USER}" "${WORK_DIR}"
@@ -131,7 +188,7 @@ function run_emulation()
         rm ${WORK_DIR}/result
     fi
 
-    if [ ! -e ./images/${TOOL}/$IID.tar.gz ]; then
+    if [ ! -e ./images/${MODE}/$IID.tar.gz ]; then
         echo -e "[\033[31m-\033[0m] Extracting root filesystem failed!"
         echo "extraction fail" > ${WORK_DIR}/result
         return
@@ -146,11 +203,11 @@ function run_emulation()
     # check architecture
     # ================================
     t_start="$(date -u +%s.%N)"
-    ARCH=`./scripts/getArch.py ./images/${TOOL}/$IID.tar.gz $PSQL_IP $TOOL`
+    ARCH=$(./scripts/getArch.py ./images/${MODE}/$IID.tar.gz $PSQL_IP $MODE)
     echo "${ARCH}" > "${WORK_DIR}/architecture"
 
-    if [ -e ./images/${TOOL}/${IID}.kernel ]; then
-      ./scripts/inferKernel.py ${IID} ${TOOL}
+    if [ -e ./images/${MODE}/${IID}.kernel ]; then
+        ./scripts/inferKernel.py ${IID} ${MODE}
     fi
 
     if [ ! "${ARCH}" ]; then
@@ -173,15 +230,15 @@ function run_emulation()
         # ================================
         # make qemu image
         # ================================
-        t_start="$(date -u +%s.%N)"
-        ./scripts/tar2db.py -i $IID -t $TOOL -f ./images/${TOOL}/$IID.tar.gz -h $PSQL_IP \
-            2>&1 > ${WORK_DIR}/tar2db.log
-        t_end="$(date -u +%s.%N)"
-        time_tar="$(bc <<<"$t_end-$t_start")"
-        echo $time_tar > ${WORK_DIR}/time_tar
+        # t_start="$(date -u +%s.%N)"
+        # ./scripts/tar2db.py -i $IID -t $MODE -f ./images/${MODE}/$IID.tar.gz -h $PSQL_IP \
+        #     2>&1 > ${WORK_DIR}/tar2db.log
+        # t_end="$(date -u +%s.%N)"
+        # time_tar="$(bc <<<"$t_end-$t_start")"
+        # echo $time_tar > ${WORK_DIR}/time_tar
 
         t_start="$(date -u +%s.%N)"
-        ./scripts/makeImage.sh $IID $ARCH $TOOL \
+        ./scripts/makeImage.sh $IID $ARCH $MODE \
             2>&1 > ${WORK_DIR}/makeImage.log
         t_end="$(date -u +%s.%N)"
         time_image="$(bc <<<"$t_end-$t_start")"
@@ -194,9 +251,9 @@ function run_emulation()
         echo "[*] infer network start!!!"
         # TIMEOUT is set in "firmae.config". This TIMEOUT is used for initial
         # log collection.
-        TIMEOUT=$TIMEOUT FIRMAE_NET=${FIRMAE_NET} \
-          ./scripts/makeNetwork.py -i $IID -t $TOOL -q -o -a ${ARCH} \
-          &> ${WORK_DIR}/makeNetwork.log
+        TIMEOUT=$TIMEOUT FIRMAE_NET=${FIRMAE_NET} EXEC_MODE=RUN\
+            python3 -u ./scripts/makeNetwork.py -i $IID -t $MODE -q -o -a ${ARCH} \
+            > ${WORK_DIR}/makeNetwork.log 2>&1
 
         t_end="$(date -u +%s.%N)"
         time_network="$(bc <<<"$t_end-$t_start")"
@@ -209,127 +266,6 @@ function run_emulation()
         PING_RESULT=true
         IP=`cat ${WORK_DIR}/ip`
     fi
-    if (egrep -sqi "true" ${WORK_DIR}/web_check); then
-        WEB_RESULT=true
-    fi
-
-    echo -e "\n[IID] ${IID}\n[\033[33mMODE\033[0m] ${OPTION}"
-    if ($PING_RESULT); then
-        echo -e "[\033[32m+\033[0m] Network reachable on ${IP}!"
-    fi
-    if ($WEB_RESULT); then
-        echo -e "[\033[32m+\033[0m] Web service on ${IP}"
-        echo true > ${WORK_DIR}/result
-    else
-        echo false > ${WORK_DIR}/result
-    fi
-
-    # if [ ${OPTION} = "analyze" ]; then
-    #     # ================================
-    #     # analyze firmware (check vulnerability)
-    #     # ================================
-    #     t_start="$(date -u +%s.%N)"
-    #     if ($WEB_RESULT); then
-    #         echo "[*] Waiting web service..."
-    #         ${WORK_DIR}/run_analyze.sh &
-    #         IP=`cat ${WORK_DIR}/ip`
-    #         check_network ${IP} false
-
-    #         echo -e "[\033[32m+\033[0m] start pentest!"
-    #         cd analyses
-    #         ./analyses_all.sh $IID $BRAND $IP $PSQL_IP
-    #         cd -
-
-    #         sync
-    #         kill $(ps aux | grep `get_qemu ${ARCH}` | awk '{print $2}') 2> /dev/null
-    #         sleep 2
-    #     else
-    #         echo -e "[\033[31m-\033[0m] Web unreachable"
-    #     fi
-    #     t_end="$(date -u +%s.%N)"
-    #     time_analyze="$(bc <<<"$t_end-$t_start")"
-    #     echo $time_analyze > ${WORK_DIR}/time_analyze
-
-    # elif [ ${OPTION} = "debug" ]; then
-    #     # ================================
-    #     # run debug mode.
-    #     # ================================
-    #     if ($PING_RESULT); then
-    #         echo -e "[\033[32m+\033[0m] Run debug!"
-    #         IP=`cat ${WORK_DIR}/ip`
-    #         ./scratch/$IID/run_debug.sh &
-    #         check_network ${IP} true
-
-    #         sleep 10
-    #         ./debug.py ${IID}
-
-    #         sync
-    #         kill $(ps aux | grep `get_qemu ${ARCH}` | awk '{print $2}') 2> /dev/null | true
-    #         sleep 2
-    #     else
-    #         echo -e "[\033[31m-\033[0m] Network unreachable"
-    #     fi
-    if [ ! ${OPTION} = "check" ]; then
-        if [[ ${OPTION} = "replay" ]]; then
-            # ================================
-            # just replay mode
-            # ================================
-            check_network ${IP} false &
-            ${WORK_DIR}/run_${TOOL}.sh 2
-        elif [[ ${TOOL} = "firmafl" ]]; then
-            # ================================
-            # just firmafl mode
-            # ================================
-            check_network ${IP} false &
-            ${WORK_DIR}/run_firmafl.sh 0
-        elif [[ ${TOOL} = "full" ]]; then
-            # ================================
-            # just full mode
-            # ================================
-            check_network ${IP} false &
-            if [ ${OPTION} = "run" ]; then
-                ${WORK_DIR}/run_full.sh 3
-            else
-                ${WORK_DIR}/run_full.sh 0
-            fi
-        elif [[ ${TOOL} = "equafl" ]]; then
-            # ================================
-            # just equafl mode
-            # ================================
-            check_network ${IP} false &
-            ${WORK_DIR}/run_equafl.sh 0
-        elif [[ ${TOOL} = "new_firmafl" ]]; then
-            # ================================
-            # just new firmafl mode
-            # ================================
-            check_network ${IP} false &
-            ${WORK_DIR}/run_new_firmafl.sh 0
-        elif [[ ${TOOL} = "new_full" ]]; then
-            # ================================
-            # just new full mode
-            # ================================
-            check_network ${IP} false &
-            ${WORK_DIR}/run_new_full.sh 0
-        elif [[ ${TOOL} = "new_equafl" ]]; then
-            # ================================
-            # just new equafl mode
-            # ================================
-            check_network ${IP} false &
-            ${WORK_DIR}/run_new_equafl.sh 0
-        # elif [ ${OPTION} = "boot" ]; then
-        #     # ================================
-        #     # boot debug mode
-        #     # ================================
-        #     BOOT_KERNEL_PATH=`get_boot_kernel ${ARCH} true`
-        #     BOOT_KERNEL=./binaries/`basename ${BOOT_KERNEL_PATH}`
-        #     echo -e "[\033[32m+\033[0m] Connect with gdb-multiarch -q ${BOOT_KERNEL} -ex='target remote:1234'"
-        #     ${WORK_DIR}/run_boot.sh
-        fi
-    fi
-
-    echo "[*] cleanup"
-    echo "======================================"
-
 }
 
 FIRMWARE=${3}

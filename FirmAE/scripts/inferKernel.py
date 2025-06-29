@@ -5,7 +5,7 @@ import os
 import subprocess
 
 IID = -1
-TOOL = ""
+MODE = ""
 
 def ParseInit(cmd, out):
     for item in cmd.split(' '):
@@ -13,10 +13,10 @@ def ParseInit(cmd, out):
             out.write(item + "\n")
 
 def ParseCmd():
-    if not os.path.exists("scratch/" + TOOL + "/" + IID + "/kernelCmd"):
+    if not os.path.exists("scratch/" + MODE + "/" + IID + "/kernelCmd"):
         return
-    with open("scratch/" + TOOL + "/" + IID + "/kernelCmd") as f:
-        out = open("scratch/{}/{}/kernelInit".format(TOOL, IID), "w")
+    with open("scratch/" + MODE + "/" + IID + "/kernelCmd") as f:
+        out = open("scratch/{}/{}/kernelInit".format(MODE, IID), "w")
         cmds = f.read()
         for cmd in cmds.split('\n')[:-1]:
             ParseInit(cmd, out)
@@ -25,12 +25,12 @@ def ParseCmd():
 if __name__ == "__main__":
     # execute only if run as a script
     IID = sys.argv[1]
-    TOOL = sys.argv[2]
-    kernelPath = './images/' + TOOL + "/" + IID + '.kernel'
+    MODE = sys.argv[2]
+    kernelPath = './images/' + MODE + "/" + IID + '.kernel'
     os.system("strings {} | grep \"Linux version\" > {}".format(kernelPath,
-                                                                "scratch/" + TOOL + "/" + IID + "/kernelVersion"))
+                                                                "scratch/" + MODE + "/" + IID + "/kernelVersion"))
 
     os.system("strings {} | grep \"init=/\" | sed -e 's/^\"//' -e 's/\"$//' > {}".format(kernelPath,
-                                                                "scratch/" + TOOL + "/" + IID + "/kernelCmd"))
+                                                                "scratch/" + MODE + "/" + IID + "/kernelCmd"))
 
     ParseCmd()

@@ -1,0 +1,9 @@
+{
+  "pipe": 377,
+  "unix_socket": 18330,
+  "file": 472,
+  "virtual_file": 352,
+  "device": 5,
+  "inet6_socket": 2,
+  "inet_socket": 1
+}

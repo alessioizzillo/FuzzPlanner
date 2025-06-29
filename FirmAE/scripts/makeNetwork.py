@@ -13,7 +13,7 @@ import subprocess
 debug = 0
 SCRATCHDIR = ''
 SCRIPTDIR = ''
-TOOL = ''
+MODE = ''
 
 QEMUCMDTEMPLATE = """#!/bin/bash
 
@@ -34,80 +34,30 @@ else
     exit 1
 fi
 
-RUN_MODE=`basename ${0}`
+BASENAME=`basename ${0}`
+RUN=${1}
 
-# MODE = 0 (normal execution), MODE = 1 (image creation), MODE = 2 (replay testcases in full), MODE = 3 (run mode)
-MODE=${1}
+echo "BASENAME $BASENAME"
 
-echo "RUN_MODE $RUN_MODE"
-
-if [ ${RUN_MODE} = "run_full.sh" ] || [ ${RUN_MODE} = "run.sh" ]; then
-    TOOL=full
-elif [ ${RUN_MODE} = "run_firmafl.sh" ]; then
-    TOOL=firmafl
-elif [ ${RUN_MODE} = "run_equafl.sh" ]; then
-    TOOL=equafl
-elif [ ${RUN_MODE} = "run_new_full.sh" ]; then
-    TOOL=new_full
-elif [ ${RUN_MODE} = "run_new_firmafl.sh" ]; then
-    TOOL=new_firmafl
-elif [ ${RUN_MODE} = "run_new_equafl.sh" ]; then
-    TOOL=new_equafl
+if [ ${BASENAME} = "run.sh" ]; then
+    MODE=run
+elif [[ "${BASENAME}" == *"firmafl"* ]]; then
+    suffix=$(echo "${BASENAME}" | sed -n 's/.*firmafl\([^\.]*\)\.sh/\\1/p')
+    MODE="firmafl${suffix}"
 fi
 
-IMAGE=`get_fs ${IID} ${TOOL}`
-if (echo ${ARCHEND} | grep -q "mips" && echo ${RUN_MODE} | grep -q "debug"); then
-    KERNEL=`get_kernel ${ARCHEND} true`
-else
-    KERNEL=`get_kernel ${ARCHEND} false`
-fi
-
-if (echo ${RUN_MODE} | grep -q "analyze"); then
-    QEMU_DEBUG="user_debug=31 firmadyne.syscall=32"
-else
-    QEMU_DEBUG="user_debug=0 firmadyne.syscall=1"
-fi
-
-if (echo ${RUN_MODE} | grep -q "boot"); then
-    QEMU_BOOT="-s -S"
-else
-    QEMU_BOOT=""
-fi
-
+IMAGE=`get_fs ${IID} ${MODE}`
+QEMU_DEBUG="user_debug=0 firmadyne.syscall=1"
+QEMU_BOOT=""
 QEMU=./`get_qemu ${ARCHEND}`
 
-if [ $MODE = "0" ]; then
-    if [[ "$RUN_MODE" == *"equafl"* ]]; then
-        echo -e "Using EQUAFL qemu-system"
-        QEMU+=_equafl
-        echo -e ""
-    elif [[ "$RUN_MODE" == *"full"* ]]; then
-        echo -e "Using Full qemu-system"
-        QEMU=./afl-qemu-system-trace
-        echo -e ""
-    fi
-elif [ $MODE = "2" ] || [ $MODE = "3" ]; then
-    echo -e "Using Full qemu-system "
-    QEMU=./afl-qemu-system-trace
-    echo -e ""
-fi
-
-KERNEL=`get_kernel ${ARCHEND}`
-
-if [ $MODE = "0" ] || [ $MODE = "2" ] || [ $MODE = "3" ]; then
-    echo -e "Using DECAF kernel"
-    KERNEL=`get_decaf_kernel ${ARCHEND}`
-    echo -e ""
-fi
-
-if [ $MODE = "2" ] || ([ $MODE = "0" ] && [ $TOOL = "full" ]); then
-    KERNEL=`basename ${KERNEL}`
-    IMAGE=`basename ${IMAGE}`
-fi
+echo -e "Using DECAF kernel"
+KERNEL=`get_decaf_kernel ${ARCHEND}`
+echo -e ""
 
 QEMU_MACHINE=`get_qemu_machine ${ARCHEND}`
 QEMU_ROOTFS=`get_qemu_disk ${ARCHEND}`
-WORK_DIR=`get_scratch ${IID} ${TOOL}`
+WORK_DIR=`get_scratch ${IID} ${MODE}`
 
 DEVICE=`add_partition "${WORK_DIR}/image.raw"`
 mount ${DEVICE} ${WORK_DIR}/image > /dev/null
@@ -117,7 +67,7 @@ echo "%(NET_BRIDGE)s" > ${WORK_DIR}/image/firmadyne/net_bridge
 echo "%(NET_INTERFACE)s" > ${WORK_DIR}/image/firmadyne/net_interface
 
 echo "#!/firmadyne/sh" > ${WORK_DIR}/image/firmadyne/debug.sh
-if (echo ${RUN_MODE} | grep -q "debug"); then
+if (echo ${BASENAME} | grep -q "debug"); then
     echo "while (true); do /firmadyne/busybox nc -lp 31337 -e /firmadyne/sh; done &" >> ${WORK_DIR}/image/firmadyne/debug.sh
     echo "/firmadyne/busybox telnetd -p 31338 -l /firmadyne/sh" >> ${WORK_DIR}/image/firmadyne/debug.sh
 fi
@@ -134,68 +84,18 @@ cd ${WORK_DIR}
 echo -e "Starting emulation of firmware..."
 echo -e ""
 
-if [[ "$MODE" == "0" ]] && [[ "$RUN_MODE" == *"equafl"* ]]; then
-    if [ -d "equafl_image" ]; then
-        rm -r equafl_image
-    fi
-    
-    mkdir equafl_image
+%(QEMU_ENV_VARS)s  ${QEMU} ${QEMU_BOOT} -m 1024 -mem-prealloc -mem-path mem_file -M ${QEMU_MACHINE} -kernel ${KERNEL} \
+    %(QEMU_DISK)s -append "root=${QEMU_ROOTFS} console=ttyS0 nandsim.parts=64,64,64,64,64,64,64,64,64,64 %(QEMU_INIT)s rw debug ignore_loglevel print-fatal-signals=1 FIRMAE_NET=${FIRMAE_NET} FIRMAE_NVRAM=${FIRMAE_NVRAM} FIRMAE_KERNEL=${FIRMAE_KERNEL} FIRMAE_ETC=${FIRMAE_ETC} ${QEMU_DEBUG} nokaslr norandmaps libata.force=noncq libata.force=pio4" \\
+    -serial file:qemu.final.serial.log \\
+    -serial unix:/tmp/qemu.${IID}.S1,server,nowait \\
+    -monitor unix:/tmp/qemu.${IID},server,nowait \\
+    -display none \\
+    -rtc base=localtime,clock=host \\
+    %(QEMU_NETWORK)s | true
 
-    # Extract firmware filesystem
-    tar -xvf ../../../images/${TOOL}/${IID}.tar.gz -C equafl_image > /dev/null 2>&1 || true;
+cd -
 
-    mkdir equafl_image/firmadyne
-    for BINARY_NAME in "${BINARIES[@]}"
-    do
-        BINARY_PATH=`get_binary ${BINARY_NAME} ${ARCHEND}`
-        cp "${BINARY_PATH}" "equafl_image/firmadyne/${BINARY_NAME}"
-        chmod a+x "equafl_image/firmadyne/${BINARY_NAME}"
-    done
-
-    cp ${QEMU} equafl_image/
-    cp ${KERNEL} equafl_image/
-    cp ${IMAGE} equafl_image/
-    cp FirmAFL_config equafl_image/
-    cp procinfo.ini equafl_image/
-    cp vgabios-cirrus.bin equafl_image/
-    cp efi-e1000.rom equafl_image/
-
-    cd equafl_image
-
-    %(QEMU_ENV_VARS)s  ${QEMU} ${QEMU_BOOT} -m 1024 -mem-prealloc -mem-path mem_file -M ${QEMU_MACHINE} -kernel ${KERNEL} \
-        %(QEMU_DISK)s -append "root=${QEMU_ROOTFS} console=ttyS0 nandsim.parts=64,64,64,64,64,64,64,64,64,64 %(QEMU_INIT)s rw debug ignore_loglevel print-fatal-signals=1 FIRMAE_NET=${FIRMAE_NET} FIRMAE_NVRAM=${FIRMAE_NVRAM} FIRMAE_KERNEL=${FIRMAE_KERNEL} FIRMAE_ETC=${FIRMAE_ETC} ${QEMU_DEBUG}" \\
-        -serial file:qemu.final.serial.log \\
-        -serial unix:/tmp/qemu.${IID}.S1,server,nowait \\
-        -monitor unix:/tmp/qemu.${IID},server,nowait \\
-        -display none \\
-        %(QEMU_NETWORK)s | true
-    
-    cd ..
-
-elif [ $MODE = "2" ] || ([ $MODE = "0" ] && [ $TOOL = "full" ]); then
-    echo "%(QEMU_ENV_VARS)s  ${QEMU} ${QEMU_BOOT} -m 1024 -mem-prealloc -mem-path mem_file -M ${QEMU_MACHINE} -kernel ${KERNEL} \
-        %(QEMU_DISK)s \\
-        -serial file:qemu.final.serial.log \\
-        -serial unix:/tmp/qemu.${IID}.S1,server,nowait \\
-        -monitor unix:/tmp/qemu.${IID},server,nowait \\
-        -display none \\
-        %(QEMU_NETWORK)s" > afl-qemu-system-trace_cmd
-    
-    echo "root=${QEMU_ROOTFS} console=ttyS0 nandsim.parts=64,64,64,64,64,64,64,64,64,64 %(QEMU_INIT)s rw debug ignore_loglevel print-fatal-signals=1 FIRMAE_NET=${FIRMAE_NET} FIRMAE_NVRAM=${FIRMAE_NVRAM} FIRMAE_KERNEL=${FIRMAE_KERNEL} FIRMAE_ETC=${FIRMAE_ETC} ${QEMU_DEBUG}" > afl-qemu-system-trace_cmd_append
-
-else
-    %(QEMU_ENV_VARS)s  ${QEMU} ${QEMU_BOOT} -m 1024 -mem-prealloc -mem-path mem_file -M ${QEMU_MACHINE} -kernel ${KERNEL} \
-        %(QEMU_DISK)s -append "root=${QEMU_ROOTFS} console=ttyS0 nandsim.parts=64,64,64,64,64,64,64,64,64,64 %(QEMU_INIT)s rw debug ignore_loglevel print-fatal-signals=1 FIRMAE_NET=${FIRMAE_NET} FIRMAE_NVRAM=${FIRMAE_NVRAM} FIRMAE_KERNEL=${FIRMAE_KERNEL} FIRMAE_ETC=${FIRMAE_ETC} ${QEMU_DEBUG}" \\
-        -serial file:qemu.final.serial.log \\
-        -serial unix:/tmp/qemu.${IID}.S1,server,nowait \\
-        -monitor unix:/tmp/qemu.${IID},server,nowait \\
-        -display none \\
-        %(QEMU_NETWORK)s | true
-fi
-
-cd ../../../
-
-if !([ $MODE = "2" ] || ([ $MODE = "0" ] && [ $TOOL = "full" ])); then
+if ! [ "$RUN" = "0" ]; then
     %(STOP_NET)s
 fi
 
@@ -334,7 +234,7 @@ def isDhcpIp(ip):
     return False
 
 def qemuArchNetworkConfig(i, tap_num, arch, n, isUserNetwork, ports):
-    global TOOL
+    global MODE
 
     if arch == "arm":
         device = "virtio-net-device"
@@ -360,7 +260,7 @@ def qemuArchNetworkConfig(i, tap_num, arch, n, isUserNetwork, ports):
 
             return "-device %(DEVICE)s,netdev=net%(I)i -netdev user,id=net%(I)i,%(FWD)s" % {'DEVICE': device, 'I': i, "FWD": portfwd[:-1]}
         else:
-            return "-device %(DEVICE)s,netdev=net%(I)i -netdev tap,id=net%(I)i,ifname=${TAPDEV_%(TOOL)s_%(TAP_NUM)i},script=no" % { 'I' : i, 'DEVICE' : device, 'TAP_NUM' : tap_num, 'TOOL' : TOOL}
+            return "-device %(DEVICE)s,netdev=net%(I)i -netdev tap,id=net%(I)i,ifname=${TAPDEV_%(MODE)s_%(TAP_NUM)i},script=no" % { 'I' : i, 'DEVICE' : device, 'TAP_NUM' : tap_num, 'MODE' : MODE}
 
 def qemuNetworkConfig(arch, network, isUserNetwork, ports):
     output = []
@@ -423,35 +323,30 @@ def convertToHostIp(ip):
 
 # iterating the networks
 def startNetwork(network, iid):
-    global TOOL
+    global MODE
 
-    tool_abbr = ''
-    if TOOL == "full":
-        tool_abbr = "fu"
-    elif TOOL == "firmafl":
-        tool_abbr = "fi"
-    elif TOOL == "equafl":
-        tool_abbr = "eq"
-    elif TOOL == "new_firmafl":
-        tool_abbr = "nfu"
-    elif TOOL == "new_firmafl":
-        tool_abbr = "nfi"
-    elif TOOL == "new_equafl":
-        tool_abbr = "neq"
+    mode_abbr = ''
+    if "run" == MODE:
+        mode_abbr = "run"
+    elif "firmafl" in MODE:
+        suffix = MODE.split("firmafl", 1)[1]
+        mode_abbr = f"fa{suffix}"
+    else:
+        assert(0)
 
     template_1 = """
-TAPDEV_%(TOOL)s_%(I)i=tap_%(TOOL_ABBR)s_%(IID)i_%(I)i
-HOSTNETDEV_%(I)i=${TAPDEV_%(TOOL)s_%(I)i}
-echo "Creating TAP device ${TAPDEV_%(TOOL)s_%(I)i}..."
-sudo tunctl -t ${TAPDEV_%(TOOL)s_%(I)i} -u ${USER}
+TAPDEV_%(MODE)s_%(I)i=tap_%(TOOL_ABBR)s_%(IID)i_%(I)i
+HOSTNETDEV_%(I)i=${TAPDEV_%(MODE)s_%(I)i}
+echo "Creating TAP device ${TAPDEV_%(MODE)s_%(I)i}..."
+sudo tunctl -t ${TAPDEV_%(MODE)s_%(I)i} -u ${USER}
 """
 
     if checkVariable("FIRMAE_NET"):
         template_vlan = """
 echo "Initializing VLAN..."
-HOSTNETDEV_%(I)i=${TAPDEV_%(TOOL)s_%(I)i}.%(VLANID)i
-sudo ip link add link ${TAPDEV_%(TOOL)s_%(I)i} name ${HOSTNETDEV_%(I)i} type vlan id %(VLANID)i
-sudo ip link set ${TAPDEV_%(TOOL)s_%(I)i} up
+HOSTNETDEV_%(I)i=${TAPDEV_%(MODE)s_%(I)i}.%(VLANID)i
+sudo ip link add link ${TAPDEV_%(MODE)s_%(I)i} name ${HOSTNETDEV_%(I)i} type vlan id %(VLANID)i
+sudo ip link set ${TAPDEV_%(MODE)s_%(I)i} up
 """
 
         template_2 = """
@@ -462,8 +357,8 @@ sudo ip addr add %(HOSTIP)s/24 dev ${HOSTNETDEV_%(I)i}
     else:
         template_vlan = """
 echo "Initializing VLAN..."
-HOSTNETDEV_%(I)i=${TAPDEV_%(TOOL)s_%(I)i}.%(VLANID)i
-sudo ip link add link ${TAPDEV_%(TOOL)s_%(I)i} name ${HOSTNETDEV_%(I)i} type vlan id %(VLANID)i
+HOSTNETDEV_%(I)i=${TAPDEV_%(MODE)s_%(I)i}.%(VLANID)i
+sudo ip link add link ${TAPDEV_%(MODE)s_%(I)i} name ${HOSTNETDEV_%(I)i} type vlan id %(VLANID)i
 sudo ip link set ${HOSTNETDEV_%(I)i} up
 """
 
@@ -478,18 +373,18 @@ sudo ip route add %(GUESTIP)s via %(GUESTIP)s dev ${HOSTNETDEV_%(I)i}
 
     output = []
     for i, (ip, dev, vlan, mac, brif) in enumerate(network):
-        output.append(template_1 % {'I' : i, 'TOOL' : TOOL, 'TOOL_ABBR': tool_abbr, 'IID': iid})
+        output.append(template_1 % {'I' : i, 'MODE' : MODE, 'TOOL_ABBR': mode_abbr, 'IID': iid})
         if vlan != None:
-            output.append(template_vlan % {'I' : i, 'TOOL' : TOOL, 'VLANID' : vlan})
-        output.append(template_2 % {'I' : i, 'TOOL' : TOOL, 'HOSTIP' : convertToHostIp(ip), 'GUESTIP': ip})
+            output.append(template_vlan % {'I' : i, 'MODE' : MODE, 'VLANID' : vlan})
+        output.append(template_2 % {'I' : i, 'MODE' : MODE, 'HOSTIP' : convertToHostIp(ip), 'GUESTIP': ip})
     return '\n'.join(output)
 
 def stopNetwork(network):
-    global TOOL
+    global MODE
 
     template_1 = """
 echo "Bringing down TAP device..."
-sudo ip link set ${TAPDEV_%(TOOL)s_%(I)i} down
+sudo ip link set ${TAPDEV_%(MODE)s_%(I)i} down
 """
 
     template_vlan = """
@@ -498,16 +393,16 @@ sudo ip link delete ${HOSTNETDEV_%(I)i}
 """
 
     template_2 = """
-echo "Deleting TAP device ${TAPDEV_%(TOOL)s_%(I)i}..."
-sudo tunctl -d ${TAPDEV_%(TOOL)s_%(I)i}
+echo "Deleting TAP device ${TAPDEV_%(MODE)s_%(I)i}..."
+sudo tunctl -d ${TAPDEV_%(MODE)s_%(I)i}
 """
 
     output = []
     for i, (ip, dev, vlan, mac, brif) in enumerate(network):
-        output.append(template_1 % {'I' : i, 'TOOL' : TOOL})
+        output.append(template_1 % {'I' : i, 'MODE' : MODE})
         if vlan != None:
-            output.append(template_vlan % {'I' : i, 'TOOL' : TOOL})
-        output.append(template_2 % {'I' : i, 'TOOL' : TOOL})
+            output.append(template_vlan % {'I' : i, 'MODE' : MODE})
+        output.append(template_2 % {'I' : i, 'MODE' : MODE})
     return '\n'.join(output)
 
 def qemuCmd(iid, network, ports, network_type, arch, endianness, qemuInitValue, isUserNetwork):
@@ -605,7 +500,7 @@ def readWithException(filePath):
 def inferNetwork(iid, arch, endianness, init):
     global SCRIPTDIR
     global SCRATCHDIR
-    global TOOL
+    global MODE
 
     TIMEOUT = int(os.environ['TIMEOUT'])
     targetDir = SCRATCHDIR + '/' + str(iid)
@@ -658,7 +553,7 @@ def inferNetwork(iid, arch, endianness, init):
     cmd = "timeout --preserve-status --signal SIGINT {0} ".format(TIMEOUT)
     cmd += "{0}/run.{1}.sh \"{2}\" \"{3}\" \"{4}\" ".format(SCRIPTDIR,
                                                     arch + endianness,
-                                                    TOOL,
+                                                    MODE,
                                                     iid,
                                                     qemuInitValue)
     cmd += " 2>&1 > /dev/null"
@@ -667,7 +562,7 @@ def inferNetwork(iid, arch, endianness, init):
     loopFile = mountImage(targetDir)
     if not os.path.exists(targetDir + '/image/firmadyne/nvram_files'):
         print("Infer NVRAM default file!\n")
-        os.system("{}/inferDefault.py {} {}".format(SCRIPTDIR, iid, TOOL))
+        os.system("{}/inferDefault.py {} {}".format(SCRIPTDIR, iid, MODE))
     umountImage(targetDir, loopFile)
 
     data = open("%s/qemu.initial.serial.log" % targetDir, 'rb').read()
@@ -763,7 +658,7 @@ def process(iid, arch, endianness, makeQemuCmd=False, outfile=None):
 
     global SCRIPTDIR
     global SCRATCHDIR
-    global TOOL
+    global MODE
 
     for init in open(SCRATCHDIR + "/" + str(iid) + "/init").read().split('\n')[:-1]:
         with open(SCRATCHDIR + "/" + str(iid) + "/current_init", 'w') as out:
@@ -814,10 +709,10 @@ def process(iid, arch, endianness, makeQemuCmd=False, outfile=None):
                 out.write(qemuCommandLine)
             os.chmod(outfile, stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
 
-            if not os.path.islink(outfile.replace(".sh", "_%s.sh" % TOOL)):
-                os.symlink(outfile, outfile.replace(".sh", "_%s.sh" % TOOL))
+            if not os.path.islink(outfile.replace(".sh", "_%s.sh" % MODE)) and MODE != "run":
+                os.symlink(outfile, outfile.replace(".sh", "_%s.sh" % MODE))
 
-            os.system('./scripts/test_emulation.sh {} {} {}'.format(TOOL, iid, arch + endianness))
+            os.system('./scripts/test_emulation.sh {} {} {}'.format(MODE, iid, arch + endianness))
 
             if (os.path.exists(SCRATCHDIR + '/' + str(iid) + '/web_check') and
                 open(SCRATCHDIR + '/' + str(iid) + '/web_check').read().strip() == 'true'):
@@ -862,7 +757,7 @@ def getWorkDir():
 def main():
     makeQemuCmd = False
     iid = None
-    tool = None
+    mode = None
     outfile = None
     arch = None
     endianness = None
@@ -880,7 +775,7 @@ def main():
         if k == '-i':
             iid = int(v)
         if k == '-t':
-            tool = v
+            mode = v
         if k == '-o':
             outfile = True
         if k == '-a':
@@ -888,9 +783,9 @@ def main():
 
     global SCRATCHDIR
     global SCRIPTDIR
-    global TOOL
-    TOOL = tool
-    SCRATCHDIR = workDir + '/scratch/' + tool
+    global MODE
+    MODE = mode
+    SCRATCHDIR = workDir + '/scratch/' + mode
     SCRIPTDIR = workDir + '/scripts'
 
     if not arch or not endianness:

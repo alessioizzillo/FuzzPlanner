@@ -4,9 +4,9 @@ import sys
 import os
 import subprocess
 
-def GetKeyList(IID, TOOL):
+def GetKeyList(IID, MODE):
     keyList = []
-    for i in open('./scratch/{}/{}/qemu.initial.serial.log'.format(TOOL, IID), 'rb').read().split(b'\n'):
+    for i in open('./scratch/{}/{}/qemu.initial.serial.log'.format(MODE, IID), 'rb').read().split(b'\n'):
         if i.startswith(b'[NVRAM]'):
             l = i.split(b' ')
             if len(l) < 3: continue
@@ -26,7 +26,7 @@ def GetKeyList(IID, TOOL):
 
 def GetDefaultFiles(keyList):
     default_list = []
-    for dir_name, dir_list, file_list in os.walk('./scratch/{}/{}/image'.format(TOOL, IID)):
+    for dir_name, dir_list, file_list in os.walk('./scratch/{}/{}/image'.format(MODE, IID)):
         if dir_name.find('/firmadyne') != -1: continue
 
         for file_name in file_list:
@@ -44,27 +44,27 @@ def GetDefaultFiles(keyList):
 
 def Log(default_list):
     # logging found nvram keys
-    with open('./scratch/{}/{}/nvram_keys'.format(TOOL, IID), 'w') as out:
+    with open('./scratch/{}/{}/nvram_keys'.format(MODE, IID), 'w') as out:
         out.write(str(len(keyList)) + '\n')
         for i in keyList:
             out.write(i.decode() + '\n')
 
     # logging default nvram files
     if default_list:
-        with open('./scratch/{}/{}/nvram_files'.format(TOOL, IID), 'w') as f:
+        with open('./scratch/{}/{}/nvram_files'.format(MODE, IID), 'w') as f:
             for i, j in default_list:
                 path = i.split('image')[1]
                 output = subprocess.check_output(['file', i]).decode()[:-1]
                 fileType = output.split(' ', 1)[1].replace(' ', '_')
                 if fileType.find('symbolic') == -1:
                     f.write('{} {} {}\n'.format(path, j, fileType))
-        os.system('cp ./scratch/{}/{}/nvram_files ./scratch/{}/{}/image/firmadyne/'.format(TOOL, IID, TOOL, IID))
+        os.system('cp ./scratch/{}/{}/nvram_files ./scratch/{}/{}/image/firmadyne/'.format(MODE, IID, MODE, IID))
 
 if __name__ == "__main__":
     # execute only if run as a script
     IID = sys.argv[1]
-    TOOL = sys.argv[2]
-    keyList = GetKeyList(IID, TOOL)
+    MODE = sys.argv[2]
+    keyList = GetKeyList(IID, MODE)
     if len(keyList) < 10:
         exit(0)
     defaultList = GetDefaultFiles(keyList)

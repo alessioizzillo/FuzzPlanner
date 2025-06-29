@@ -1,0 +1,58 @@
+{
+  "num_client_executables": 4,
+  "num_server_executables": 2,
+  "data_channels": [
+    {
+      "id": "socket(domain:1, type:2, protocol:0){path:/var/run/xmldb_sock}",
+      "kind": "unix_socket",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 6,
+      "num_processes": 581,
+      "num_interactions_as_source": 49,
+      "num_interactions_as_sink": 417,
+      "first_as_sink": false,
+      "first_as_source": true
+    },
+    {
+      "id": "file{path:/etc/TZ}",
+      "kind": "file",
+      "used": true,
+      "score": 0.15,
+      "is_border": false,
+      "num_executables": 3,
+      "num_processes": 7409,
+      "num_interactions_as_source": 1296,
+      "num_interactions_as_sink": 0,
+      "first_as_sink": false,
+      "first_as_source": true
+    },
+    {
+      "id": "virtual_file{path:/proc/net/arp}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.5,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 1,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "file{path:/www/bsc_wlan.php}",
+      "kind": "file",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 67,
+      "num_interactions_as_source": 15,
+      "num_interactions_as_sink": 0,
+      "first_as_sink": false,
+      "first_as_source": true
+    }
+  ]
+}

@@ -24,12 +24,12 @@ fi
 
 IID=${1}
 ARCH=${2}
-TOOL=${3}
+MODE=${3}
 
 echo "----Running----"
-WORK_DIR=`get_scratch ${IID} ${TOOL}`
-IMAGE=`get_fs ${IID} ${TOOL}`
-IMAGE_DIR=`get_fs_mount ${IID} ${TOOL}`
+WORK_DIR=`get_scratch ${IID} ${MODE}`
+IMAGE=`get_fs ${IID} ${MODE}`
+IMAGE_DIR=`get_fs_mount ${IID} ${MODE}`
 
 echo "----Copying Filesystem Tarball----"
 mkdir -p "${WORK_DIR}"
@@ -38,11 +38,11 @@ chown -R "${USER}" "${WORK_DIR}"
 chgrp -R "${USER}" "${WORK_DIR}"
 
 if [ ! -e "${WORK_DIR}/${IID}.tar.gz" ]; then
-    if [ ! -e "${TARBALL_DIR}/${TOOL}/${IID}.tar.gz" ]; then
+    if [ ! -e "${TARBALL_DIR}/${MODE}/${IID}.tar.gz" ]; then
         echo "Error: Cannot find tarball of root filesystem for ${IID}!"
         exit 1
     else
-        cp "${TARBALL_DIR}/${TOOL}/${IID}.tar.gz" "${WORK_DIR}/${IID}.tar.gz"
+        cp "${TARBALL_DIR}/${MODE}/${IID}.tar.gz" "${WORK_DIR}/${IID}.tar.gz"
     fi
 fi
 
@@ -71,7 +71,7 @@ sync
 mount "${DEVICE}" "${IMAGE_DIR}"
 
 echo "----Extracting Filesystem Tarball----"
-mkdir ${WORK_DIR}/image_backup
+mkdir ${WORK_DIR}/image_backup || true
 tar -xf "${WORK_DIR}/$IID.tar.gz" -C "${IMAGE_DIR}"
 tar -xf "${WORK_DIR}/$IID.tar.gz" -C "${WORK_DIR}"
 tar -xf "${WORK_DIR}/$IID.tar.gz" -C "${WORK_DIR}/image_backup"
@@ -81,9 +81,9 @@ echo "----Creating FIRMADYNE Directories----"
 mkdir "${IMAGE_DIR}/firmadyne/"
 mkdir "${IMAGE_DIR}/firmadyne/libnvram/"
 mkdir "${IMAGE_DIR}/firmadyne/libnvram.override/"
-mkdir "${WORK_DIR}/image_backup/firmadyne/"
-mkdir "${WORK_DIR}/image_backup/firmadyne/libnvram/"
-mkdir "${WORK_DIR}/image_backup/firmadyne/libnvram.override/"
+mkdir "${WORK_DIR}/image_backup/firmadyne/" || true
+mkdir "${WORK_DIR}/image_backup/firmadyne/libnvram/" || true
+mkdir "${WORK_DIR}/image_backup/firmadyne/libnvram.override/" || true
 
 cp $(which busybox) "${IMAGE_DIR}"
 cp $(which bash-static) "${IMAGE_DIR}"
@@ -160,5 +160,5 @@ del_partition ${DEVICE:0:$((${#DEVICE}-2))}
 
 echo "----FirmAFL Setup----"
 cd ..
-python3 FirmAFL/image_setup.py ${IID} ${ARCH} ${TOOL}
+python3 FirmAFL/image_setup.py ${IID} ${ARCH} ${MODE}
 cd -

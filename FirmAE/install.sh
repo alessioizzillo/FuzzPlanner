@@ -3,7 +3,13 @@
 sudo apt-get update
 sudo apt-get install -y curl wget tar git ruby python python3 python3-pip bc
 sudo python3 -m pip install --upgrade pip
-sudo python3 -m pip install coloredlogs
+sudo python3 -m pip install coloredlogs scapy "termcolor<3" colorama venn pandas scipy dpkt tabulate
+sudo pip3 install -U cryptography
+
+git clone https://github.com/KimiNewt/pyshark.git
+cd pyshark/src
+sudo python3 setup.py install
+cd -
 
 # for docker
 sudo apt-get install -y docker.io

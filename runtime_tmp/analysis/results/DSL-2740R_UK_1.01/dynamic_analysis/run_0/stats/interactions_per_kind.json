@@ -1,0 +1,9 @@
+{
+  "pipe": 5,
+  "file": 118,
+  "device": 3,
+  "virtual_file": 82,
+  "inet6_socket": 6,
+  "netlink_socket": 2,
+  "inet_socket": 5
+}

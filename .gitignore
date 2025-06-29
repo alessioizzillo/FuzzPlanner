@@ -1,0 +1,5 @@
+runtime_tmp/*
+!runtime_tmp/analysis
+webapp/node_modules
+webapp/.next
+FirmAE/firm_db_*

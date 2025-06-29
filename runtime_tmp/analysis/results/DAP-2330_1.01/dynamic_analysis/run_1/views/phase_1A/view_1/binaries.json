@@ -1,0 +1,1709 @@
+[
+  {
+    "id": "/etc/init.d/rcS",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": { "file{path:/etc/init.d/rcS}": { "num": 2, "score": 0.0 } }
+    }
+  },
+  {
+    "id": "/etc/init.d/S03config.sh",
+    "type": "symlink",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/init.d/S03config.sh}": { "num": 7, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/bin/cat",
+    "type": "symlink",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/config/image_sign}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/config/langpack}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/sbin/mdev",
+    "type": "symlink",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "virtual_file": {
+        "virtual_file{path:/sys/class/vc/vcs/dev}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/sys/class/vc/vcs1/dev}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/sys/class/vc/vcsa/dev}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/sys/class/vc/vcsa1/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/bsg/0:0:0:0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/bsg/1:0:0:0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mem/mem/dev}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/sys/class/mem/full/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mem/kmem/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mem/kmsg/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mem/null/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mem/port/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mem/zero/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mem/random/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mem/urandom/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd1/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd2/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd3/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd4/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd5/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd6/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd7/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd8/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd9/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd10/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd10ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd0ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd1ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd2ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd3ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd4ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd5ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd6ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd7ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd8ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/mtd/mtd9ro/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/pib/pib/dev}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/sys/class/ppp/ppp/dev}": {
+          "num": 1,
+          "score": 0.15
+        },
+        "virtual_file{path:/sys/class/rtc/rtc0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty/dev}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/sys/class/tty/ptmx/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty1/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty2/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty3/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty4/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty5/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty6/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty7/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty8/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty9/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/console/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp1/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp2/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp3/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp4/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp5/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp6/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp7/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp8/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptyp9/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptypa/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptypb/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptypc/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptypd/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptype/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ptypf/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty10/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty11/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty12/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty13/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty14/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty15/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty16/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty17/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty18/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty19/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty20/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty21/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty22/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty23/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty24/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty25/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty26/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty27/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty28/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty29/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty30/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty31/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty32/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty33/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty34/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty35/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty36/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty37/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty38/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty39/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty40/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty41/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty42/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty43/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty44/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty45/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty46/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty47/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty48/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty49/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty50/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty51/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty52/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty53/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty54/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty55/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty56/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty57/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty58/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty59/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty60/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty61/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty62/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/tty63/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyS0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyS1/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyS2/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyS3/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp1/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp2/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp3/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp4/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp5/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp6/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp7/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp8/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttyp9/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttypa/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttypb/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttypc/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttypd/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttype/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/tty/ttypf/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/misc/tun/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/misc/cpu_dma_latency/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/misc/psaux/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/misc/network_latency/dev}": {
+          "num": 1,
+          "score": 0.15
+        },
+        "virtual_file{path:/sys/class/misc/memory_bandwidth/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/misc/loop-control/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/misc/vga_arbiter/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/misc/network_throughput/dev}": {
+          "num": 1,
+          "score": 0.15
+        },
+        "virtual_file{path:/sys/class/tca0/tca0/dev}": {
+          "num": 1,
+          "score": 0.15
+        },
+        "virtual_file{path:/sys/class/brcmboard/brcmboard/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/i2c-dev/i2c-0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/sda/dev}": {
+          "num": 1,
+          "score": 0.15
+        },
+        "virtual_file{path:/sys/class/block/ram0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram1/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram2/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram3/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram4/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram5/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram6/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram7/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram8/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram9/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/sda1/dev}": {
+          "num": 1,
+          "score": 0.15
+        },
+        "virtual_file{path:/sys/class/block/loop0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/loop1/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/loop2/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/loop3/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/loop4/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/loop5/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/loop6/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/loop7/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram10/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram11/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram12/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram13/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram14/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/ram15/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock10/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock1/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock2/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock3/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock4/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock5/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock6/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock7/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock8/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/block/mtdblock9/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/input/mice/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/nvram/nvram/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/graphics/fb0/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/dsl_cpe_api/dsl_cpe_api/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/zybtnio/zybtnio/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/acos_nat_cli/acos_nat_cli/dev}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "virtual_file{path:/sys/class/sc_led/sc_led/dev}": {
+          "num": 1,
+          "score": 0.0
+        }
+      }
+    }
+  },
+  {
+    "id": "/usr/sbin/devdata",
+    "type": "symlink",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "device": { "device{path:/dev/mtdblock/3}": { "num": 14, "score": 0.15 } }
+    }
+  },
+  {
+    "id": "/etc/scripts/misc/profile.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/scripts/misc/profile.sh}": { "num": 5, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/bin/cp",
+    "type": "symlink",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/config/defaultvalue.gz}": { "num": 2, "score": 0.15 },
+        "file{path:/etc/cert/cert.pem}": { "num": 1, "score": 0.0 },
+        "file{path:/etc/cert/key.pem}": { "num": 1, "score": 0.0 }
+      }
+    }
+  },
+  {
+    "id": "/etc/scripts/misc/defnodes.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/scripts/misc/defnodes.sh}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/bin/sh",
+    "type": "symlink",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/defnodes/S10setext.sh}": { "num": 10, "score": 0.15 },
+        "file{path:/etc/defnodes/S20setnodes.sh}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/defnodes/S21setext.sh}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/defnodes/S23langpack.sh}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/defnodes/S40brand.sh}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/templates/limitedadmin.sh}": {
+          "num": 1,
+          "score": 0.15
+        },
+        "file{path:/etc/templates/pingctl.sh}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/templates/autorekey.sh}": { "num": 2, "score": 0.15 },
+        "file{path:/var/run/autorekey_start_g.sh}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/templates/certs/certscmd.sh}": {
+          "num": 3,
+          "score": 0.15
+        },
+        "file{path:/etc/templates/lld2d.sh}": { "num": 2, "score": 0.15 },
+        "file{path:/etc/templates/loadbalance.sh}": { "num": 2, "score": 0.15 },
+        "file{path:/etc/templates/netfilter.sh}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/templates/dhcp_mc2uc.sh}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/usr/sbin/xmldb",
+    "type": "binary",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/defnodes/S11setnodes.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/config/buildver}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/config/buildrev}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/config/buildno}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/config/builddate}": { "num": 1, "score": 0.15 },
+        "file{path:/etc/defnodes/S12features.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/defnodes/S13flashspeed.php}": {
+          "num": 2,
+          "score": 0.0
+        },
+        "file{path:/etc/defnodes/S20setnodes.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/defnodes/S40brand.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/templates/misc/timezone_setup.php}": {
+          "num": 5,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/logs.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/templates/troot.php}": { "num": 376, "score": 0.0 },
+        "file{path:/etc/templates/misc/logs_run.php}": {
+          "num": 6,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/powerled_run.php}": {
+          "num": 2,
+          "score": 0.0
+        },
+        "file{path:/etc/scripts/layout_run.php}": { "num": 4, "score": 0.0 },
+        "file{path:/etc/templates/lan_run.php}": { "num": 4, "score": 0.0 },
+        "file{path:/etc/templates/httpd/webs_run.php}": {
+          "num": 8,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/httpd/httpd.php}": {
+          "num": 290,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/httpd/httpd_server.php}": {
+          "num": 290,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/httpd/httpasswd.php}": {
+          "num": 290,
+          "score": 0.0
+        },
+        "file{path:/etc/scripts/eth0_vlan.php}": { "num": 24, "score": 0.0 },
+        "file{path:/etc/templates/limitedadmin.php}": {
+          "num": 2,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/pingctl.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/templates/wan_start.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/templates/wan_static.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/templates/inet6.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/templates/wan_stop.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/templates/wan_up.php}": { "num": 3, "score": 0.0 },
+        "file{path:/etc/templates/misc/ntp_run.php}": {
+          "num": 4,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/upnpd/upnpd_run.php}": {
+          "num": 4,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/captival_portal.php}": {
+          "num": 8,
+          "score": 0.0
+        },
+        "file{path:/www/index.php}": { "num": 18, "score": 0.0 },
+        "file{path:/www/dap2330_webdisplay.php}": { "num": 18, "score": 0.0 },
+        "file{path:/www/main.php}": { "num": 26, "score": 0.0 },
+        "file{path:/www/model/__html_head.php}": { "num": 114, "score": 0.0 },
+        "file{path:/www/model/__auth_check.php}": { "num": 128, "score": 0.0 },
+        "file{path:/www/auth/__authenticate_s.php}": {
+          "num": 126,
+          "score": 0.0
+        },
+        "file{path:/www/session_login.php}": { "num": 4, "score": 0.0 },
+        "file{path:/www/login.php}": { "num": 5, "score": 0.0 },
+        "file{path:/www/model/__lang_msg.php}": { "num": 126, "score": 0.0 },
+        "file{path:/www/model/__g_var.php}": { "num": 189, "score": 0.0 },
+        "file{path:/www/locale/en/charset}": { "num": 63, "score": 0.0 },
+        "file{path:/www/locale/en/msg_comm.php}": { "num": 126, "score": 0.0 },
+        "file{path:/www/locale/en/msg_menu.php}": { "num": 126, "score": 0.0 },
+        "file{path:/www/locale/en/login.php}": { "num": 2, "score": 0.0 },
+        "file{path:/www/comm/__js_comm.php}": { "num": 224, "score": 0.0 },
+        "file{path:/www/model/__button.php}": { "num": 112, "score": 0.0 },
+        "file{path:/www/model/__logo.php}": { "num": 32, "score": 0.0 },
+        "file{path:/etc/templates/stunnel/stunnel_run.php}": {
+          "num": 8,
+          "score": 0.15
+        },
+        "file{path:/etc/templates/stunnel/stunnelconf.php}": {
+          "num": 4,
+          "score": 0.15
+        },
+        "file{path:/etc/templates/wlan_servd.php}": { "num": 3, "score": 0.0 },
+        "file{path:/etc/services/WLAN.php}": { "num": 4, "score": 0.0 },
+        "file{path:/etc/templates/autorekey.php}": { "num": 9, "score": 0.0 },
+        "file{path:/etc/templates/ssh/sshd_run.php}": {
+          "num": 4,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/wlan_run.php}": { "num": 4, "score": 0.0 },
+        "file{path:/etc/templates/wlan_run_g.php}": { "num": 14, "score": 0.0 },
+        "file{path:/etc/templates/__wlan_acl_g.php}": {
+          "num": 2,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/__auth_openshared_g.php}": {
+          "num": 2,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/multi_ssid_run_g.php}": {
+          "num": 10,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/wlan_insmod.php}": { "num": 2, "score": 0.0 },
+        "file{path:/etc/templates/__wlan_device_up.php}": {
+          "num": 2,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/__wlan_device_g_up.php}": {
+          "num": 7,
+          "score": 0.0
+        },
+        "file{path:/www/auth/__login.php}": { "num": 2, "score": 0.0 },
+        "file{path:/www/comm/__header.php}": { "num": 2, "score": 0.0 },
+        "file{path:/www/locale/en/main.php}": { "num": 16, "score": 0.0 },
+        "file{path:/www/comm/__js_tree.php}": { "num": 80, "score": 0.0 },
+        "file{path:/www/comm/__js_defineMytree.php}": {
+          "num": 24,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/dhcp/dhcpd_restart.php}": {
+          "num": 2,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/dhcp/dhcpd.php}": { "num": 6, "score": 0.0 },
+        "file{path:/www/home_sys.php}": { "num": 4, "score": 0.0 },
+        "file{path:/www/locale/en/home_sys.php}": { "num": 2, "score": 0.0 },
+        "file{path:/www/auth/__session_timeout.php}": {
+          "num": 94,
+          "score": 0.0
+        },
+        "file{path:/www/comm/__js_ip.php}": { "num": 145, "score": 0.0 },
+        "file{path:/etc/templates/lld2d_run.php}": { "num": 8, "score": 0.0 },
+        "file{path:/etc/templates/__vlan.php}": { "num": 10, "score": 0.0 },
+        "file{path:/etc/templates/neaps/neaps_run.php}": {
+          "num": 4,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/neaps/neaps_conf.php}": {
+          "num": 2,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/neapc/neapc_run.php}": {
+          "num": 8,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/neapc/neapc_conf.php}": {
+          "num": 2,
+          "score": 0.0
+        },
+        "file{path:/www/locale/en/bsc_wlan.php}": { "num": 12, "score": 0.0 },
+        "file{path:/www/model/__wlan.php}": { "num": 93, "score": 0.0 },
+        "file{path:/etc/templates/apneap_v2/loadbalance_run.php}": {
+          "num": 8,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/tc_monitor.php}": { "num": 4, "score": 0.0 },
+        "file{path:/etc/templates/trafficmgr_run.php}": {
+          "num": 10,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/neapc/apneaps_run.php}": {
+          "num": 4,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/qos_run.php}": { "num": 20, "score": 0.0 },
+        "file{path:/etc/templates/apneap_v2/apneaps_v2_run.php}": {
+          "num": 4,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/apneap_v2/autorf_run.php}": {
+          "num": 4,
+          "score": 0.0
+        },
+        "file{path:/etc/templates/arpspoofing.php}": { "num": 8, "score": 0.0 },
+        "file{path:/etc/templates/netfilter.php}": { "num": 4, "score": 0.0 },
+        "file{path:/etc/templates/dhcp_mc2uc.php}": { "num": 2, "score": 0.0 },
+        "file{path:/www/model/__admin_check.php}": { "num": 14, "score": 0.0 },
+        "file{path:/www/__action_bsc.php}": { "num": 7, "score": 0.0 },
+        "file{path:/www/__saving.php}": { "num": 36, "score": 0.0 },
+        "file{path:/www/adv_perf.php}": { "num": 16, "score": 0.0 },
+        "file{path:/www/locale/en/adv_perf.php}": { "num": 9, "score": 0.0 },
+        "file{path:/www/__action_adv.php}": { "num": 198, "score": 0.0 },
+        "file{path:/www/adv_resource.php}": { "num": 12, "score": 0.0 },
+        "file{path:/www/locale/en/adv_resource.php}": {
+          "num": 6,
+          "score": 0.0
+        },
+        "file{path:/www/adv_8021q_s.php}": { "num": 32, "score": 0.0 },
+        "file{path:/www/locale/en/adv_8021q.php}": { "num": 10, "score": 0.0 },
+        "file{path:/www/adv_8021q_vlan_list_s.php}": { "num": 6, "score": 0.0 },
+        "file{path:/www/adv_mssid.php}": { "num": 63, "score": 0.0 },
+        "file{path:/www/locale/en/adv_mssid.php}": { "num": 15, "score": 0.0 },
+        "file{path:/www/adv_arpspoofing.php}": { "num": 4, "score": 0.0 },
+        "file{path:/www/locale/en/adv_arpspoofing.php}": {
+          "num": 1,
+          "score": 0.0
+        },
+        "file{path:/www/adv_rogue.php}": { "num": 12, "score": 0.0 },
+        "file{path:/www/locale/en/adv_rogue.php}": { "num": 6, "score": 0.0 },
+        "file{path:/www/__scan.php}": { "num": 4, "score": 0.0 },
+        "file{path:/www/st_device.php}": { "num": 6, "score": 0.0 },
+        "file{path:/www/locale/en/st_device.php}": { "num": 2, "score": 0.0 },
+        "file{path:/www/st_info.php}": { "num": 75, "score": 0.0 },
+        "file{path:/www/locale/en/st_info.php}": { "num": 30, "score": 0.0 }
+      }
+    }
+  },
+  {
+    "id": "/bin/mount",
+    "type": "symlink",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "virtual_file": {
+        "virtual_file{path:/proc/filesystems}": { "num": 1, "score": 0.0 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/timezone.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/timezone.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/logs.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/logs.sh}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/powerled.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/powerled.sh}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/init.d/S10system.sh",
+    "type": "symlink",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/init.d/S10system.sh}": { "num": 9, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/scripts/layout.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/scripts/layout.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/lan.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/lan.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/webs.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/webs.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/scripts/eth_vlan.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/scripts/eth_vlan.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/scripts/enlan.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/scripts/enlan.sh}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/usr/sbin/getsys",
+    "type": "symlink",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "virtual_file": {
+        "virtual_file{path:/proc/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/meminfo}": { "num": 1, "score": 0.0 }
+      }
+    }
+  },
+  {
+    "id": "/etc/scripts/misc/setwantype.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/scripts/misc/setwantype.sh}": {
+          "num": 1,
+          "score": 0.15
+        }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/wan.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/wan.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/sbin/ifconfig",
+    "type": "symlink",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "virtual_file": {
+        "virtual_file{path:/proc/net/dev}": { "num": 1, "score": 0.5 },
+        "virtual_file{path:/proc/net/if_inet6}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/wanup.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/wanup.sh}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/ntp.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/ntp.sh}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/usr/bin/killall",
+    "type": "symlink",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "virtual_file": {
+        "virtual_file{path:/proc/1/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/2/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/3/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/5/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/6/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/7/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/8/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/9/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/10/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/11/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/12/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/13/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/14/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/15/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/16/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/17/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/18/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/35/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/36/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/37/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/38/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/39/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/40/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/41/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/44/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/45/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/46/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/47/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/48/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/48/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/50/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/50/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/148/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/148/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/880/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/880/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/927/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/927/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/948/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/948/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/981/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/981/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/984/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/984/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1030/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1030/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1046/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1046/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1060/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1060/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1066/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1066/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1084/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1084/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1088/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1088/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1100/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1100/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1105/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1105/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1113/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1113/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1115/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1115/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1273/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1273/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1290/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1290/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1304/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1304/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1306/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1306/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1333/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1333/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1535/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1535/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1563/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1563/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1631/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1631/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1727/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1727/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1733/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1733/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1735/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1735/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1739/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1739/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1741/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1741/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1747/stat}": { "num": 2, "score": 0.0 },
+        "virtual_file{path:/proc/1747/cmdline}": { "num": 2, "score": 0.0 },
+        "virtual_file{path:/proc/1748/stat}": { "num": 2, "score": 0.0 },
+        "virtual_file{path:/proc/1748/cmdline}": { "num": 2, "score": 0.0 },
+        "virtual_file{path:/proc/1753/stat}": { "num": 2, "score": 0.0 },
+        "virtual_file{path:/proc/1753/cmdline}": { "num": 2, "score": 0.0 },
+        "virtual_file{path:/proc/1755/stat}": { "num": 2, "score": 0.0 },
+        "virtual_file{path:/proc/1755/cmdline}": { "num": 2, "score": 0.0 },
+        "virtual_file{path:/proc/1775/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1775/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1786/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1786/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1789/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1789/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1797/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1797/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1803/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1803/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1842/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1842/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1843/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1843/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1848/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/1848/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/3127/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/3127/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4026/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4026/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4159/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4159/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4161/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4161/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4493/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4493/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4615/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4615/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4668/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4668/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4721/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4721/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4736/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4736/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4737/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4737/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4747/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4747/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4748/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4748/cmdline}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4750/stat}": { "num": 1, "score": 0.0 },
+        "virtual_file{path:/proc/4750/cmdline}": { "num": 1, "score": 0.0 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/upnpd.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/upnpd.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/usr/sbin/submit",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": { "file{path:/usr/sbin/submit}": { "num": 16, "score": 0.0 } }
+    }
+  },
+  {
+    "id": "/sbin/httpd",
+    "type": "binary",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "inet6_socket": {
+        "socket(domain:10, type:2, protocol:6){addr:0.0.0.0; port:80}": {
+          "num": 8,
+          "score": 1.0
+        }
+      },
+      "virtual_file": {
+        "virtual_file{path:/var/proc/web//sessiontimeout}": {
+          "num": 7,
+          "score": 0.15
+        },
+        "virtual_file{path:var/proc/web/session:1/ip}": {
+          "num": 8,
+          "score": 0.15
+        },
+        "virtual_file{path:var/proc/web/session:1/user/ac_auth}": {
+          "num": 3,
+          "score": 0.15
+        }
+      }
+    }
+  },
+  {
+    "id": "/sbin/atp",
+    "type": "binary",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "virtual_file": {
+        "virtual_file{path:/proc/net/arp}": { "num": 1, "score": 0.5 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/stunnel.sh",
+    "type": "script",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/stunnel.sh}": { "num": 5, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/bin/tar",
+    "type": "symlink",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/passwd}": { "num": 1, "score": 0.15 },
+        "file{path:stunnel/key.pem}": { "num": 1, "score": 0.15 },
+        "file{path:stunnel/cert.pem}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/usr/sbin/devconf",
+    "type": "symlink",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": { "file{path:stunnel.tar.gz}": { "num": 1, "score": 0.15 } }
+    }
+  },
+  {
+    "id": "/usr/sbin/stunnel",
+    "type": "binary",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "device": { "device{path:/dev/urandom}": { "num": 1, "score": 0.0 } },
+      "file": {
+        "file{path:/var/etc/stunnel/cert.pem}": { "num": 1, "score": 0.15 },
+        "file{path:/var/etc/stunnel/key.pem}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/wlan.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/wlan.sh}": { "num": 3, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/services/svchlper",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/services/svchlper}": { "num": 2, "score": 0.0 }
+      }
+    }
+  },
+  {
+    "id": "/etc/scripts/misc/telnetd.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/scripts/misc/telnetd.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/wlan_run.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/wlan_run.sh}": { "num": 9, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/sshd.sh",
+    "type": "script",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/sshd.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/dhcpd.sh",
+    "type": "script",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/dhcpd.sh}": { "num": 3, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/snmp.sh",
+    "type": "script",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/snmp.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/neaps.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/neaps.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/neapc.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/neapc.sh}": { "num": 3, "score": 0.15 },
+        "file{path:/var/run/apneaps_start.sh}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/usr/sbin/mfc",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": { "file{path:/usr/sbin/mfc}": { "num": 15, "score": 0.0 } }
+    }
+  },
+  {
+    "id": "/etc/templates/apneaps_v2.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/apneaps_v2.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/autorf.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/autorf.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/arpspoofing.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/arpspoofing.sh}": { "num": 2, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/usr/sbin/time",
+    "type": "script",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "file": { "file{path:/usr/sbin/time}": { "num": 1, "score": 0.0 } }
+    }
+  },
+  {
+    "id": "/etc/templates/rogue_ap_scan.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/rogue_ap_scan.sh}": {
+          "num": 1,
+          "score": 0.15
+        }
+      }
+    }
+  },
+  {
+    "id": "/etc/templates/ap_comp.sh",
+    "type": "script",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "file": {
+        "file{path:/etc/templates/ap_comp.sh}": { "num": 1, "score": 0.15 }
+      }
+    }
+  },
+  {
+    "id": "/usr/sbin/telnetd",
+    "type": "binary",
+    "is_proprietary": true,
+    "border_data_channels": {
+      "inet6_socket": {
+        "socket(domain:10, type:2, protocol:0){addr:0.0.0.0; port:23}": {
+          "num": 150,
+          "score": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "/bin/ping",
+    "type": "symlink",
+    "is_proprietary": false,
+    "border_data_channels": {
+      "inet_socket": {
+        "socket(domain:2, type:3, protocol:1){addr:127.0.0.1; port:0}": {
+          "num": 8,
+          "score": 1.0
+        }
+      }
+    }
+  }
+]

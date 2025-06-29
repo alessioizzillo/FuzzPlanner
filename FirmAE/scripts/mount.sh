@@ -24,9 +24,9 @@ if check_root; then
 fi
 
 echo "----Running----"
-WORK_DIR=`get_scratch ${IID} ${TOOL}`
-IMAGE=`get_fs ${IID} ${TOOL}`
-IMAGE_DIR=`get_fs_mount ${IID} ${TOOL}`
+WORK_DIR=`get_scratch ${IID} ${MODE}`
+IMAGE=`get_fs ${IID} ${MODE}`
+IMAGE_DIR=`get_fs_mount ${IID} ${MODE}`
 
 echo "----Adding Device File----"
 #/usr/bin/qemu-nbd --connect=/dev/${NBD} "${IMAGE}"

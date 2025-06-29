@@ -1,0 +1,28 @@
+{
+  "id": "device{path:/dev/mtdblock/5}",
+  "kind": "device",
+  "used": true,
+  "score": 0.15,
+  "executables": [
+    {
+      "id": "/usr/sbin/devconf",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 2,
+      "num_interactions_as_sink": 16,
+      "num_processes": 18,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/bin/echo",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 1,
+      "num_interactions_as_sink": 0,
+      "num_processes": 1,
+      "first_as_source": true,
+      "first_as_sink": false
+    }
+  ]
+}

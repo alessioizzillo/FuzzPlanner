@@ -1,0 +1,110 @@
+{
+  "num_client_executables": 4,
+  "num_server_executables": 1,
+  "data_channels": [
+    {
+      "id": "file{path:/var/etc/httpd.cfg}",
+      "kind": "file",
+      "used": true,
+      "score": 0.5,
+      "is_border": false,
+      "num_executables": 3,
+      "num_processes": 158,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 79,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "socket(domain:1, type:2, protocol:0){path:/var/run/xmldb_sock}",
+      "kind": "unix_socket",
+      "used": true,
+      "score": 0.0,
+      "is_border": false,
+      "num_executables": 4,
+      "num_processes": 228,
+      "num_interactions_as_source": 75,
+      "num_interactions_as_sink": 44,
+      "first_as_sink": false,
+      "first_as_source": true
+    },
+    {
+      "id": "file{path:/etc/TZ}",
+      "kind": "file",
+      "used": true,
+      "score": 0.15,
+      "is_border": false,
+      "num_executables": 3,
+      "num_processes": 60,
+      "num_interactions_as_source": 16,
+      "num_interactions_as_sink": 3,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "socket(domain:10, type:2, protocol:6){addr:0.0.0.0; port:80}",
+      "kind": "inet6_socket",
+      "used": true,
+      "score": 1.0,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 8,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 8,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/var/proc/web//sessiontimeout}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 7,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 7,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:var/proc/web/session:1/ip}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 8,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 8,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:var/proc/web/session:1/user/ac_auth}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": true,
+      "num_executables": 1,
+      "num_processes": 3,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 3,
+      "first_as_sink": true,
+      "first_as_source": false
+    },
+    {
+      "id": "virtual_file{path:/var/proc/web/session:1/user/ac_auth}",
+      "kind": "virtual_file",
+      "used": true,
+      "score": 0.15,
+      "is_border": false,
+      "num_executables": 2,
+      "num_processes": 2,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "first_as_sink": true,
+      "first_as_source": false
+    }
+  ]
+}

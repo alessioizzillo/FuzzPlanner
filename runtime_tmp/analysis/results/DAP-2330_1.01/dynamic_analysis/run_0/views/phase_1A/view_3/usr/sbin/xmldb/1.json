@@ -1,0 +1,48 @@
+{
+  "id": "pipe_148_8_9",
+  "kind": "pipe",
+  "used": true,
+  "score": 0.0,
+  "executables": [
+    {
+      "id": "/usr/sbin/devdata",
+      "type": "symlink",
+      "is_proprietary": true,
+      "num_interactions_as_source": 11,
+      "num_interactions_as_sink": 0,
+      "num_processes": 11,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/sbin/xmldb",
+      "type": "binary",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 36,
+      "num_processes": 36,
+      "first_as_source": false,
+      "first_as_sink": true
+    },
+    {
+      "id": "/bin/date",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 24,
+      "num_interactions_as_sink": 0,
+      "num_processes": 24,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/bin/uptime",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 1,
+      "num_interactions_as_sink": 0,
+      "num_processes": 1,
+      "first_as_source": true,
+      "first_as_sink": false
+    }
+  ]
+}

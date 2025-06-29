@@ -1,452 +1,262 @@
-from flask import Flask, jsonify, request
 import os
-import subprocess
+import csv
 import json
-import time
 import signal
+import subprocess
+from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
 
-FACT_IP="http://192.168.30.177"
-FACT_PORT="5000"
+from flask import Flask, jsonify, request, Response
+from flask_cors import CORS
 
-def send_signal_recursive(parent_pid, signal_to_send):
-    pgrep_process = subprocess.Popen(["pgrep", "-P", str(parent_pid)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    child_pids_bytes, _ = pgrep_process.communicate()
-    child_pids_str = child_pids_bytes.decode('utf-8').strip()
-    child_pids = child_pids_str.split()
-    for child_pid in child_pids:
-        send_signal_recursive(int(child_pid), signal_to_send)
-    os.kill(parent_pid, signal_to_send)
+from scheduler import (
+    run_container,
+    get_container_info,
+    clear_non_running,
+    update_schedule_status,
+    ensure_experiment_consistency,
+)
 
-def find_next_run(directory):
-    pattern = "run_"
-    run = ""
+# Configuration constants
+BASE_DIR = os.path.join(os.sep, "FuzzPlanner")
+FACT_IP = "http://192.168.30.177"
+FACT_PORT = "5000"
 
-    if os.path.isdir(directory):
-        subdirs = [subdir for subdir in os.listdir(directory) if subdir.startswith(pattern) and os.path.isdir(os.path.join(directory, subdir))]
+RUNTIME_TMP = os.path.join(BASE_DIR, "runtime_tmp")
+SCHEDULE_CSV = os.path.join(RUNTIME_TMP, "schedule.csv")
+SCHEDULE_HEADER = [
+    "status",
+    "exp_name",
+    "container_name",
+    "num_cores",
+    "mode",
+    "firmware",
+    "experiments_data_path",
+]
 
-        if subdirs:
-            max_subdir = max([int(subdir[len(pattern):]) for subdir in subdirs])
-            run = f"{pattern}{max_subdir + 1}"
-        else:
-            run = f"{pattern}0"
-    else:
-        run = f"{pattern}0"
+FIRMAE_DIR = os.path.join(BASE_DIR, "FirmAE")
+FIRM_RUN_DB_CSV = os.path.join(FIRMAE_DIR, "firm_db_run.csv")
+EXPERIMENTS_DIR = os.path.join(RUNTIME_TMP, "experiments")
+FIRMWARES_DIR = os.path.join(BASE_DIR, "firmwares_source_code")
+SCRATCH_DIR = os.path.join(FIRMAE_DIR, "scratch")
+LOGICAL_TO_PAIR = {}
+PAIR_TO_LOGICAL = defaultdict(list)
 
-    return run
+app = Flask(__name__)
+CORS(app)
 
-def firmwareId2scratchId(firmwareId):
-    directory="FirmAE/scratch/firmafl/"
-    if not os.path.exists(directory) or not os.path.isdir(directory):
+# Utility functions
+
+def read_csv_rows(path: str) -> List[Dict[str, str]]:
+    with open(path, newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def append_csv_row(path: str, header: List[str], row: List[Any]) -> None:
+    write_header = not os.path.exists(path) or os.path.getsize(path) == 0
+    with open(path, "a", newline="") as f:
+        writer = csv.writer(f)
+        if write_header:
+            writer.writerow(header)
+        writer.writerow(row)
+
+
+def get_last_img_result(firmware: str, db_path: str = FIRM_RUN_DB_CSV) -> Optional[str]:
+    if not os.path.exists(db_path):
         return None
-
-    for subdir_name in os.listdir(directory):
-        subdir_path = os.path.join(directory, subdir_name)
-
-        if os.path.isdir(subdir_path) and os.path.isfile(os.path.join(subdir_path, "name")):
-            with open(os.path.join(subdir_path, "name"), 'r') as file:
-                file_content = file.read().strip()
-
-            if file_content == firmwareId:
-                return subdir_name 
-
+    for record in read_csv_rows(db_path):
+        if record.get("firmware") == os.path.basename(firmware):
+            # assume result is in last column
+            return list(record.values())[-1]
     return None
 
 
-app = Flask(__name__)
+def is_check_running(firmware: str, schedule_path: str = SCHEDULE_CSV) -> bool:
+    if not os.path.exists(schedule_path):
+        return False
+    for record in read_csv_rows(schedule_path):
+        if record.get("mode") == "check" and record.get("firmware") == firmware and record.get("status") == "running":
+            return True
+    return False
 
-@app.route('/')
-def hello():
-    return 'FuzzPlanner!', 200
 
-@app.route('/firmwares')
-def firmwares():
-    directory_path = "firmwares"
+def send_signal_tree(pid: int, sig: int) -> None:
+    try:
+        children = subprocess.check_output(["pgrep", "-P", str(pid)]).split()
+        for c in children:
+            send_signal_tree(int(c), sig)
+        os.kill(pid, sig)
+    except subprocess.CalledProcessError:
+        os.kill(pid, sig)
 
-    if os.path.exists(directory_path) and os.path.isdir(directory_path):
-        files = os.listdir(directory_path)
-        firmware_files = [file for file in files if os.path.isfile(os.path.join(directory_path, file))]
-        firmware_dict = {"firmwares": firmware_files}
+
+def next_run_folder(base_dir: str) -> str:
+    if os.path.isdir(base_dir):
+        runs = [d for d in os.listdir(base_dir) if d.startswith("run_")]
+        if runs:
+            nums = [int(r.split("_")[1]) for r in runs]
+            return f"run_{max(nums) + 1}"
+    return "run_0"
+
+
+def get_run_id(firmware: str) -> Optional[str]:
+    if not os.path.exists(FIRM_RUN_DB_CSV):
+        return None
+    for record in read_csv_rows(FIRM_RUN_DB_CSV):
+        if record.get("brand") == os.path.dirname(firmware) and record.get("firmware") == os.path.basename(firmware):
+            return record.get("id") or record.get("run_id")
+    return None
+
+# Route handlers
+
+@app.route("/")
+def index() -> Tuple[str, int]:
+    return "FuzzPlanner!", 200
+
+@app.errorhandler(404)
+def not_found(e) -> Response:
+    return jsonify({"status": "error", "message": "Endpoint not found"}), 404
+
+@app.route("/firmwares")
+def list_firmwares() -> Response:
+    path = os.path.join(BASE_DIR, "firmwares")
+    if not os.path.isdir(path):
+        return jsonify({"status": "error", "message": f"Directory '{path}' not found"}), 500
+    files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    return jsonify({"firmwares": files}), 200
+
+@app.route("/check_firm_img", methods=["GET"])
+def check_firmware_image() -> Response:
+    firmware = request.args.get("firmwareId")
+    file_path = os.path.join(BASE_DIR, "firmwares", firmware)
+    if not os.path.exists(file_path):
+        return jsonify({"status": "error", "message": f"Firmware '{firmware}' not found"}), 404
+
+    img_res = get_last_img_result(firmware)
+    if img_res in ("true", "false"):
+        return jsonify({"status": "succeeded" if img_res == "true" else "failed"}), 200
+    if is_check_running(firmware):
+        return jsonify({"status": "running"}), 200
+    return jsonify({"status": "not_found"}), 200
+
+@app.route("/create_firm_img", methods=["GET"])
+def create_firmware_image() -> Response:
+    firmware = request.args.get("firmwareId")
+    file_path = os.path.join(BASE_DIR, "firmwares", firmware)
+    if not os.path.exists(file_path):
+        return jsonify({"status": "error", "message": f"Firmware '{firmware}' not found"}), 404
+
+    append_csv_row(
+        SCHEDULE_CSV,
+        SCHEDULE_HEADER,
+        [""] * 3 + ["check", firmware, ""]
+    )
+    success = run_container(SCHEDULE_CSV, LOGICAL_TO_PAIR, PAIR_TO_LOGICAL, None)
+    return ("OK", 200) if success else (jsonify({"status": "error", "message": "Image creation failed"}), 400)
+
+@app.route("/runs")
+def list_runs() -> Response:
+    firmware = request.args.get("firmwareId")
+    base = os.path.join(RUNTIME_TMP, "analysis", "results", firmware, "dynamic_analysis")
+    runs = [d for d in os.listdir(base) if os.path.isdir(os.path.join(base, d))] if os.path.isdir(base) else []
+    return jsonify({"firmwareId": firmware, "runs": runs}), 200
+
+@app.route("/data")
+def fetch_data() -> Response:
+    firmware = request.args.get("firmwareId")
+    run_id = request.args.get("runId")
+    dtype = request.args.get("type")
+
+    if dtype in ("interactions", "processes", "data_channels"):
+        path = os.path.join(RUNTIME_TMP, "analysis", "results", firmware, "dynamic_analysis", run_id, "data", f"{dtype}.json")
+    elif dtype == "executable_files":
+        path = os.path.join(RUNTIME_TMP, "analysis", "results", firmware, "static_analysis", "data", "executable_files.json")
     else:
-        response_data = {
-            "status": "error",
-            "message": "The 'firmwares' directory does not exist."
-        }
-
-        return jsonify(response_data), 500
-
-    return jsonify(firmware_dict), 200
-
-@app.route('/runs')
-def runs():
-    firmwareId = request.args.get('firmwareId', default=None)
-
-    directory_path = "analysis/results/%s/dynamic_analysis/" % firmwareId
-
-    if os.path.exists(directory_path) and os.path.isdir(directory_path):
-        dirs = os.listdir(directory_path)
-        run_dirs = [dir for dir in dirs if os.path.isdir(os.path.join(directory_path, dir))]
-        response_dict = {"firmwareId" : firmwareId, "runs" : run_dirs}
-    else:
-        response_dict = {"firmwareId" : firmwareId, "runs" : []}
-
-    return jsonify(response_dict), 200
-
-@app.route('/data')
-def data():
-    firmwareId = request.args.get('firmwareId', default=None)
-    runId = request.args.get('runId', default=None)
-    type = request.args.get('type', default=None)
-
-    if (type == "interactions" or type == "processes" or type == "data_channels"):
-        json_file_path = "analysis/results/%s/dynamic_analysis/%s/data/%s.json" % (firmwareId, runId, type)
-    elif (type == "executable_files"):
-        json_file_path = "analysis/results/%s/static_analysis/data/executable_files.json" % (firmwareId)
-    else:
-        response_data = {
-            "status": "error",
-            "message": "Invalid requested data 'type'."
-        }
-
-        return jsonify(response_data), 400        
+        return jsonify({"status": "error", "message": "Invalid data type"}), 400
 
     try:
-        with open(json_file_path, 'r') as json_file:
-            data = json.load(json_file)
-    except FileNotFoundError:
-        response_data = {
-            "status": "error",
-            "message": f"Error: The file '{json_file_path}' does not exist."
-        }
-
-        return jsonify(response_data), 500      
-    except json.JSONDecodeError as e:
-        response_data = {
-            "status": "error",
-            "message": f"Error: Failed to parse JSON data from '{json_file_path}': {e}."
-        }
-
-        return jsonify(response_data), 500      
+        with open(path, 'r') as f:
+            data = json.load(f)
     except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": f"An unexpected error occurred: {e}"
-        }
+        return jsonify({"status": "error", "message": str(e)}), 500
+    return Response(json.dumps(data, indent=2), mimetype="application/json"), 200
 
-        return jsonify(response_data), 500      
+@app.route("/run", methods=["POST"])
+@app.route("/run_capture", methods=["POST"])
+def emulate() -> Response:
+    capture_flag = request.path.endswith("capture")
+    firmware = request.args.get("firmwareId")
+    return _emulate(firmware, capture=capture_flag)
 
-    json_data = json.dumps(data, indent=4)
+@app.route("/check_run", methods=["GET"])
+def check_run() -> Response:
+    firmware = request.args.get("firmwareId")
+    if not firmware:
+        return jsonify({"status": "error", "message": "Missing firmwareId"}), 400
 
-    return json_data, 200
+    run_id = get_run_id(firmware)
+    status, cname = get_container_info(firmware, SCHEDULE_CSV)
+    if status != "running" or not run_id:
+        return jsonify({"status": "not_running"}), 200
 
-@app.route('/emulate', methods=['POST'])
-def emulate():
-    firmwareId = request.args.get('firmwareId', default=None)
-    
-    if not os.path.exists("firmwares/"+firmwareId):
-        response_data = {
-            "status": "error",
-            "message": "Firmware file %s does not exist." % firmwareId
-        }
+    listening_file = os.path.join(SCRATCH_DIR, 'run', run_id, 'webserver_ready')
+    listening = os.path.exists(listening_file)
+    return jsonify({"status": "running", "listening": listening, "booting": not listening}), 200
 
-        return jsonify(response_data), 500            
+@app.route("/pause_run_capture", methods=["POST"])
+def pause_and_analyze() -> Response:
+    firmware = request.args.get("firmwareId")
+    fact_uid = request.args.get("factUid")
+    if not firmware:
+        return jsonify({"status": "error", "message": "Missing firmwareId"}), 400
 
-    emu_dir_path="backend_runtime/emulation/%s"%firmwareId
-    if not os.path.exists(emu_dir_path):
-        os.makedirs(emu_dir_path)
+    run_id = get_run_id(firmware)
+    status, cname = get_container_info(firmware, SCHEDULE_CSV)
+    if status != "running" or not run_id:
+        return jsonify({"status": "error", "message": f"Not running: {firmware}"}), 400
 
-    if os.path.exists(emu_dir_path+"/status"):
-        with open(emu_dir_path+"/status", "r") as status_file:
-            content = status_file.read().strip()
+    subprocess.run(["docker", "exec", cname, "kill", "-TSTP", "1"]),
+    update_schedule_status(SCHEDULE_CSV, "paused", container_name=cname)
 
-            if "analyzing" in content:
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} is being analyzed by another process."
-                }
-                return jsonify(response_data), 400
+    work = os.path.join(SCRATCH_DIR, 'run', run_id)
+    analysis_dir = os.path.join(RUNTIME_TMP, "analysis", "results", firmware, "dynamic_analysis")
+    out = os.path.join(analysis_dir, next_run_folder(analysis_dir))
+    script = os.path.join(os.getcwd(), "scripts", "analysis.py")
+    cmd = ["python3", script, firmware, out, os.path.join(work, "debug", "full_system_syscall.log"), os.path.join(work, "image_backup"), os.path.join(FIRMWARES_DIR, firmware), FACT_IP, FACT_PORT, fact_uid]
+    cmd_str = " ".join(cmd) + f"; cp {os.path.join(work, 'user_interaction.pcap')} {out}"
+    subprocess.Popen(cmd_str, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return jsonify({"status": "paused"}), 200
 
-            if not content == "stopped":
-                with open("%s/pid"%emu_dir_path, 'r') as pid_file:
-                    pid = int(pid_file.read())
-                    send_signal_recursive(pid, signal.SIGINT)
+@app.route("/resume_emulation", methods=["POST"])
+def resume_emulation() -> Response:
+    firmware = request.args.get("firmwareId")
+    run_id = get_run_id(firmware)
+    status, cname = get_container_info(firmware, SCHEDULE_CSV)
+    if status != "paused" or not run_id:
+        return jsonify({"status": "error", "message": f"Not paused: {firmware}"}), 400
 
-    command = "export EXECUTION_MODE=0; export POSTGRESQL_IP=127.0.0.1; \
-                sudo service postgresql restart; ./FirmAFL/flush_interface.sh; \
-                ./docker_start.sh -r firmwares/%s" % (firmwareId)
+    subprocess.run(["docker", "exec", cname, "kill", "-CONT", "1"]),
+    update_schedule_status(SCHEDULE_CSV, "running", container_name=cname)
+    return jsonify({"status": "resumed"}), 200
 
-    try:
-        with open(emu_dir_path+"/status", "w") as status_file:
-            status_file.write("booting")
-        with open(os.devnull, "w") as f:
-            process = subprocess.Popen(command, shell=True, stdout=f, stderr=f)
-        with open(emu_dir_path+"/pid", "w") as status_file:
-            status_file.write(str(process.pid))    
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": "Server could not start emulation. %s" % e
-        }
+@app.route("/stop_emulation", methods=["POST"])
+def stop_emulation() -> Response:
+    firmware = request.args.get("firmwareId")
+    run_id = get_run_id(firmware)
+    status, cname = get_container_info(firmware, SCHEDULE_CSV)
+    if not status or not run_id:
+        return jsonify({"status": "error", "message": f"Not running: {firmware}"}), 400
 
-        return jsonify(response_data), 500
+    subprocess.run(["docker", "rm", "-f", cname])
+    ensure_experiment_consistency(SCHEDULE_CSV, None)
 
-    return 'OK', 200
+    if status != "paused":
+        pause_and_analyze()
 
-@app.route('/pause_emulation', methods=['POST'])
-def pause_emulation():
-    firmwareId = request.args.get('firmwareId', default=None)
-    factUid = request.args.get('factUid', default=None)
-    emu_dir_path="backend_runtime/emulation/%s"%firmwareId
-
-    try:
-        with open("%s/pid"%emu_dir_path, 'r') as pid_file:
-            pid = int(pid_file.read())
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": f"{firmwareId} emulation has not been started."
-        }
-
-        return jsonify(response_data), 400
-
-    if os.path.exists(emu_dir_path+"/status"):
-        with open(emu_dir_path+"/status", "r") as status_file:
-            content = status_file.read().strip()
-            
-            if content == "paused" or content == "paused_analyzing":
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} emulation has already been paused."
-                }
-                return jsonify(response_data), 400
-            
-            elif content == "booting":
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} is still booting."
-                }
-                return jsonify(response_data), 400
-            
-            elif content == "running_select":
-                response_data = {
-                    "status": "error",
-                    "message": f"'select' operation on {firmwareId} is being processed."
-                }
-                return jsonify(response_data), 400
-
-            elif content == "stopped" or content == "stopped_analyzing":
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} emulation has been stopped."
-                }
-                return jsonify(response_data), 400
-
-            else:
-                if content != "running":
-                    assert(False)
-
-    try:
-        send_signal_recursive(pid, signal.SIGTSTP)
-        with open(emu_dir_path+"/status", "w") as status_file:
-            status_file.write("paused")
-        time.sleep(1)
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": f"Error sending SIGTSTP signal to PID {pid}: {e}"
-        }
-
-        return jsonify(response_data), 500
-
-    source_code="firmwares/source_code/%s"%firmwareId
-    outdir="analysis/results/%s/dynamic_analysis/%s"%(firmwareId,find_next_run("analysis/results/%s/dynamic_analysis/"%firmwareId))
-    workdir="FirmAE/scratch/firmafl/%s"%firmwareId2scratchId(firmwareId)
-
-    command = "python3 analysis/analysis.py %s %s %s/%s/debug/full_system_syscall.log %s/%s/image_backup %s %s %s %s; \
-                cp %s/user_interactions.pcap %s" \
-                %(firmwareId, outdir, os.getcwd(), workdir, os.getcwd(), workdir, 
-                  source_code, str(FACT_IP), str(FACT_PORT), factUid, workdir, outdir)
-
-    try:
-        with open(emu_dir_path+"/status", "w") as status_file:
-            status_file.write("paused_analyzing")
-        with open(os.devnull, "w") as f:
-            process = subprocess.Popen(command, shell=True, stdout=f, stderr=f)
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": "Server could not analyze emulation data. %s" % e
-        }
-
-        return jsonify(response_data), 500
-    
-    return 'OK', 200
-
-@app.route('/resume_emulation', methods=['POST'])
-def resume_emulation():
-    firmwareId = request.args.get('firmwareId', default=None)
-    emu_dir_path="backend_runtime/emulation/%s"%firmwareId
-
-    try:
-        with open("%s/pid"%emu_dir_path, 'r') as pid_file:
-            pid = int(pid_file.read())
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": f"{firmwareId} emulation has not been started."
-        }
-
-        return jsonify(response_data), 400
-
-    if os.path.exists(emu_dir_path+"/status"):
-        with open(emu_dir_path+"/status", "r") as status_file:
-            content = status_file.read().strip()
-
-            if content == "running":
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} emulation has not been paused."
-                }
-                return jsonify(response_data), 400
-
-            elif content == "booting":
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} is still booting."
-                }
-                return jsonify(response_data), 400
-            
-            elif content == "running_select":
-                response_data = {
-                    "status": "error",
-                    "message": f"'select' operation on {firmwareId} is being processed."
-                }
-                return jsonify(response_data), 400
-
-            elif content == "stopped":
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} emulation has been stopped."
-                }
-                return jsonify(response_data), 400
-            
-            elif "analyzing" in content:
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} is being analyzed by another process."
-                }
-                return jsonify(response_data), 400
-
-            else:
-                if content != "paused":
-                    assert(False)
-
-    try:
-        send_signal_recursive(pid, signal.SIGCONT)
-        with open(emu_dir_path+"/status", "w") as status_file:
-            status_file.write("running")
-        time.sleep(1)
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": f"Error sending SIGTSTP signal to PID {pid}: {e}"
-        }
-
-        return jsonify(response_data), 500
-
-    return 'OK', 200
-
-@app.route('/stop_emulation', methods=['POST'])
-def stop_emulation():
-    firmwareId = request.args.get('firmwareId', default=None)
-    factUid = request.args.get('factUid', default=None)
-    emu_dir_path="backend_runtime/emulation/%s"%firmwareId
-
-    try:
-        with open("%s/pid"%emu_dir_path, 'r') as pid_file:
-            pid = int(pid_file.read())
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": f"{firmwareId} emulation has not been started."
-        }
-
-        return jsonify(response_data), 400
-
-    if os.path.exists(emu_dir_path+"/status"):
-        with open(emu_dir_path+"/status", "r") as status_file:
-            content = status_file.read().strip()
-
-            if content == "stopped" or content == "stopped_analyzing":
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} emulation has already been stopped."
-                }
-                return jsonify(response_data), 400
-            
-            elif content == "booting":
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} is still booting."
-                }
-                return jsonify(response_data), 400
-            
-            elif content == "running_select":
-                response_data = {
-                    "status": "error",
-                    "message": f"'select' operation on {firmwareId} is being processed."
-                }
-                return jsonify(response_data), 400
-
-            elif "paused_analyzing" in content:
-                response_data = {
-                    "status": "error",
-                    "message": f"{firmwareId} is being analyzed by another process."
-                }
-                return jsonify(response_data), 400
-
-            else:
-                if content != "paused" and content != "running":
-                    assert(False)
-
-    try:
-        send_signal_recursive(pid, signal.SIGINT)
-        with open(emu_dir_path+"/status", "w") as status_file:
-            status_file.write("stopped")
-        time.sleep(1)
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": f"Error sending SIGINT signal to PID {pid}: {e}"
-        }
-
-        return jsonify(response_data), 500
-
-    source_code="firmwares/source_code/%s"%firmwareId
-    outdir="analysis/results/%s/dynamic_analysis/%s"%(firmwareId,find_next_run("analysis/results/%s/dynamic_analysis/"%firmwareId))
-    workdir="FirmAE/scratch/firmafl/%s"%firmwareId2scratchId(firmwareId)
-
-    command = "python3 analysis/analysis.py %s %s %s/%s/debug/full_system_syscall.log %s/%s/image_backup %s %s %s %s; \
-                cp %s/user_interactions.pcap %s" \
-                %(firmwareId, outdir, os.getcwd(), workdir, os.getcwd(), workdir, 
-                  source_code, str(FACT_IP), str(FACT_PORT), factUid, workdir, outdir)
-
-    try:
-        with open(emu_dir_path+"/status", "w") as status_file:
-            status_file.write("stopped_analyzing")
-        with open(os.devnull, "w") as f:
-            process = subprocess.Popen(command, shell=True, stdout=f, stderr=f)
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": "Server could not analyze emulation data. %s" % e
-        }
-
-        return jsonify(response_data), 500
-
-    return 'OK', 200
+    return jsonify({"status": "stopped"}), 200
 
 @app.route('/select', methods=['POST'])
-def select():
+def select() -> Response:
     try:
         firmwareId = request.args.get('firmwareId')
         runId = request.args.get('runId')
@@ -461,7 +271,8 @@ def select():
 
         exec_data_json = json.dumps(exec_data_pairs)
         os.environ["EXEC_DATA_PAIRS"] = exec_data_json
-    
+        print(exec_data_json)
+
     except Exception as e:
         response_data = {
             "status": "error",
@@ -470,47 +281,7 @@ def select():
 
         return jsonify(response_data), 400
 
-    emu_dir_path="backend_runtime/emulation/%s"%firmwareId
-    if not os.path.exists(emu_dir_path):
-        os.makedirs(emu_dir_path)
-
-    if os.path.exists(emu_dir_path+"/status"):
-        with open(emu_dir_path+"/status", "r") as status_file:
-            content = status_file.read().strip()
-
-            if not content == "stopped":
-                with open("%s/pid"%emu_dir_path, 'r') as pid_file:
-                    pid = int(pid_file.read())
-                    send_signal_recursive(pid, signal.SIGINT)
-    
-    if not os.path.exists("analysis/results/%s/dynamic_analysis/%s"%(firmwareId, runId)):
-        response_data = {
-            "status": "error",
-            "message": f"({firmwareId}, {runId}) not found."
-        }
-
-        return jsonify(response_data), 400
-
-    command = "export EXECUTION_MODE=1; export POSTGRESQL_IP=127.0.0.1; sudo service postgresql restart; \
-            ./FirmAFL/flush_interface.sh; export RUN=%s; \
-            ./docker_start.sh -r firmwares/%s" % (runId, firmwareId)
-
-    try:
-        with open(os.devnull, "w") as f:
-            process = subprocess.Popen(command, shell=True, env=os.environ, stdout=f, stderr=f)
-        with open(emu_dir_path+"/status", "w") as status_file:
-            status_file.write("booting")
-        with open(emu_dir_path+"/pid", "w") as status_file:
-            status_file.write(str(process.pid))      
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": "Server could not process request. %s" % e
-        }
-
-        return jsonify(response_data), 500
-
-    return 'OK', 200
+    return ("OK", 200)
 
 @app.route('/execute', methods=['POST'])
 def execute():
@@ -530,48 +301,48 @@ def execute():
 
         return jsonify(response_data), 400
 
-    if not os.path.exists("analysis/results/%s/dynamic_analysis/%s"%(firmwareId, runId)):
-        response_data = {
-            "status": "error",
-            "message": f"({firmwareId}, {runId}) not found."
-        }
-
-        return jsonify(response_data), 400
-
-    emu_dir_path="backend_runtime/emulation/%s"%firmwareId
-    if not os.path.exists(emu_dir_path):
-        os.makedirs(emu_dir_path)
-
-    if os.path.exists(emu_dir_path+"/status"):
-        with open(emu_dir_path+"/status", "r") as status_file:
-            content = status_file.read().strip()
-
-            if not content == "stopped":
-                with open("%s/pid"%emu_dir_path, 'r') as pid_file:
-                    pid = int(pid_file.read())
-                    send_signal_recursive(pid, signal.SIGINT)
-
-    command = "export EXECUTION_MODE=2; export POSTGRESQL_IP=127.0.0.1; export RUN=%s; \
-                ./FirmAFL/flush_interface.sh; sudo service postgresql restart; \
-                ./docker_start.sh -f firmwares/%s" % (runId, firmwareId)
-    
-    try:
-        process = subprocess.Popen(command, shell=True, env=os.environ)
-        with open(emu_dir_path+"/status", "w") as status_file:
-            status_file.write("booting")
-        with open(emu_dir_path+"/pid", "w") as status_file:
-            status_file.write(str(process.pid))  
-    except Exception as e:
-        response_data = {
-            "status": "error",
-            "message": "Server could not start fuzzing session. %s" % e
-        }
-
-        return jsonify(response_data), 500
-    
-    return 'OK', 200
-
+    print(experiments_data_json)
+    return ("OK", 200)
 
 if __name__ == '__main__':
+    clear_non_running(SCHEDULE_CSV)
+    proc = subprocess.run(
+        ["lscpu", "-p=NODE,CORE,CPU"],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+
+    rows = []
+    for line in proc.stdout.splitlines():
+        if line.startswith("#"):
+            continue
+        node, core, cpu = map(int, line.split(","))
+        rows.append((node, core, cpu))
+
+    rows.sort(key=lambda x: (x[0], x[1]))
+
+    if not os.path.exists("runtime_tmp"):
+        os.makedirs("runtime_tmp")
+
+    with open("runtime_tmp/cpu_ids.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["CPU ID", "Physical ID", "Logical ID"])
+        for node, core, cpu in rows:
+            writer.writerow([node, core, cpu])
+
+    print("Wrote", len(rows), "rows to cpu_ids.csv")
+
+    with open("runtime_tmp/cpu_ids.csv") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            cpu_id = int(row["CPU ID"])
+            physical_id = int(row["Physical ID"])
+            logical_id = int(row["Logical ID"])
+            pair = (cpu_id, physical_id)
+
+            LOGICAL_TO_PAIR[logical_id] = pair
+            PAIR_TO_LOGICAL[pair].append(logical_id)
+
     app.run(host='0.0.0.0', port=4000)
     

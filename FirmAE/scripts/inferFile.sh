@@ -54,7 +54,7 @@ ${BUSYBOX} echo '/firmadyne/preInit.sh' >> /firmadyne/init
 
 if (${FIRMAE_ETC}); then
     if [ -e /etc/init.d/uhttpd ]; then
-        echo -n "/etc/init.d/uhttpd start" > /firmadyne/service
+        echo -n "/etc/init.d/uhttpd" > /firmadyne/service
         echo -n "uhttpd" > /firmadyne/service_name
     elif [ -e /usr/bin/httpd ]; then
         echo -n "/usr/bin/httpd" > /firmadyne/service
@@ -83,8 +83,20 @@ if (${FIRMAE_ETC}); then
     elif [ -e /usr/bin/lighttpd ]; then
         echo -n "/usr/bin/lighttpd" > /firmadyne/service
         echo -n "lighttpd" > /firmadyne/service_name
-    elif [ -e /usr/sbin/lighttpd ]; then # for Ubiquiti firmwares
-        echo -n "/usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf" > /firmadyne/service
+    elif [ -e /usr/sbin/lighttpd ]; then
+        echo -n "/usr/sbin/lighttpd" > /firmadyne/service
         echo -n "lighttpd" > /firmadyne/service_name
+    elif [ -e /sbin/lighttpd ]; then
+        echo -n "/sbin/lighttpd" > /firmadyne/service
+        echo -n "lighttpd" > /firmadyne/service_name
+    elif [ -e /usr/sbin/mini_httpd ]; then
+        echo -n "/usr/sbin/mini_httpd" > /firmadyne/service
+        echo -n "mini_httpd" > /firmadyne/service_name
+    elif [ -e /sbin/mini_httpd ]; then
+        echo -n "/sbin/mini_httpd" > /firmadyne/service
+        echo -n "mini_httpd" > /firmadyne/service_name
+    elif [ -e /server/boa ]; then
+        echo -n "/server/boa" > /firmadyne/service
+        echo -n "boa" > /firmadyne/service_name
     fi
 fi

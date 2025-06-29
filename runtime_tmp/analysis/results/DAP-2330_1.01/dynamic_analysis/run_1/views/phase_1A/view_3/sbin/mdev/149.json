@@ -1,0 +1,18 @@
+{
+  "id": "virtual_file{path:/sys/class/misc/vga_arbiter/dev}",
+  "kind": "virtual_file",
+  "used": true,
+  "score": 0.0,
+  "executables": [
+    {
+      "id": "/sbin/mdev",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "num_processes": 1,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

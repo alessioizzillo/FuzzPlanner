@@ -6,6 +6,8 @@ import sys
 import re
 import hashlib
 import psycopg2
+import os
+import csv
 
 psql_ip = ''
 
@@ -68,38 +70,41 @@ def insertObjectToImage(iid, files2oids, links, cur):
     except:
         return
 
-def process(iid, tool, infile):
-    global psql_ip
-    dbh = psycopg2.connect(database="firmware_%s" % tool,
-                           user="firmadyne",
-                           password="firmadyne",
-                           host=psql_ip, port=6666)
-    cur = dbh.cursor()
+def process(iid, mode, infile):
+    value = os.getenv("NO_PSQL")
 
-    (files, links) = getFileHashes(infile)
+    if value != "1":
+        global psql_ip
+        dbh = psycopg2.connect(database="firmware_%s" % mode,
+                            user="firmadyne",
+                            password="firmadyne",
+                            host=psql_ip, port=6666)
+        cur = dbh.cursor()
 
-    oids = getOids(files, cur)
+        (files, links) = getFileHashes(infile)
 
-    fdict = dict([(h, (filename, uid, gid, mode)) \
-            for (filename, h, uid, gid, mode) in files])
+        oids = getOids(files, cur)
 
-    file2oid = [(fdict[h], oid) for (h, oid) in oids.items()]
+        fdict = dict([(h, (filename, uid, gid, mode)) \
+                for (filename, h, uid, gid, mode) in files])
 
-    insertObjectToImage(iid, file2oid, links, cur)
+        file2oid = [(fdict[h], oid) for (h, oid) in oids.items()]
 
-    dbh.commit()
+        insertObjectToImage(iid, file2oid, links, cur)
 
-    dbh.close()
+        dbh.commit()
+
+        dbh.close()
 
 def main():
     global psql_ip
-    infile = iid = tool = None
+    infile = iid = mode = None
     opts, argv = getopt.getopt(sys.argv[1:], "f:i:t:h:")
     for k, v in opts:
         if k == '-i':
             iid = int(v)
         if k == '-t':
-            tool = v
+            mode = v
         if k == '-f':
             infile = v
         if k == '-h':
@@ -110,7 +115,7 @@ def main():
         if m:
             iid = int(m.groups(1))
 
-    process(iid, tool, infile)
+    process(iid, mode, infile)
 
 if __name__ == "__main__":
     main()

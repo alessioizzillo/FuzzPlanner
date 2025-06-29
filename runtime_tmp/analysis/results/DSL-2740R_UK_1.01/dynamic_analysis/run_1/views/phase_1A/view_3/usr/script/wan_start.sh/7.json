@@ -1,0 +1,18 @@
+{
+  "id": "file{path:/etc/isp5.conf}",
+  "kind": "file",
+  "used": true,
+  "score": 0.5,
+  "executables": [
+    {
+      "id": "/usr/script/wan_start.sh",
+      "type": "script",
+      "is_proprietary": true,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "num_processes": 1,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

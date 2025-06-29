@@ -1,0 +1,38 @@
+{
+  "id": "pipe_50_4_5",
+  "kind": "pipe",
+  "used": true,
+  "score": 0.0,
+  "executables": [
+    {
+      "id": "/sbin/ifconfig",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 2,
+      "num_interactions_as_sink": 0,
+      "num_processes": 2,
+      "first_as_source": true,
+      "first_as_sink": false
+    },
+    {
+      "id": "/usr/etc/init.d/rcS",
+      "type": "script",
+      "is_proprietary": false,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "num_processes": 1,
+      "first_as_source": false,
+      "first_as_sink": true
+    },
+    {
+      "id": "/bin/sed",
+      "type": "symlink",
+      "is_proprietary": false,
+      "num_interactions_as_source": 0,
+      "num_interactions_as_sink": 1,
+      "num_processes": 1,
+      "first_as_source": false,
+      "first_as_sink": true
+    }
+  ]
+}

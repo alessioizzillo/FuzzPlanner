@@ -3160,6 +3160,8 @@ int main(int argc, char **argv, char **envp)
             if (debug){
                 fprintf(fd_replay, "TARGET_EXECUTABLE: %s\n", target_exec);
                 fprintf(fd_replay, "TARGET_CHANNEL: %s\n", target_channel);
+                fprintf(fd_replay, "FUZZ: %d\n", fuzz);
+                fprintf(fd_replay, "EXECUTION_MODE: %d\n", execution_mode);
                 fclose(fd_replay);
             }
 

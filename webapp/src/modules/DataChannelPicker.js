@@ -1,11 +1,6 @@
 import { useSelectedBrand } from '@/hooks/store/selectedBrand'
-import { useGetFirmwares } from '@/hooks/queries'
-import {
-  useSelectedFirmware,
-  useSetSelectedFirmware,
-  useResetSelectedFirmware
-} from '@/hooks/store/selectedFirmware'
-import { useResetSelectedRun } from '@/hooks/store/selectedRun'
+import { useSelectedFirmware } from '@/hooks/store/selectedFirmware'
+import { useSelectedRun } from '@/hooks/store/selectedRun'
 
 import Picker from '@/components/Picker'
 import Spinner from '@/components/Spinner'
@@ -14,12 +9,11 @@ import Error from '@/components/Error'
 export default function FirmwarePicker () {
   const selectedBrand = useSelectedBrand()
   const selectedFirmware = useSelectedFirmware()
-  const setSelectedFirmware = useSetSelectedFirmware()
-  const resetSelectedFirmware = useResetSelectedFirmware()
-  const resetSelectedRun = useResetSelectedRun()
+  const selectedRun = useSelectedRun()
+  const useResetSelectedDataChannel = useResetSelectedDataChannel()
 
 
-  const { isLoading, isError, error, data } = useGetFirmwares(selectedBrand)
+  const { isLoading, isError, error, data } = useGetDataChannels(selectedBrand)
 
   if (!selectedBrand) return null
 

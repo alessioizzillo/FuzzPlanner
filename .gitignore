@@ -1,5 +1,6 @@
-runtime_tmp/*
-!runtime_tmp/analysis
+runtime_tmp
 webapp/node_modules
 webapp/.next
 FirmAE/firm_db_*
+__pycache__
+pcap

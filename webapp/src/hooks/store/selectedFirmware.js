@@ -1,31 +1,72 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
+import { useGetRuns } from '@/hooks/queries'
+import { useState, useSetState } from '@/store'
 
-import { useState, useSetState, initialState } from '@/store'
-
-export function useSelectedFirmware () {
+export function useSelectedFirmware() {
   const state = useState()
   return state.selectedFirmware
 }
 
-export function useSetSelectedFirmware () {
-  const state = useState()
+export function useSetSelectedFirmware() {
   const setState = useSetState()
-  return useCallback(
-    (firmwareId) => {
-      if (state.runId === null) setState(pr => ({ ...pr, selectedFirmware: firmwareId }))
-      else setState(pr => ({ ...pr, selectedFirmware: firmwareId, selectedRun: null }))
-    }, [state.runId, setState]
-  )
+  const state = useState()
+
+  const { data: runsData } = useGetRuns(state.selectedBrand, state.selectedFirmware)
+
+  useEffect(() => {
+    if (!state.selectedBrand || !state.selectedFirmware) return
+    if (runsData) {
+      setState(pr => ({
+        ...pr,
+        selectedRun: null,
+        selectedRunData: {},
+        selectedRunLogs: [],
+        selectedRunGraph: {},
+        selectedRunMetadata: {},
+        selectedRunView: {
+          ...pr.selectedRunView,
+          binariesById: {},
+          metadata: {},
+          timeBins: []
+        },
+        selectedEntries: {},
+        runsByFirmware: {
+          ...pr.runsByFirmware,
+          [`${state.selectedBrand}:${state.selectedFirmware}`]: runsData
+        }
+      }))
+    }
+  }, [state.selectedBrand, state.selectedFirmware, runsData, setState])
+
+  return useCallback((firmwareId) => {
+    if (!firmwareId) return
+
+    setState(pr => ({
+      ...pr,
+      selectedFirmware: firmwareId,
+      selectedRun: null,
+      selectedRunData: {},
+      selectedRunLogs: [],
+      selectedRunGraph: {},
+      selectedRunMetadata: {},
+      selectedRunView: {
+        ...pr.selectedRunView,
+        binariesById: {},
+        metadata: {},
+        timeBins: []
+      },
+      selectedEntries: {}
+    }))
+  }, [setState])
 }
 
-export function useResetSelectedFirmware () {
-  const state = useState()
+export function useResetSelectedFirmware() {
   const setState = useSetState()
-  return useCallback(
-    () => {
-      const { selectedFirmware, selectedRun } = initialState
-      if (state.runId === null) setState(pr => ({ ...pr, selectedFirmware }))
-      else setState(pr => ({ ...pr, selectedFirmware, selectedRun }))
-    }, [state.runId, setState]
-  )
+  return useCallback(() => {
+    setState(pr => ({
+      ...pr,
+      selectedFirmware: null,
+      selectedRun: null
+    }))
+  }, [setState])
 }

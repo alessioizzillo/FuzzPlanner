@@ -7,7 +7,7 @@ import dagre from '@dagrejs/dagre'
 import { getHighestBaseScore } from './cveUtils'
 
 // RUN DATA
-export function getRunData ({ executableFiles, processes, dataChannels, interactions }) {
+export function getRunData ({ executableFiles = [], processes = [], dataChannels = [], interactions = [] }) {
   const data = {
     id: makeId(16),
     executableFiles: [],
@@ -343,9 +343,9 @@ export function getRunGraph ({ runData, runLogs }) {
 }
 
 // RUN METADATA
-export function getRunMetadata ({ runLogs }) {
-  const minTime = runLogs[0].time || 0
-  const maxTime = runLogs.slice(-1)[0].time || 0
+export function getRunMetadata ({ runLogs = [] }) {
+  const minTime = runLogs.length > 0 ? runLogs[0].time || 0 : 0
+  const maxTime = runLogs.length > 0 ? runLogs.slice(-1)[0].time || 0 : 0
   const metadata = {
     timeScale: scaleQuantize()
       .domain([minTime, maxTime])
@@ -363,18 +363,19 @@ export function getRunMetadata ({ runLogs }) {
     binariesBinsById: {}
   }
   function updateBinsMax (ev, bin) {
-    const m = bin.types[ev.id].length
+    const m = bin.types[ev.id] ? bin.types[ev.id].length : 0
     if (m > metadata.binsMax.types[ev.id]) {
       metadata.binsMax.types[ev.id] = m
     }
   }
   function updateBinsMaxScore (ev, bin) {
-    console.log(ev.id, bin.types[ev.id])
-    let m
-    if (['listen', 'within', 'border'].indexOf(ev.id) >= 0) {
-      m = Math.max(...bin.types[ev.id].map(d => d.chann.score))
-    } else if (['init-fork', 'spawn'].indexOf(ev.id) >= 0) {
-      m = Math.max(...bin.types[ev.id].map(d => getHighestBaseScore(d.child.exec.cves)))
+    let m = 0
+    if (bin.types[ev.id]) {
+      if (['listen', 'within', 'border'].indexOf(ev.id) >= 0) {
+        m = Math.max(...bin.types[ev.id].map(d => d.chann.score))
+      } else if (['init-fork', 'spawn'].indexOf(ev.id) >= 0) {
+        m = Math.max(...bin.types[ev.id].map(d => getHighestBaseScore(d.child.exec.cves)))
+      }
     }
     if (m > metadata.binsMax.types[ev.id]) {
       metadata.binsMax.types[ev.id] = m
@@ -408,17 +409,18 @@ export function getRunMetadata ({ runLogs }) {
       updateBinary(log.sinks[0], log)
     }
   }
-  for (const log of runLogs.values()) {
-    metadata.bins[metadata.timeScale(log.time)].types[groupedEventTypesMapping[log.type]].push(log)
-    updateBinariesBins(log)
-  }
-  for (const bin of metadata.bins) {
-    for (const ev of groupedEventTypes) {
-      updateBinsMax(ev, bin)
-      updateBinsMaxScore(ev, bin)
+  if (runLogs.length > 0) {
+    for (const log of runLogs.values()) {
+      metadata.bins[metadata.timeScale(log.time)].types[groupedEventTypesMapping[log.type]].push(log)
+      updateBinariesBins(log)
+    }
+    for (const bin of metadata.bins) {
+      for (const ev of groupedEventTypes) {
+        updateBinsMax(ev, bin)
+        updateBinsMaxScore(ev, bin)
+      }
     }
   }
-  console.log(metadata)
   return metadata
 }
 

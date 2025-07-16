@@ -6,6 +6,7 @@ import fcntl
 import csv
 import re
 import docker
+import json
 from time import sleep
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -16,6 +17,10 @@ RUNTIME_TMP = os.path.join(SCRIPT_DIR, 'runtime_tmp')
 AFFINITY_FILE = os.path.join(RUNTIME_TMP, 'affinity.dat')
 AFFINITY_LOCK = os.path.join(RUNTIME_TMP, 'affinity.lock')
 SCHEDULE_LOCK = os.path.join(RUNTIME_TMP, 'schedule.lock')
+
+def read_csv_rows(path: str) -> List[Dict[str, str]]:
+    with open(path, newline="") as f:
+        return list(csv.DictReader(f))
 
 def usage_and_exit() -> None:
     print("Usage: python3 experiments.py")
@@ -163,8 +168,7 @@ def parse_schedule(csv_file: str) -> List[Tuple[str, str, str, str, str, str, st
             data = dict(zip(headers, row))
             experiments.append((
                 data.get('status',''), data.get('exp_name',''), data.get('container_name',''),
-                data.get('num_cores',''), data.get('mode',''), data.get('firmware',''),
-                data.get('experiments_data_path','')
+                data.get('num_cores',''), data.get('mode',''), data.get('firmware','')
             ))
     
     lock.close()
@@ -173,7 +177,7 @@ def parse_schedule(csv_file: str) -> List[Tuple[str, str, str, str, str, str, st
 
 def run_experiment(log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]],
                    mode: str, firmware: str, exp_path: str,
-                   cont_name: str, n_cores: int, exp_data_path: str) -> None:
+                   cont_name: str, n_cores: int) -> None:
     lock = lock_file(AFFINITY_LOCK)
     aff = read_affinity()
     free = get_free_cpus(aff, n_cores)
@@ -184,27 +188,39 @@ def run_experiment(log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]],
         for s in siblings:
             cpu_ids.append(s)
             aff[s] = cont_name
+    
+    subprocess.check_call(f"docker rm -f {cont_name}", shell=True)
+    
     write_affinity(aff)
     lock.close()
     
     cmd_file = os.path.join(RUNTIME_TMP, 'command')
     
     with open(cmd_file, 'w') as f:
-        f.write(f"python3 start.py --mode {mode} --firmware {firmware} --container_name {cont_name} --output {exp_path} {exp_data_path}")
+        exp_str = f"--output {exp_path}" if exp_path else ""
+        f.write(f"python3 start.py --mode {mode} --firmware {firmware} "
+                f"--container_name {cont_name} {exp_str}\n")
     
     script = 'run_exp_host' if mode in ('run','run_capture') else 'run_exp_bridge'
-    subprocess.check_call(f"./docker.sh {script} {cont_name} {','.join(map(str,cpu_ids))}", shell=True)
+    subprocess.check_call(
+        f"./docker.sh {script} {cont_name} {','.join(map(str,cpu_ids))}",
+        shell=True
+    )
     
-    while os.path.exists(cmd_file): sleep(1)
+    while os.path.exists(cmd_file):
+        sleep(1)
 
-def parse_affinity(mode: Optional[str]=None) -> Tuple[Dict[str,Set[int]], Set[int]]:
+def parse_affinity(mode: Optional[str] = None) -> Tuple[Dict[str, Set[int]], Set[int]]:
     lock = lock_file(AFFINITY_LOCK)
     aff = read_affinity()
     running = get_running_containers()
     mode_map: Dict[str, Set[int]] = {}
     used: Set[int] = set()
-    
-    for idx, owner in aff.items():
+
+    updated_aff = {idx: owner for idx, owner in aff.items() if owner in running.values() or owner == 'none'}
+    write_affinity(updated_aff)
+
+    for idx, owner in updated_aff.items():
         if owner != 'none':
             m = re.match(r"(.+)_(\d+)", owner)
             if m:
@@ -213,56 +229,86 @@ def parse_affinity(mode: Optional[str]=None) -> Tuple[Dict[str,Set[int]], Set[in
                     mode_map.setdefault(mode_key, set()).add(num)
                     used.add(num)
     lock.close()
-    
+
     return mode_map, used
 
-def ensure_experiment_consistency(csv_file: str, exp_dir: Optional[str]) -> None:
+def cleanup_stale_running_select_analyses(csv_file: str):
+    schedule_rows = read_csv_rows(csv_file)
+    valid_containers: Set[str] = {
+        row["container_name"]
+        for row in schedule_rows
+        if row["status"].lower() == "running" and row["mode"] == "select"
+    }
+
+    analyses_dir = os.path.join(RUNTIME_TMP, "select_analysis", "infos")
+
+    if not os.path.isdir(analyses_dir):
+        print(f"[!] Directory does not exist: {analyses_dir}")
+        return
+
+    for filename in os.listdir(analyses_dir):
+        if not filename.endswith(".json"):
+            continue
+
+        filepath = os.path.join(analyses_dir, filename)
+        try:
+            with open(filepath, "r") as f:
+                metadata = json.load(f)
+                container_name = metadata.get("container_name")
+                if not container_name or container_name not in valid_containers:
+                    print(f"[-] Removing stale metadata file: {filename}")
+                    os.remove(filepath)
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"[!] Error reading/removing {filename}: {e}")
+
+def ensure_experiment_consistency(csv_file: str) -> None:
+    if not os.path.isfile(csv_file): return
+
+    cleanup_stale_running_select_analyses(csv_file)
+
     lock = lock_file(SCHEDULE_LOCK)
     rows = list(csv.reader(open(csv_file, newline='')))
     headers = rows[0] if rows else []
     valid_rows = [headers]
-    existing = set(os.listdir(exp_dir)) if exp_dir and os.path.isdir(exp_dir) else set()
     mode_map, used = parse_affinity()
+    running_containers = get_running_containers()
 
     for row in rows[1:]:
         if len(row) < len(headers): continue
-        status, name, cont, *_ = row
+
+        status, exp_name, container_name, num_cores, mode, firmware = row
         keep = (
-            (status and cont and (status!='running' or int(cont.split('_')[-1]) in used))
-            or (row[4] in ('check','run','run_capture') and not name)
-            or (name in existing)
-        )
-        if keep: valid_rows.append(row)
-    
+                not (status and container_name not in running_containers.values()) and
+                (mode in {'check', 'run', 'run_capture', 'select'} or
+                not ((status == "" or exp_name == "" or container_name == "") and not (status == "" and exp_name == "" and container_name == "")))
+            )
+        if keep:
+            valid_rows.append(row)
+
     with open(csv_file,'w',newline='') as fp:
         csv.writer(fp).writerows(valid_rows)
-    
-    if exp_dir and os.path.isdir(exp_dir):
-        for d in os.listdir(exp_dir):
-            p = os.path.join(exp_dir,d)
-            if os.path.isdir(p) and not os.listdir(p): os.rmdir(p)
-    
+
     lock.close()
 
 def run_container(schedule_csv: str, log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]], exp_dir: Optional[str]) -> bool:
-    ensure_experiment_consistency(schedule_csv, exp_dir)
+    ensure_experiment_consistency(schedule_csv)
     exps = parse_schedule(schedule_csv)
     
-    for idx, (status, name, cont, cores, mode, fw, data_path) in enumerate(exps):
+    for idx, (status, name, cont, cores, mode, fw) in enumerate(exps):
         if status == '':
             exp_name, cont_name = assign_names(schedule_csv, idx, int(cores), cont, exp_dir, mode)
-            if (mode not in {'check','run','run_capture'} and exp_name and cont_name) or (mode in {'check','run','run_capture'} and cont_name):
-                run_experiment(log_to_pair, pair_to_log, mode, fw, os.path.join(exp_dir,exp_name) if exp_name else '', cont_name, int(cores), data_path)
+            run_experiment(log_to_pair, pair_to_log, mode, fw, os.path.join(exp_dir,exp_name) if exp_name else '', cont_name, int(cores))
     
     return True
 
 def get_container_info(firmware: str, schedule_csv: str) -> Tuple[Optional[str], Optional[str]]:
-    ensure_experiment_consistency(schedule_csv, None)
+    ensure_experiment_consistency(schedule_csv)
     
     if not os.path.isfile(schedule_csv): return None, None
     
     with open(schedule_csv, newline='') as fp:
         for row in csv.DictReader(fp):
+            print(row.get('mode'), row.get('firmware'), firmware)
             if row.get('mode') in ('run','run_capture') and row.get('firmware')==firmware:
                 return row.get('status'), row.get('container_name')
     
@@ -271,12 +317,12 @@ def get_container_info(firmware: str, schedule_csv: str) -> Tuple[Optional[str],
 def clear_non_running(schedule_csv: str) -> None:
     if not os.path.isfile(schedule_csv): return
     
-    ensure_experiment_consistency(schedule_csv, None)
+    ensure_experiment_consistency(schedule_csv)
     lock = lock_file(SCHEDULE_LOCK)
     kept = []
     
     for row in csv.reader(open(schedule_csv, newline='')):
-        if row and row[0] in ('running','pause') or row and row[0]=='status':
+        if row and row[0] in ('running','paused') or row and row[0]=='status':
             kept.append(row)
     
     with open(schedule_csv,'w',newline='') as fp:

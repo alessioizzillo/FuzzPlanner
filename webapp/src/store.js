@@ -2,6 +2,7 @@ import { useState as useStateReact } from 'react'
 import { createContainer } from 'react-tracked'
 
 export const initialState = {
+  selectedBrand: null,
   selectedFirmware: null,
   selectedRun: null,
   selectedRunData: {},
@@ -9,10 +10,7 @@ export const initialState = {
   selectedRunGraph: {},
   selectedRunMetadata: {},
   selectedRunView: {
-    timeSpan: {
-      min: -1,
-      max: -1
-    },
+    timeSpan: { min: -1, max: -1 },
     conf: {
       borderThreshold: 0,
       listenThreshold: 0,
@@ -22,7 +20,15 @@ export const initialState = {
     metadata: {},
     timeBins: []
   },
-  selectedEntries: {}
+  selectedEntries: {},
+
+  emulationStatusByFirmware: {},
+  hasFirmwareImage: {},
+  runsByFirmware: {},
+  selectedBinary: null,
+  selectedDataChannel: null,
+  selectAnalysesByFirmware: {},
+  fuzzExperimentsByFirmware: {}
 }
 
 const useValue = () => useStateReact(initialState)

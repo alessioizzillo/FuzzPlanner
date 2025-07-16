@@ -1,30 +1,183 @@
 {
-  "experiments": [
+  "runId": "run_0",
+  "executableId": "httpd",
+  "data_channel_id": "socket(domain:10,type:2,protocol:6){addr:0.0.0.0;port:80}",
+  "chosen_dictionary_type": "http",
+  "chosen_parameters":
     {
-      "executableId": "httpd",
-      "data_channel_id": "socket(domain:10, type:2, protocol:6){addr:0.0.0.0; port:80}",
-      "chosen_dictionary_type": "http",
-      "chosen_parameters":
-        {
-          "syscall": 4003,
-          "pc": "0x40958c"
-        },
-      "fuzzing_timeout": 60,
-      "child_timeout": 1,
-      "set_engine_features": [
-        {
-          "name": "AFL_INST_RATIO",
-          "type": "integer",
-          "value": "90",
-          "default": "100"
-        },
-        {
-          "name": "AFL_SKIP_CPUFREQ",
-          "type": "boolean",
-          "value": "true",
-          "default": "false"
-        }
-      ]
+      "syscall": 4003,
+      "pc": "0x420ca8"
+    },
+  "set_engine_features": [
+    {
+      "name": "AFL_SKIP_CPUFREQ",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_NO_FORKSRV",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_EXIT_WHEN_DONE",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_NO_AFFINITY",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_SKIP_CRASHES",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_HANG_TMOUT",
+      "type": "integer",
+      "default": 1
+    },
+    {
+      "name": "AFL_NO_ARITH",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_SHUFFLE_QUEUE",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_SKIP_BIN_CHECK",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_DUMB_FORKSRV",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_IMPORT_FIRST",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_POST_LIBRARY",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "AFL_FAST_CAL",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_NO_CPU_RED",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_PATH",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "AFL_PRELOAD",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_NO_UI",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_BENCH_JUST_ONE",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_BENCH_UNTIL_CRASH",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_INST_RATIO",
+      "type": "integer",
+      "default": 100
+    },
+    {
+      "name": "AFL_FUZZING_TIMEOUT",
+      "type": "integer",
+      "default": 3600
+    },
+    {
+      "name": "AFL_CHILD_TIMEOUT",
+      "type": "integer",
+      "default": 1
+    },
+    {
+      "name": "AFL_INST_LIBS",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_INST_RATIO",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "AFL_INST_LIBS",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "QEMU_LD_PREFIX",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "QEMU_STACK_SIZE",
+      "type": "integer",
+      "default": 524288
+    },
+    {
+      "name": "QEMU_SET_ENV",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "QEMU_UNSET_ENV",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "QEMU_ARGV0",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
+      "name": "QEMU_UNAME",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "QEMU_GUEST_BASE",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "QEMU_RESERVED_VA",
+      "type": "string",
+      "default": ""
     }
   ]
 }

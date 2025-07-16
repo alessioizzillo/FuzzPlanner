@@ -23,8 +23,8 @@ MODE=${2}
 
 if [ "${MODE}" == "run" ]; then
     mode_abbr="run"
-elif [[ "${MODE}" == *"firmafl"* ]]; then
-    suffix=${MODE#*"firmafl"}
+elif [[ "${MODE}" == *"fuzz"* ]]; then
+    suffix=${MODE#*"fuzz"}
     mode_abbr="sb${suffix}"
 else
     echo "ERROR: Insert mode!"

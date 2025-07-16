@@ -1,10 +1,16 @@
 import Bar from '@/components/Bar'
+import { PaperAirplaneIcon, CheckCircleIcon } from '@heroicons/react/20/solid'
 import { useSelectedEntries, useSetSelectedEntries } from '@/hooks/store/selectedEntries'
 import useChartDimensions from '@/hooks/useChartDimensions'
 import { channelScoreColor } from '@/scales'
 import { MinusCircleIcon, PlusCircleIcon } from '@heroicons/react/20/solid'
 import { interpolateViridis } from 'd3-scale-chromatic'
-import { useCallback, useMemo } from 'react'
+import { useSelectedBrand } from '@/hooks/store/selectedBrand'
+import { useSelectedFirmware } from '@/hooks/store/selectedFirmware'
+import { useSelectedRun } from '@/hooks/store/selectedRun'
+import { useSelectAnalyses } from '@/hooks/store/useSelectAnalyses'
+import { usePostSelect } from '@/hooks/queries'
+import { useCallback, useState } from 'react'
 
 function getSettings (colId) {
   if (colId === 'channel') {
@@ -47,26 +53,57 @@ function Kind ({ cRef, dms, value }) {
   )
 }
 
-function Select ({ cRef, dms, value }) {
+function Select({ cRef, dms, value }) {
   const { binary, channel, role } = value
   const id = `${binary.id}-${channel.id}`
-  const selectedEntries = useSelectedEntries()
-  const setSelectedEntries = useSetSelectedEntries()
+
+  const brandId = useSelectedBrand()
+  const firmwareId = useSelectedFirmware()
+  const runId = useSelectedRun()
+
+  const postSelectMutation = usePostSelect(brandId, firmwareId, runId, binary.id, channel.id)
+  const [sent, setSent] = useState(false)
+
+  const { pollNow } = useSelectAnalyses()
+
   const handleClick = useCallback(() => {
-    const v = {
-      id,
-      binary,
-      channel
+    const payload = {
+      select: [{
+        run_id: runId,
+        executable_id: binary.id,
+        data_channel_id: channel.id,
+      }],
     }
-    setSelectedEntries({ id, v })
-  }, [binary.id, channel.id])
+
+    console.log(
+      '%c[Selection] Sending to analysis:',
+      'color: green; font-weight: bold;',
+      { brandId, firmwareId, runId, binaryId: binary.id, channelId: channel.id }
+    )
+
+    postSelectMutation.mutate(payload, {
+      onSuccess: () => {
+        setSent(true)
+        pollNow()
+        setTimeout(() => setSent(false), 3000)
+      },
+    })
+  }, [brandId, firmwareId, runId, binary.id, channel.id, postSelectMutation, pollNow])
+
   return (
-    <div ref={cRef} className='w-6 h-6'>
-      {['read', 'border', 'rw'].indexOf(role) >= 0 &&
+    <div ref={cRef} className="w-6 h-6 flex items-center justify-center">
+      {['read', 'border', 'rw'].includes(role) && (
         <>
-          {!selectedEntries[id] && <PlusCircleIcon onClick={handleClick} />}
-          {selectedEntries[id] && <MinusCircleIcon onClick={handleClick} />}
-        </>}
+          {!sent ? (
+            <PaperAirplaneIcon
+              onClick={handleClick}
+              className="cursor-pointer text-blue-600 hover:text-blue-800"
+            />
+          ) : (
+            <CheckCircleIcon className="text-green-600" />
+          )}
+        </>
+      )}
     </div>
   )
 }

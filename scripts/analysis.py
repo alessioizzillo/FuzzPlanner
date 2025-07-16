@@ -347,7 +347,7 @@ def dynamic_analysis():
                 #     exit(1)
 
         elif(syscall == socket_syscall):
-            proc_fds[proc_pid][1][ret] = "socket(domain:%s, type:%s, protocol:%s)" % (a0, a1, a2)          
+            proc_fds[proc_pid][1][ret] = "socket(domain:%s,type:%s,protocol:%s)" % (a0, a1, a2)          
 
         elif(syscall == bind_syscall or syscall == connect_syscall):
             pattern = r"\{(.+?)\}"
@@ -798,6 +798,8 @@ if __name__ == "__main__":
     FACT_IP = sys.argv[6]
     FACT_PORT = sys.argv[7]
     factUid = sys.argv[8]
+
+    os.makedirs(out_dir, exist_ok=True)
 
     if os.path.isdir(static_out_dir):
         print("\nSTATIC ANALYSIS ALREADY DONE!")

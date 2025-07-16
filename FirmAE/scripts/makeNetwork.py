@@ -41,9 +41,9 @@ echo "BASENAME $BASENAME"
 
 if [ ${BASENAME} = "run.sh" ]; then
     MODE=run
-elif [[ "${BASENAME}" == *"firmafl"* ]]; then
-    suffix=$(echo "${BASENAME}" | sed -n 's/.*firmafl\([^\.]*\)\.sh/\\1/p')
-    MODE="firmafl${suffix}"
+elif [[ "${BASENAME}" == *"fuzz"* ]]; then
+    suffix=$(echo "${BASENAME}" | sed -n 's/.*fuzz\([^\.]*\)\.sh/\\1/p')
+    MODE="fuzz${suffix}"
 fi
 
 IMAGE=`get_fs ${IID} ${MODE}`
@@ -328,9 +328,9 @@ def startNetwork(network, iid):
     mode_abbr = ''
     if "run" == MODE:
         mode_abbr = "run"
-    elif "firmafl" in MODE:
-        suffix = MODE.split("firmafl", 1)[1]
-        mode_abbr = f"fa{suffix}"
+    elif "fuzz" in MODE:
+        suffix = MODE.split("fuzz", 1)[1]
+        mode_abbr = f"fu{suffix}"
     else:
         assert(0)
 

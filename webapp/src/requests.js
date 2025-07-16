@@ -13,22 +13,22 @@ export async function getFirmwares () {
   return await getFile('firmwares', {})
 }
 
-export async function getRuns (fwId) {
+export async function getRuns (brandId, fwId) {
   return await getFile('runs', { fwId })
 }
 
-export async function getExecutableFiles (fwId, runId) {
-  return await getFile('file/executable_files', { fwId, runId })
+export async function getExecutableFiles (brandId, fwId, runId) {
+  return await getFile('file/executable_files', { brandId, fwId, runId })
 }
 
-export async function getProcesses (fwId, runId) {
-  return await getFile('file/processes', { fwId, runId })
+export async function getProcesses (brandId, fwId, runId) {
+  return await getFile('file/processes', { brandId, fwId, runId })
 }
 
-export async function getDataChannels (fwId, runId) {
-  return await getFile('file/data_channels', { fwId, runId })
+export async function getDataChannels (brandId, fwId, runId) {
+  return await getFile('file/data_channels', { brandId, fwId, runId })
 }
 
-export async function getInteractions (fwId, runId) {
-  return await getFile('file/interactions', { fwId, runId })
+export async function getInteractions (brandId, fwId, runId) {
+  return await getFile('file/interactions', { brandId, fwId, runId })
 }

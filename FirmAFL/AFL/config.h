@@ -205,7 +205,7 @@
 
 /* Fuzzer stats file and plot update intervals (sec): */
 
-#define STATS_UPDATE_SEC    60
+#define STATS_UPDATE_SEC    1
 #define PLOT_UPDATE_SEC     5
 
 /* Smoothing divisor for CPU load and exec speed stats (1 - no smoothing). */

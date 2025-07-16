@@ -26,28 +26,112 @@ LOCK_DIR = os.path.join(BASE_DIR, "runtime_tmp")
 
 FULL_PERM = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO
 
+def give_all_permissions_recursively(path):
+    for root, dirs, files in os.walk(path):
+        for dir_ in dirs:
+            os.chmod(os.path.join(root, dir_), 0o777)
+        for file_ in files:
+            os.chmod(os.path.join(root, file_), 0o777)
+    os.chmod(path, 0o777)
+
+def load_experiment(json_path: str) -> dict:
+    if not os.path.exists(json_path):
+        print(f"Error: exec-data JSON not found at {json_path}", file=sys.stderr)
+        sys.exit(1)
+    try:
+        with open(json_path, 'r') as jf:
+            exp = json.load(jf)
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"Failed to load/parse {json_path}: {e}", file=sys.stderr)
+        sys.exit(1)
+    finally:
+        pass
+    
+    return exp
+
+def export_env_vars(exp: dict):
+    os.environ["TARGET_EXECUTABLE"] = str(exp.get("executableId"))
+    os.environ["TARGET_CHANNEL"]    = str(exp.get("data_channel_id"))
+
+    params = exp.get("chosen_parameters", {})
+    os.environ["TARGET_PC"]        = str(params.get("pc"))
+    os.environ["TARGET_SYSCALL"]   = str(params.get("syscall"))
+
+    print(f'export TARGET_EXECUTABLE="{exp.get("executableId")}"')
+    print(f'export TARGET_CHANNEL="{exp.get("data_channel_id")}"')
+    print(f'export TARGET_PC="{params.get("pc")}"')
+    print(f'export TARGET_SYSCALL="{params.get("syscall")}"')
+
+    for feature in exp.get("set_engine_features", []):
+        name  = feature.get("name")
+        ftype = feature.get("type")
+        value = feature.get("value")
+        if not name or not value or (ftype == "boolean" and value == "false"):
+            continue
+        if ftype == "boolean" and value == "true":
+            os.environ[name] = ""
+            print(f'export {name}')
+        else:
+            os.environ[name] = str(value)
+            print(f'export {name}="{value}"')
+
+def prepare_fuzzing_env(work_dir: str, pattern: bytes, out_dir: str):
+    for subdir in ["inputs", "outputs"]:
+        target = os.path.join(work_dir, subdir)
+        print("TARGET TO REMOVE:", target)
+        if os.path.exists(target):
+            shutil.rmtree(target, ignore_errors=True)
+        os.makedirs(target)
+
+    if out_dir:
+        if os.path.exists(out_dir):
+            shutil.rmtree(out_dir, ignore_errors=True)
+        os.makedirs(out_dir)        
+    
+    seed_path = os.path.join(work_dir, "inputs", "seed")
+    with open(seed_path, "wb") as f:
+        f.write(pattern)
+
+    mt = os.path.join(work_dir, "mapping_table")
+    if os.path.exists(mt):
+        os.remove(mt)
+
 def setup_mounts(work_dir: str) -> None:
-    dev_dir = os.path.join(work_dir, "dev")
+    dev_dir       = os.path.join(work_dir, "dev")
     proc_host_dir = os.path.join(work_dir, "proc_host")
 
     os.makedirs(dev_dir, exist_ok=True)
     os.makedirs(proc_host_dir, exist_ok=True)
 
-    # /dev/null
-    null_path = os.path.join(dev_dir, "null")
-    open(null_path, 'a').close()
-    subprocess.run(["sudo", "-E", "mount", "--bind", "/dev/null", null_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    def bind(src: str, dest: str):
+        """Crea il file dest e poi fa mount --bind src->dest."""
+        try:
+            open(dest, 'a').close()
+        except OSError as e:
+            print(f"Warning: cannot create {dest}: {e}", file=sys.stderr)
+            return
+        subprocess.run(
+            ["sudo", "-E", "mount", "--bind", src, dest],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
 
-    # /dev/urandom
-    urandom_path = os.path.join(dev_dir, "urandom")
-    open(urandom_path, 'a').close()
-    subprocess.run(["sudo", "-E", "mount", "--bind", "/dev/urandom", urandom_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    bind("/dev/null", os.path.join(dev_dir, "null"))
 
-    # /proc/stat
-    stat_dir = os.path.join(proc_host_dir)
-    stat_path = os.path.join(stat_dir, "stat")
-    open(stat_path, 'a').close()
-    subprocess.run(["sudo", "-E", "mount", "--bind", "/proc/stat", stat_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    bind("/dev/urandom", os.path.join(dev_dir, "urandom"))
+
+    stat_path = os.path.join(proc_host_dir, "stat")
+    try:
+        open(stat_path, 'a').close()
+    except OSError as e:
+        if e.errno == 22:
+            print(f"Warning: cannot create {stat_path} (Invalid argument): {e}", file=sys.stderr)
+            return
+        else:
+            raise
+    subprocess.run(
+        ["sudo", "-E", "mount", "--bind", "/proc/stat", stat_path],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
 
 def set_permissions_recursive(path: str) -> None:
     for root, dirs, files in os.walk(path):
@@ -141,11 +225,6 @@ def send_signal_recursive(pid: int, sig: int, self_pid: Optional[int] = None) ->
         except ProcessLookupError:
             pass
 
-def generic_signal_handler(signum, frame) -> None:
-    print(f"Received signal {signum}, cleaning up...")
-    send_signal_recursive(os.getpid(), signum)
-    sys.exit(0)
-
 def fast_copytree(source, destination):
     os.makedirs(destination, exist_ok=True)
     subprocess.run(["rsync", "-a", "--info=progress2", source + "/", destination], check=True)
@@ -216,9 +295,9 @@ def copy_image(dst_mode, firmware):
 
     replace_pattern_in_file(run_file, f'IID={src_iid}', f'IID={dst_iid}')
 
-    if "firmafl" in dst_mode:
-        suffix = dst_mode.split("firmafl", 1)[1]
-        dst_abbr_mode = f"fa{suffix}"
+    if container_name in dst_mode:
+        suffix = dst_mode.split(container_name, 1)[1]
+        dst_abbr_mode = f"fu{suffix}"
 
     replace_pattern_in_file(run_file, '_run_', f'_{dst_abbr_mode}_')
     replace_pattern_in_file(run_file, f'_{src_iid}', f'_{dst_iid}')
@@ -270,11 +349,14 @@ def check(firmware: str, mode: str) -> str:
     iid = subprocess.check_output(["sudo", "-E", "./scripts/util.py", "get_iid", firmware, "0.0.0.0", mode]).decode('utf-8').strip()
 
     if iid == "" or not os.path.exists(os.path.join(FIRMAE_DIR, "scratch", mode, iid)):
-        if not copy_image(mode, firmware):
-            print("\033[32m[+]\033[0m\033[32m[+]\033[0m FirmAE: Creating Firmware Scratch Image")
-            os.environ["EXECUTION_MODE"] = "0"
-            subprocess.run(["sudo", "-E", "./run.sh", "-c", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "run", "0.0.0.0"])            
-            copy_image(mode, firmware)
+        if any(mode.startswith(m) for m in {"run", "run_capture", "check"}):
+            subprocess.run(["sudo", "-E", "./run.sh", "-c", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "run", "0.0.0.0"])
+        else:
+            if not copy_image(mode, firmware):
+                print("\033[32m[+]\033[0m\033[32m[+]\033[0m FirmAE: Creating Firmware Scratch Image")
+                os.environ["EXECUTION_MODE"] = "0"
+                subprocess.run(["sudo", "-E", "./run.sh", "-c", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "run", "0.0.0.0"])            
+                copy_image(mode, firmware)
 
     iid = subprocess.check_output(["sudo", "-E", "./scripts/util.py", "get_iid", firmware, "0.0.0.0", mode]).decode('utf-8').strip()
 
@@ -291,12 +373,12 @@ def run(firmware: str, capture: bool) -> None:
     
     if not os.path.isfile(web_check) or "true" not in open(web_check).read():
         return
-    
+
+    if os.path.exists(os.path.join(work_dir, "webserver_ready")):
+        os.remove(os.path.join(work_dir, "webserver_ready"))
+
     shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
     os.environ["EXECUTION_MODE"] = "0"
-    ready_flag = os.path.join(work_dir, "webserver_ready")
-    
-    open(ready_flag, 'w').close()
     
     cmd = ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), firmware, "run", "0.0.0.0"]
     proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -304,7 +386,9 @@ def run(firmware: str, capture: bool) -> None:
     time.sleep(time_to_wait)
     
     print("[+] Web service READY!")
-    
+    ready_flag = os.path.join(work_dir, "webserver_ready")
+    open(ready_flag, 'w').close()
+
     if capture:
         interface = f"tap_run_{iid}_0"
         target_ip = open(os.path.join(work_dir, "ip")).read().strip()
@@ -315,201 +399,203 @@ def run(firmware: str, capture: bool) -> None:
     
     os.waitpid(proc.pid, 0)
 
-def select(firmware: str) -> None:
-    work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", check(firmware, "run"))
+def select(container_name: str, firmware: str) -> None:
+    run_id   = check(firmware, "run")
+    work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", run_id)
+    json_path = os.path.join(RUNTIME_TMP, 'exec_data_pairs.json')
 
-    exec_data = os.getenv("EXEC_DATA_PAIRS", "")
-    if not exec_data:
-        print("EXEC_DATA_PAIRS is not set or empty.", file=sys.stderr)
+    if not os.path.exists(json_path):
+        print(f"Error: exec-data JSON not found at {json_path}", file=sys.stderr)
         sys.exit(1)
     try:
-        pairs = json.loads(exec_data)
-    except json.JSONDecodeError as e:
-        print(f"Failed to parse EXEC_DATA_PAIRS JSON: {e}", file=sys.stderr)
+        with open(json_path, 'r') as jf:
+            pairs = json.load(jf)
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"Failed to load/parse {json_path}: {e}", file=sys.stderr)
         sys.exit(1)
 
+    try:
+        os.remove(json_path)
+    except OSError as e:
+        print(f"Warning: could not delete {json_path}: {e}", file=sys.stderr)
+
     os.environ["EXECUTION_MODE"] = "1"
-    for pair in pairs:
-        os.environ["TARGET_EXECUTABLE"] = pair["executable_id"]
-        os.environ["TARGET_CHANNEL"] = pair["data_channel_id"]
+
+    for i, pair in enumerate(pairs):
+        os.environ["TARGET_EXECUTABLE"] = os.path.basename(pair["executable_id"])
+        os.environ["TARGET_CHANNEL"]    = pair["data_channel_id"]
+
+        container_name = f"select_{i}"
+
+        running_info_path = os.path.join(RUNTIME_TMP, "select_analysis", "infos", f"{container_name}.json")
+
+        if os.path.exists(running_info_path):
+            with open(running_info_path, 'r') as f:
+                data = json.load(f)
+
+            running_container_name = data.get("container_name")
+
+            if container_name != running_container_name:
+                print(f"Skipping: {container_name} is being processed.", file=sys.stderr)
+                continue    
+
+        results_path = os.path.join(RUNTIME_TMP, "select_analysis", "results", pair.get("brand_id"), pair.get("firmware_id"), pair.get("executable_id"), pair.get("data_channel_id"), "results.json")
+
+        if os.path.exists(results_path):
+            print(f"Skipping: {container_name} has been already processed.", file=sys.stderr)
+            continue
+
+        os.makedirs(os.path.dirname(running_info_path), exist_ok=True)
+        metadata = {
+            "container_name": container_name,
+            "brandId": pair.get("brand_id"),
+            "firmwareId": pair.get("firmware_id"),
+            "runId": pair.get("run_id"),
+            "binaryId": pair.get("executable_id"),
+            "dataChannelId": pair.get("data_channel_id")
+        }
+        
+        with open(running_info_path, "w") as f:
+            json.dump(metadata, f)
 
         cmd = [
             "sudo", "-E", "./run.sh",
             "-r", os.path.basename(os.path.dirname(firmware)),
             firmware, "run", "0.0.0.0"
         ]
-        proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        QEMU_PID = proc.pid
-        time_to_wait = float(open(os.path.join(work_dir, "time_web")).read().strip())
+        proc = subprocess.Popen(cmd)
+        qemu_pid = proc.pid
+
+        time_file = os.path.join(work_dir, "time_web")
+        time_to_wait = float(open(time_file).read().strip())
         time.sleep(time_to_wait)
-        
         print("[+] Web service READY!")
 
         replay_pcap = os.path.join(
             RUNTIME_TMP, "analysis", "results",
             os.path.basename(os.path.dirname(firmware)),
             os.path.basename(firmware),
-            "dynamic_analysis", 
-            os.getenv("RUN", ""),
+            "dynamic_analysis", pair["run_id"],
             "user_interaction.pcap"
         )
         target_ip = open(os.path.join(work_dir, "ip")).read().strip()
-        subprocess.run([
-            "python3", os.path.join(SCRIPTS_DIR, "replay_packets.py"),
-            replay_pcap, target_ip, work_dir
-        ], check=True)
+        subprocess.run(
+            ["python3", os.path.join(SCRIPTS_DIR, "replay_packets.py"),
+             replay_pcap, target_ip, work_dir],
+            check=True
+        )
 
         time.sleep(5)
-        send_signal_recursive(QEMU_PID, signal.SIGKILL)
+        send_signal_recursive(qemu_pid, signal.SIGKILL)
         proc.wait()
-
-        engine_features = json.loads(open(os.path.join(BASE_DIR, "config", "AFL_features.json")).read())
-        dict_types = get_dict_types(os.path.join(BASE_DIR, "config", "dictionaries"))
 
         fork_log = os.path.join(work_dir, "debug", "forkpoints.log")
         seen = set()
         entries = []
-        for line in open(fork_log):
-            parts = line.strip().split(",")
-            if len(parts) < 3:
-                continue
-            syscall, pc, pattern = parts[:3]
-            key = (pc, pattern)
-            if key in seen:
-                continue
-            seen.add(key)
-            entries.append({"syscall": syscall, "pc": pc, "pattern": pattern})
+        
+        if os.path.exists(fork_log):
+            for line in open(fork_log):
+                parts = line.strip().split(",")
+                if len(parts) < 3:
+                    continue
+                syscall, pc, pattern = parts[:3]
+                key = (pc, pattern)
+                if key in seen:
+                    continue
+                seen.add(key)
+                entries.append({"syscall": syscall, "pc": pc, "pattern": pattern})
 
-        body = {
-            "engine_features": engine_features,
-            "dict_types": json.loads(f"[{dict_types}]"),
-            "analysis": [{
-                "executable_id": pair["executable_id"],
-                "data_channel_id": pair["data_channel_id"],
-                "parameters": entries
-            }]
-        }
-        body_str = json.dumps(body, indent=2)
+            out_path = os.path.join(
+                RUNTIME_TMP, "select_analysis", "results",
+                os.path.basename(os.path.dirname(firmware)),
+                os.path.basename(firmware),
+                pair["run_id"], os.path.basename(pair["executable_id"]),
+                pair["data_channel_id"], "results.json"
+            )
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+            with open(out_path, "w") as outf:
+                json.dump(entries, outf, indent=2)
 
-        with open(os.path.join(RUNTIME_TMP, "analysis", "results", os.path.basename(os.path.dirname(firmware)), os.path.basename(firmware), "dynamic_analysis", os.getenv("RUN", ""),"select_result.json"), "w+") as f:
-            f.write(body_str)
+        try:
+            os.remove(running_info_path)
+        except OSError as e:
+            print(f"Warning: could not delete {running_info_path}: {e}", file=sys.stderr)
 
+def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
+    run_id   = check(firmware, container_name)
+    json_path = os.path.join(RUNTIME_TMP, 'fuzz_pars.json')
+    exp = load_experiment(json_path)
 
-def fuzz(firmware: str, out_dir: str) -> None:
-    raw = os.getenv("EXPERIMENTS_DATA")
-    if not raw:
-        print("EXPERIMENTS_DATA is not set or empty.", file=sys.stderr)
-        return False
     try:
-        experiments = json.loads(raw)
-    except json.JSONDecodeError as e:
-        print(f"Failed to parse EXPERIMENTS_DATA as JSON: {e}", file=sys.stderr)
-        return False
+        os.remove(json_path)
+    except OSError as e:
+        print(f"Warning: could not delete {json_path}: {e}", file=sys.stderr)
 
-    for exp in experiments:
-        executableId       = exp.get("executableId")
-        data_channel_id    = exp.get("data_channel_id")
-        chosen_dict_type   = exp.get("chosen_dictionary_type")
-        fuzzing_timeout    = exp.get("fuzzing_timeout")
-        child_timeout      = exp.get("child_timeout")
-        params             = exp.get("chosen_parameters", {})
-        pc                 = params.get("pc")
-        syscall            = params.get("syscall")
-        pattern_str = params.get("pattern", "")
-        pattern = pattern_str.encode('utf-8').decode('unicode_escape').encode('latin1')
+    export_env_vars(exp)
 
-        os.environ["TARGET_EXECUTABLE"] = str(executableId)
-        os.environ["TARGET_CHANNEL"]    = str(data_channel_id)
-        os.environ["FUZZING_TIMEOUT"]   = str(fuzzing_timeout)
-        os.environ["CHILD_TIMEOUT"]     = str(child_timeout)
-        os.environ["TARGET_PC"]         = str(pc)
-        os.environ["TARGET_SYSCALL"]    = str(syscall)
-
-        dict_path = os.path.join(BASE_DIR, "config", "dictionaries", f"{chosen_dict_type}.dict")
-
-        print(f'export TARGET_EXECUTABLE="{executableId}"')
-        print(f'export TARGET_CHANNEL="{data_channel_id}"')
-        print(f'export TARGET_PC="{pc}"')
-        print(f'export TARGET_SYSCALL="{syscall}"')
-
-        for feature in exp.get("set_engine_features", []):
-            name  = feature.get("name")
-            ftype = feature.get("type")
-            value = feature.get("value")
-
-            if not name:
-                continue
-
-            if ftype == "boolean":
-                os.environ[name] = ""
-                print(f'export {name}')
-            else:
-                os.environ[name] = str(value)
-                print(f'export {name}="{value}"')
-
-    iid = str(check(firmware, "firmafl"))
-    work_dir = os.path.join(FIRMAE_DIR, "scratch", "firmafl", iid)
+    iid = str(check(firmware, container_name))
+    work_dir = os.path.join(FIRMAE_DIR, "scratch", container_name, iid)
 
     if "true" not in open(os.path.join(work_dir, "web_check")).read():
-        return
-    if os.path.exists(os.path.join(work_dir, "mem_file")):
-        os.remove(os.path.join(work_dir, "mem_file"))
-    with open(os.path.join(work_dir, "time_web"), 'r') as file:
-        sleep = file.read().strip()
+        print("Web check failed, skipping fuzz", file=sys.stderr)
+        return False
+
+    memf = os.path.join(work_dir, "mem_file")
+    if os.path.exists(memf):
+        os.remove(memf)
+    sleep_duration = float(open(os.path.join(work_dir, "time_web")).read().strip())
 
     os.environ["EXECUTION_MODE"] = "2"
     os.environ["FUZZ"] = "1"
-
     setup_mounts(work_dir)
 
-    with open("/proc/self/status") as file:
-        status_content = file.read()
-
-    cpu_to_bind = re.search(r"Cpus_allowed_list:\s*([0-9]+)", status_content)
-
+    status = open("/proc/self/status").read()
+    m = re.search(r"Cpus_allowed_list:\s*([0-9]+)", status)
+    cpu_to_bind = m.group(1) if m else None
     if cpu_to_bind:
-        cpu_to_bind_value = cpu_to_bind.group(1)
-        print("CPU_TO_BIND:", cpu_to_bind_value)
+        print("CPU_TO_BIND:", cpu_to_bind)
     else:
-        print("CPU_TO_BIND not found in /proc/self/status")
+        print("Warning: CPU_TO_BIND not found", file=sys.stderr)
 
-    if out_dir:
-        if os.path.exists(out_dir):
-            shutil.rmtree(out_dir, ignore_errors=True)
-        
-        os.makedirs(out_dir)
-    else:
-        if os.path.exists(os.path.join(work_dir, "outputs")):
-            shutil.rmtree(os.path.join(work_dir, "outputs"), ignore_errors=True)
-        
-        os.makedirs(os.path.join(work_dir, "outputs"))
+    params      = exp.get("chosen_parameters", {})
+    pat_str     = params.get("pattern", "")
+    pattern     = pat_str.encode('utf-8').decode('unicode_escape').encode('latin1')
 
-    if os.path.exists(os.path.join(work_dir, "inputs")):
-        shutil.rmtree(os.path.join(work_dir, "inputs"), ignore_errors=True)
-    
-    os.makedirs(os.path.join(work_dir, "inputs"))
+    dict_path = os.path.join(BASE_DIR, "config", "dictionaries",
+                             f"{exp.get('chosen_dictionary_type')}")
 
-    seed_path = os.path.join(work_dir, "inputs", "seed")
-    with open(seed_path, "wb") as f:
-        f.write(pattern)
+    prepare_fuzzing_env(work_dir, pattern, out_dir)
 
-    if os.path.exists(os.path.join(work_dir, "mapping_table")):
-        os.remove(os.path.join(work_dir, "mapping_table"))
+    exp_info = {
+        "brandId": os.path.basename(os.path.dirname(firmware)),
+        "firmwareId": os.path.basename(firmware),
+        "runId": exp["runId"],
+        "executableId": exp["executableId"],
+        "dataChannelId": exp["data_channel_id"],
+        "syscall": params.get("syscall"),
+        "pc": params.get("pc"),
+        "pattern": str(pattern)
+    }
+    os.makedirs(os.path.join(work_dir, "outputs"), exist_ok=True)
+    with open(os.path.join(work_dir, "outputs", "exp_info.json"), "w+", encoding="utf-8") as out:
+        json.dump(exp_info, out, indent=4, ensure_ascii=False)
 
-    cmd = ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "firmafl", "0.0.0.0"]
-    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    
-    time_to_wait = float(open(os.path.join(work_dir, "time_web")).read().strip())
-    time.sleep(time_to_wait)
-    
+    subprocess.Popen(
+        ["sudo","-E","./run.sh",
+         "-r", os.path.basename(os.path.dirname(firmware)),
+         os.path.join(FIRMWARE_DIR, firmware),
+         container_name,"0.0.0.0"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    time.sleep(sleep_duration)
     print("[+] Web service READY!")
 
     replay_pcap = os.path.join(
-        RUNTIME_TMP, "analysis", "results",
+        RUNTIME_TMP, "analysis","results",
         os.path.basename(os.path.dirname(firmware)),
         os.path.basename(firmware),
-        "dynamic_analysis", 
-        os.getenv("RUN", ""),
+        "dynamic_analysis",
+        exp["runId"],
         "user_interaction.pcap"
     )
     target_ip = open(os.path.join(work_dir, "ip")).read().strip()
@@ -551,19 +637,19 @@ def fuzz(firmware: str, out_dir: str) -> None:
 
     shutil.copy(dict_path, "keywords")
 
+    with open(os.path.join(RUNTIME_TMP, "select_analysis", "results", firmware, exp["runId"], exp["executableId"], exp["data_channel_id"], "results.json"), "r") as f:
+        data = json.load(f)
+
     command = ["chroot", "."]
     command += ["./afl-fuzz"]
     command += ["-m", "none"]
     command += ["-t", "800000+"]
     command += ["-Q"]
     command += ["-i", "inputs"]
-    if out_dir:
-        command += ["-o", out_dir]
-    else:
-        command += ["-o", "outputs"]
+    command += ["-o", "outputs"]
     command += ["-x", "keywords"]
-    command += ["-b", cpu_to_bind_value]
-    command += [executableId]
+    command += ["-b", cpu_to_bind]
+    command += [exp["executableId"]]
     command += ["@@"]
 
     ret = 1
@@ -575,6 +661,12 @@ def fuzz(firmware: str, out_dir: str) -> None:
             check=True
         )
         ret = True
+
+        if out_dir:
+            if os.path.exists(out_dir):
+                shutil.rmtree(out_dir)
+            shutil.copytree("outputs", out_dir)
+            give_all_permissions_recursively(out_dir)
     except subprocess.CalledProcessError as e:
         print(f"Command failed with error: {e}")
         ret = False
@@ -583,22 +675,22 @@ def fuzz(firmware: str, out_dir: str) -> None:
 
     return ret
 
-def start(mode, firmware, out_dir, container_name, experiments_data_path) -> None:
+def start(mode, firmware, out_dir, container_name) -> None:
     os.environ["NO_PSQL"] = "1"
     
     prev_dir = os.getcwd()
     os.chdir(FIRMAE_DIR)
 
     if mode == "run":
-        run(firmware, False, "0")
+        run(firmware, False)
     elif mode == "run_capture":
-        run(firmware, True, "0")
+        run(firmware, True)
     elif mode == "select":
-        select(firmware)
+        select(container_name, firmware)
     elif mode == "check":
         check(firmware, "run")
     elif mode == "fuzz":
-        fuzz(firmware, out_dir)
+        fuzz(firmware, out_dir, container_name)
     else:
         assert(False)
 
@@ -606,9 +698,6 @@ def start(mode, firmware, out_dir, container_name, experiments_data_path) -> Non
 
 if __name__ == "__main__":
     os.umask(0o000)
-
-    signal.signal(signal.SIGTSTP, generic_signal_handler)
-    signal.signal(signal.SIGCONT, generic_signal_handler)
 
     if os.path.exists("runtime_tmp/command"):
         os.remove("runtime_tmp/command")
@@ -627,11 +716,6 @@ if __name__ == "__main__":
         help="Path to the engine features file"
     )
     parser.add_argument(
-        "--experiments_data_path",
-        type=str,
-        help="Path to the engine features file"
-    )
-    parser.add_argument(
         "--output",
         type=str,
         help="Output directory for experiment results"
@@ -644,12 +728,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if (args.experiments_data_path):
-        experiments_data_path = os.path.abspath(args.experiments_data_path)
-
     exp_path = os.path.abspath(args.output) if args.output else None
     container_name = args.container_name if args.container_name else None
 
     start(args.mode, args.firmware, os.path.abspath(args.output) if args.output else None, 
-        args.container_name if args.container_name else None,
-        args.experiments_data_path if args.experiments_data_path else None)
+        args.container_name if args.container_name else None)

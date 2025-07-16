@@ -21,9 +21,9 @@ MODE=${2}
 # Assign abbreviation based on MODE
 if [ "${MODE}" == "run" ]; then
     mode_abbr="run"
-elif [[ "${MODE}" == *"firmafl"* ]]; then
-    suffix=${MODE#*"firmafl"}
-    mode_abbr="fa${suffix}"
+elif [[ "${MODE}" == *"fuzz"* ]]; then
+    suffix=${MODE#*"fuzz"}
+    mode_abbr="fu${suffix}"
 else
     echo "ERROR: Insert mode!"
     exit 1

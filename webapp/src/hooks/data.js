@@ -5,11 +5,11 @@ import { useGraphLayout } from '@/hooks/layouts'
 import { useMemo } from 'react'
 import { makeId } from '@/utils'
 
-export function useRunData (fwId, runId) {
-  const getExecutableFiles = useGetExecutableFiles(fwId, runId)
-  const getProcesses = useGetProcesses(fwId, runId)
-  const getDataChannels = useGetDataChannels(fwId, runId)
-  const getInteractions = useGetInteractions(fwId, runId)
+export function useRunData (brandId, fwId, runId) {
+  const getExecutableFiles = useGetExecutableFiles(brandId, fwId, runId)
+  const getProcesses = useGetProcesses(brandId, fwId, runId)
+  const getDataChannels = useGetDataChannels(brandId, fwId, runId)
+  const getInteractions = useGetInteractions(brandId, fwId, runId)
   const data = useMemo(() => {
     const data = {
       id: makeId(16),
@@ -55,8 +55,8 @@ export function useRunData (fwId, runId) {
   return data
 }
 
-export function useRunLogs (fwId, runId) {
-  const runData = useRunData(fwId, runId)
+export function useRunLogs (brandId, fwId, runId) {
+  const runData = useRunData(brandId, fwId, runId)
   const runLogs = useMemo(() => {
     const logs = []
     // Processes

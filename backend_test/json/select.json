@@ -1,8 +1,9 @@
 {
   "select": [
     {
+      "run_id": "run_0",
       "executable_id": "httpd",
-      "data_channel_id": "socket(domain:10, type:2, protocol:6){addr:0.0.0.0; port:80}"
+      "data_channel_id": "socket(domain:10,type:2,protocol:6){addr:0.0.0.0;port:80}"
     }
   ]
 }

@@ -16,15 +16,15 @@ case $1 in
         ;;
 
     run_exp_host)
-    	docker run -dit --privileged --cpuset-cpus=$3 --memory="15g" --network host --name $2 --volumes-from FuzzPlanner --mount type=tmpfs,destination=/dev/shm fuzzplanner /bin/bash -c "$(cat runtime_tmp/command)";
+    	docker run -dit --privileged --cpuset-cpus=$3 --memory="15g" --network host --name $2 --volumes-from FuzzPlanner --mount type=tmpfs,destination=/dev/shm fuzzplanner /bin/bash -c "$(cat tmp/command)";
         ;;
 
     run_exp_bridge)
-    	docker run -dit --privileged --cpuset-cpus=$3 --memory="15g" --network bridge --name $2 --volumes-from FuzzPlanner --mount type=tmpfs,destination=/dev/shm fuzzplanner /bin/bash -c "$(cat runtime_tmp/command)";
+    	docker run -dit --privileged --cpuset-cpus=$3 --memory="15g" --network bridge --name $2 --volumes-from FuzzPlanner --mount type=tmpfs,destination=/dev/shm fuzzplanner /bin/bash -c "$(cat tmp/command)";
         ;;
 
     attach)
-        docker attach $2 --detach-keys ctrl-a;
+        docker attach FuzzPlanner --detach-keys ctrl-a;
         ;;
 
     rm)

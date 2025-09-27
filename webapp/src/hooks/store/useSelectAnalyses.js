@@ -3,18 +3,25 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useGetSelectAnalyses } from '@/hooks/queries'
 import { useState, useSetState } from '@/store'
 
-export function useSelectAnalyses() {
+export function useSelectAnalyses(options = {}) {
+  const { includeBinaryFilter = true } = options
   const state = useState()
   const setState = useSetState()
 
   const brandId = state.selectedBrand
   const firmwareId = state.selectedFirmware
   const runId = state.selectedRun
-  const key = `${brandId}:${firmwareId}:${runId}`
+  const fullBinaryId = state.selectedAnalysis?.binaryId
+
+  // Extract basename from binary path for API calls (e.g., '/sbin/atp' -> 'atp')
+  // Only use binaryId if includeBinaryFilter is true
+  const binaryId = includeBinaryFilter && fullBinaryId ? fullBinaryId.split('/').pop() : undefined
+
+  const key = `${brandId}:${firmwareId}:${runId}:${includeBinaryFilter ? (fullBinaryId || '') : 'all'}`
 
   const queryClient = useQueryClient()
 
-  const query = useGetSelectAnalyses(brandId, firmwareId, runId, {
+  const query = useGetSelectAnalyses(brandId, firmwareId, runId, binaryId, {
     refetchInterval: (data) => {
       const runningValues = Object.values(data?.running ?? {})
         .flatMap(binary => Object.values(binary))
@@ -39,7 +46,7 @@ export function useSelectAnalyses() {
       }))
     }
     prevKey.current = key
-  }, [query.data, key, brandId, firmwareId, runId, setState])
+  }, [query.data, key, brandId, firmwareId, runId, binaryId, setState])
 
   const global = state.selectAnalysesByFirmware?.[key] ?? {}
 
@@ -65,7 +72,7 @@ export function useSelectAnalyses() {
     if (brandId && firmwareId && runId) {
       console.log('[useSelectAnalyses] Manual poll triggered for', key)
       queryClient.invalidateQueries({
-        queryKey: ['selectAnalyses', brandId, firmwareId, runId],
+        queryKey: ['selectAnalyses', brandId, firmwareId, runId, binaryId],
       })
     }
   }

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import create from 'zustand'
+import Icon from '@/components/Icon'
 import {
   useGetEngineFeatures,
   useGetDictionaries,
@@ -9,6 +10,7 @@ import {
 
 import { useSelectedRun } from '@/hooks/store/selectedRun'
 import { useSelectAnalyses } from '@/hooks/store/useSelectAnalyses'
+import { useOptimizedFuzzExperiments } from '@/hooks/useOptimizedPolling'
 import {
   useSelectedBinary,
   useSetSelectedBinary,
@@ -70,6 +72,7 @@ export default function ExperimentLauncher() {
   const { data: selectResult         = [], isLoading: paramLoading } =
     useGetSelectResult(brandId, firmwareId, runId, selectedBinary, selectedDataChannel)
   const executeMutation = useExecuteExperiment()
+  const { refresh: refreshFuzzExperiments } = useOptimizedFuzzExperiments()
 
   const engineFeatures    = useLocalStore(s => s.engineFeatures)
   const setEngineFeatures = useLocalStore(s => s.setEngineFeatures)
@@ -128,7 +131,9 @@ export default function ExperimentLauncher() {
     executeMutation.mutate(
       { brandId, firmwareId, payload },
       {
-        onSuccess: () => alert('Execution request sent successfully'),
+        onSuccess: () => {
+          setTimeout(() => refreshFuzzExperiments(), 500)
+        },
         onError: err => alert(`Execution failed: ${err.message}`)
       }
     )
@@ -144,7 +149,10 @@ export default function ExperimentLauncher() {
   return (
     <div className="w-full h-full overflow-auto p-4 space-y-6">
       <div>
-        <h2 className="text-lg font-bold mb-4 text-blue-400">⚙️ Engine Features</h2>
+        <h2 className="text-lg font-bold mb-1 text-blue-400 flex items-center gap-2">
+          <Icon name="power" className="w-5 h-5" />
+          Engine Features
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-3">
           {efLoading
             ? <p>Loading features…</p>
@@ -162,7 +170,7 @@ export default function ExperimentLauncher() {
       </div>
 
       <div>
-        <h2 className="text-lg font-bold mb-4 text-green-400">📦 Dictionary Type</h2>
+        <h2 className="text-lg font-bold mb-1 text-green-400">📦 Dictionary Type</h2>
         {dtLoading
           ? <p>Loading dictionaries…</p>
           : <select className="border px-2 py-1 bg-gray-800 text-gray-100 rounded" value={selected_dict_type} onChange={e => setDictType(e.target.value)}>
@@ -173,7 +181,10 @@ export default function ExperimentLauncher() {
       </div>
 
       <div>
-        <h2 className="text-lg font-bold mb-4 text-red-400">🔍 Analysis Parameters</h2>
+        <h2 className="text-lg font-bold mb-1 text-red-400 flex items-center gap-2">
+          <Icon name="analyze" className="w-5 h-5" />
+          Analysis Parameters
+        </h2>
         {paramLoading
           ? <p>Loading parameters…</p>
           : <select className="border px-2 py-1 bg-gray-800 text-gray-100 rounded w-full" value={paramIdx !== null ? paramIdx : ''} onChange={e => onParamSelect(e.target.value)}>

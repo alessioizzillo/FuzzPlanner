@@ -10,8 +10,7 @@ import { useSelectedBrand } from '@/hooks/store/selectedBrand'
 
 import { useResetSelectedBinary, useResetSelectedDataChannel } from '@/hooks/store/selectedBinaryDataChannel'
 
-import { FaTrashAlt } from 'react-icons/fa'
-
+import Icon from '@/components/Icon'
 import Picker from '@/components/Picker'
 import Spinner from '@/components/Spinner'
 import Error from '@/components/Error'
@@ -44,27 +43,25 @@ export default function RunPicker () {
 
   return (
     <div className="flex items-center">
-      <div className="relative flex items-center">
-        <Picker
-          items={runs.map(r => ({ id: r, label: r }))}
-          selected={selectedRun}
-          setSelected={handleSelect}
-          resetSelected={resetSelectedRun}
-          placeholder="Select a run..."
-          onOpen={() => {
-            refetch()
-          }}
-        />
-        {selectedRun && (
-          <button
-            onClick={handleRemoveSelectedRun}
-            className="absolute right-0 mr-1 text-red-500 hover:text-red-700 p-0"
-            title="Remove selected run"
-          >
-            <FaTrashAlt size={14} />
-          </button>
-        )}
-      </div>
+      <Picker
+        items={runs.map(r => ({ id: r, label: r }))}
+        selected={selectedRun}
+        setSelected={handleSelect}
+        resetSelected={resetSelectedRun}
+        placeholder="Select a run..."
+        onOpen={() => {
+          refetch()
+        }}
+      />
+      {selectedRun && (
+        <button
+          onClick={handleRemoveSelectedRun}
+          className="-ml-5 rounded transition-colors text-red-500 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+          title="Remove selected run"
+        >
+          <Icon name="trash" className="w-4 h-4" />
+        </button>
+      )}
     </div>
   )
 }

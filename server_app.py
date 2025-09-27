@@ -1,11 +1,16 @@
 import os
+import sys
 import csv
 import json
 import signal
 import subprocess
 import shutil
+import hashlib
+import time
+import glob
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
 
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
@@ -19,13 +24,12 @@ from scheduler import (
 )
 
 # Configuration constants
-BASE_DIR = os.path.join(os.sep, "FuzzPlanner")
+BASE_DIR = os.getcwd()
+TMP_DIR = os.path.join(BASE_DIR, "tmp")
 FACT_IP = "http://192.168.30.177"
 FACT_PORT = "5000"
-
-RUNTIME_TMP = os.path.join(BASE_DIR, "runtime_tmp")
-FUZZ_EXP_DIR = os.path.join(RUNTIME_TMP, "fuzz_experiments")
-SCHEDULE_CSV = os.path.join(RUNTIME_TMP, "schedule.csv")
+FUZZ_EXP_DIR = os.path.join(TMP_DIR, "fuzz_experiments")
+SCHEDULE_CSV = os.path.join(TMP_DIR, "schedule.csv")
 SCHEDULE_HEADER = [
     "status",
     "exp_name",
@@ -34,6 +38,42 @@ SCHEDULE_HEADER = [
     "mode",
     "firmware"
 ]
+
+# Caching utilities
+_cache = {}
+_cache_ttl = {}
+CACHE_DURATION = 1  # 1 second cache
+
+def get_cached_or_compute(key: str, compute_func, ttl: int = CACHE_DURATION):
+    now = time.time()
+    if key in _cache and now - _cache_ttl.get(key, 0) < ttl:
+        return _cache[key]
+
+    result = compute_func()
+    _cache[key] = result
+    _cache_ttl[key] = now
+    return result
+
+def generate_etag_for_files(file_paths: List[str]) -> Tuple[str, float]:
+    etag_data = ""
+    last_modified = 0
+
+    for file_path in file_paths:
+        if os.path.exists(file_path):
+            try:
+                mtime = os.path.getmtime(file_path)
+                size = os.path.getsize(file_path)
+                etag_data += f"{file_path}:{mtime}:{size}:"
+                last_modified = max(last_modified, mtime)
+            except OSError:
+                continue
+
+    etag = hashlib.md5(etag_data.encode()).hexdigest()
+    return etag, last_modified
+
+def check_etag_match(request_etag: Optional[str], current_etag: str) -> bool:
+    """Check if client ETag matches current ETag"""
+    return request_etag is not None and request_etag == current_etag
 
 FIRMAE_DIR = os.path.join(BASE_DIR, "FirmAE")
 CONFIG_DIR = os.path.join(BASE_DIR, "config")
@@ -48,6 +88,13 @@ CORS(app)
 
 # Utility functions
 
+def sanitize_data_channel_id(data_channel_id: str) -> str:
+    if not data_channel_id:
+        return data_channel_id
+
+    sanitized = data_channel_id.replace('/', '_').replace('\\', '_')
+    return sanitized
+
 def nest_results(entries, leaf_fields):
     nested = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
     for entry in entries:
@@ -56,8 +103,30 @@ def nest_results(entries, leaf_fields):
         run = entry["runId"]
         binary = entry["binaryId"]
 
-        for field in leaf_fields:
-            nested[brand][firmware][run][binary][field] = entry.get(field)
+        if "dataChannelId" in leaf_fields and len(leaf_fields) == 1:
+            data_channel_id = entry.get("dataChannelId", "")
+            container_name = entry.get("containerName", "")
+
+            if binary not in nested[brand][firmware][run]:
+                nested[brand][firmware][run][binary] = {
+                    "binaryId": binary,
+                    "dataChannelIds": []
+                }
+
+            channel_exists = any(
+                item["dataChannelId"] == data_channel_id
+                for item in nested[brand][firmware][run][binary]["dataChannelIds"]
+                if isinstance(item, dict)
+            )
+
+            if not channel_exists:
+                nested[brand][firmware][run][binary]["dataChannelIds"].append({
+                    "dataChannelId": data_channel_id,
+                    "containerName": container_name
+                })
+        else:
+            for field in leaf_fields:
+                nested[brand][firmware][run][binary][field] = entry.get(field)
     return nested
 
 def nest_results_2(entries, leaf_fields):
@@ -70,9 +139,36 @@ def nest_results_2(entries, leaf_fields):
             nested[brand][firmware][field] = entry.get(field)
     return nested
 
+def ensure_server_directories():
+    directories = [
+        TMP_DIR,
+        os.path.join(TMP_DIR, "progress"),
+        os.path.join(TMP_DIR, "fuzz_status"),
+        os.path.join(TMP_DIR, "select_analysis"),
+        os.path.join(TMP_DIR, "select_analysis", "infos"),
+        os.path.join(TMP_DIR, "select_analysis", "results"),
+        FUZZ_EXP_DIR
+    ]
+
+    for directory in directories:
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except OSError as e:
+            print(f"Warning: Could not create directory {directory}: {e}", file=sys.stderr)
+
 def read_csv_rows(path: str) -> List[Dict[str, str]]:
-    with open(path, newline="") as f:
-        return list(csv.DictReader(f))
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, newline="") as f:
+            reader = csv.DictReader(f)
+            if reader.fieldnames is None:
+                print(f"Warning: CSV file {path} has no headers or is empty", file=sys.stderr)
+                return []
+            return list(reader)
+    except (OSError, IOError, TypeError) as e:
+        print(f"Warning: Could not read CSV file {path}: {e}", file=sys.stderr)
+        return []
 
 
 def append_csv_row(path: str, header: List[str], row: List[Any]) -> None:
@@ -200,7 +296,7 @@ def list_runs() -> Response:
     brand = request.args.get("brandId")
     firmware = request.args.get("firmwareId")
 
-    base = os.path.join(RUNTIME_TMP, "analysis", "results", brand, firmware, "dynamic_analysis")
+    base = os.path.join(TMP_DIR, "analysis", "results", brand, firmware, "dynamic_analysis")
     runs = [d for d in os.listdir(base) if os.path.isdir(os.path.join(base, d))] if os.path.isdir(base) else []
     return jsonify({"brand": brand, "firmwareId": firmware, "runs": runs}), 200
 
@@ -214,11 +310,11 @@ def remove_run() -> Response:
         return jsonify({"status": "error", "message": "Missing brand, firmwareId, or runId"}), 400
 
     base_dynamic_analysis = os.path.join(
-        RUNTIME_TMP, "analysis", "results", brand, firmware, "dynamic_analysis", run_id
+        TMP_DIR, "analysis", "results", brand, firmware, "dynamic_analysis", run_id
     )
 
     select_analyses_path = os.path.join(
-        RUNTIME_TMP, "select_analysis", "results", brand, firmware, run_id
+        TMP_DIR, "select_analysis", "results", brand, firmware, run_id
     )
 
     if os.path.exists(select_analyses_path):
@@ -233,7 +329,7 @@ def remove_run() -> Response:
     shutil.rmtree(base_dynamic_analysis)
 
     fuzz_experiments_dir = os.path.join(
-        RUNTIME_TMP, "fuzz_experiments", brand, firmware
+        TMP_DIR, "fuzz_experiments", brand, firmware
     )
 
     if os.path.exists(fuzz_experiments_dir):
@@ -264,9 +360,9 @@ def fetch_data() -> Response:
     dtype = request.args.get("type")
 
     if dtype in ("interactions", "processes", "data_channels"):
-        path = os.path.join(RUNTIME_TMP, "analysis", "results", brand, firmware, "dynamic_analysis", run_id, "data", f"{dtype}.json")
+        path = os.path.join(TMP_DIR, "analysis", "results", brand, firmware, "dynamic_analysis", run_id, "data", f"{dtype}.json")
     elif dtype == "executable_files":
-        path = os.path.join(RUNTIME_TMP, "analysis", "results", brand, firmware, "static_analysis", "data", "executable_files.json")
+        path = os.path.join(TMP_DIR, "analysis", "results", brand, firmware, "static_analysis", "data", "executable_files.json")
     else:
         return jsonify({"status": "error", "message": "Invalid data type"}), 400
 
@@ -303,40 +399,75 @@ def emulate() -> Response:
 
         return ("OK", 200) if success else (jsonify({"status": "error", "message": "Emulation failed"}), 400)
 
+def compute_check_run_data(brand: str, firmware: str) -> dict:
+    combined = os.path.join(brand, firmware)
+    run_id = get_run_id(combined)
+    status, cname = get_container_info(combined, SCHEDULE_CSV)
+
+    if (status != "running" and status != "paused") or not run_id:
+        return {"status": "not running"}
+
+    if status == "paused":
+        return {"status": "paused"}
+
+    listening_file = os.path.join(SCRATCH_DIR, 'run', run_id, 'webserver_ready')
+    listening = os.path.exists(listening_file)
+    response_data = {"status": "listening" if listening else "booting"}
+
+    if listening:
+        ip_file = os.path.join(SCRATCH_DIR, 'run', run_id, 'ip')
+        if os.path.exists(ip_file):
+            try:
+                with open(ip_file, 'r') as f:
+                    ip = f.read().strip()
+                response_data["ip"] = ip
+            except Exception as e:
+                pass
+
+    return response_data
+
 @app.route("/check_run", methods=["GET"])
 def check_run() -> Response:
     brand = request.args.get("brandId")
     firmware = request.args.get("firmwareId")
-    combined = os.path.join(brand, firmware)
 
     if not firmware or not brand:
         return jsonify({"status": "error", "message": "Missing brand or firmwareId"}), 400
 
+    cache_key = f"check_run:{brand}:{firmware}"
+
+    combined = os.path.join(brand, firmware)
     run_id = get_run_id(combined)
+    files_to_check = [SCHEDULE_CSV]
 
-    status, cname = get_container_info(combined, SCHEDULE_CSV)
-    if (status != "running" and status != "paused") or not run_id:
-        return jsonify({"status": "not running"}), 200
-    else:
-        if status == "paused":
-            return jsonify({"status": "paused"}), 200
-        else:
-            listening_file = os.path.join(SCRATCH_DIR, 'run', run_id, 'webserver_ready')
-            listening = os.path.exists(listening_file)
+    if run_id:
+        scratch_run_dir = os.path.join(SCRATCH_DIR, 'run', run_id)
+        potential_files = [
+            os.path.join(scratch_run_dir, 'webserver_ready'),
+            os.path.join(scratch_run_dir, 'ip')
+        ]
+        files_to_check.extend([f for f in potential_files if os.path.exists(f)])
 
-            response_data = {"status": "listening" if listening else "booting"}
+    current_etag, last_modified = generate_etag_for_files(files_to_check)
 
-            if listening:
-                ip_file = os.path.join(SCRATCH_DIR, 'run', run_id, 'ip')
-                if os.path.exists(ip_file):
-                    try:
-                        with open(ip_file, 'r') as f:
-                            ip = f.read().strip()
-                        response_data["ip"] = ip
-                    except Exception as e:
-                        pass
+    client_etag = request.headers.get('If-None-Match')
+    if check_etag_match(client_etag, current_etag):
+        response = Response('', 304)
+        response.headers['ETag'] = current_etag
+        return response
 
-            return jsonify(response_data), 200
+    data = get_cached_or_compute(
+        cache_key,
+        lambda: compute_check_run_data(brand, firmware)
+    )
+
+    # Create response with ETag headers
+    response = jsonify(data)
+    response.headers['ETag'] = current_etag
+    if last_modified > 0:
+        response.headers['Last-Modified'] = datetime.fromtimestamp(last_modified).strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+    return response
 
 @app.route("/pause_run_capture", methods=["POST"])
 def pause_and_analyze() -> Response:
@@ -358,7 +489,7 @@ def pause_and_analyze() -> Response:
     subprocess.run(["docker", "exec", cname, "pkill", "-SIGTSTP", "-f", "capture_packets.py"])
 
     work = os.path.join(SCRATCH_DIR, 'run', run_id)
-    analysis_dir = os.path.join(RUNTIME_TMP, "analysis", "results", combined, "dynamic_analysis")
+    analysis_dir = os.path.join(TMP_DIR, "analysis", "results", combined, "dynamic_analysis")
     out = os.path.join(analysis_dir, next_run_folder(analysis_dir))
     script = os.path.join(os.getcwd(), "scripts", "analysis.py")
     cmd = [
@@ -393,7 +524,7 @@ def stop_emulation() -> Response:
     if status != "paused":
         print("analyzing...")
         work = os.path.join(SCRATCH_DIR, 'run', run_id)
-        analysis_dir = os.path.join(RUNTIME_TMP, "analysis", "results", combined, "dynamic_analysis")
+        analysis_dir = os.path.join(TMP_DIR, "analysis", "results", combined, "dynamic_analysis")
         out = os.path.join(analysis_dir, next_run_folder(analysis_dir))
         script = os.path.join(os.getcwd(), "scripts", "analysis.py")
         cmd = [
@@ -430,7 +561,7 @@ def select() -> Response:
     except (TypeError, KeyError) as e:
         return jsonify({"status": "error", "message": f"Invalid select payload: {e}"}), 400
 
-    json_path = os.path.join(RUNTIME_TMP, 'exec_data_pairs.json')
+    json_path = os.path.join(TMP_DIR, 'exec_data_pairs.json')
     try:
         with open(json_path, 'w') as jf:
             json.dump(exec_data_pairs, jf, indent=2)
@@ -514,10 +645,10 @@ def select_res() -> Response:
         }), 400
 
     file_path = os.path.join(
-        RUNTIME_TMP, "select_analysis", "results",
+        TMP_DIR, "select_analysis", "results",
         brand_id, firmware_id,
         run_id, os.path.basename(binary_id),
-        data_channel_id, "results.json"
+        sanitize_data_channel_id(data_channel_id), "results.json"
     )
 
     if not os.path.isfile(file_path):
@@ -528,7 +659,11 @@ def select_res() -> Response:
 
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            results = json.load(f)
+            if isinstance(results, dict) and "entries" in results:
+                data = results["entries"]
+            else:
+                data = results
     except (OSError, json.JSONDecodeError) as e:
         return jsonify({
             "error": "Server error",
@@ -537,12 +672,7 @@ def select_res() -> Response:
 
     return jsonify(data), 200
 
-@app.route('/select_analyses', methods=['GET'])
-def select_analyses() -> Response:
-    brand_id_filter = request.args.get("brandId")
-    firmware_id_filter = request.args.get("firmwareId")
-    run_id_filter = request.args.get("runId")
-
+def compute_select_analyses_data(brand_id_filter=None, firmware_id_filter=None, run_id_filter=None, binary_id_filter=None):
     running = []
     done = []
 
@@ -552,32 +682,59 @@ def select_analyses() -> Response:
         rows = read_csv_rows(SCHEDULE_CSV)
 
         for row in rows:
+            if (not row.get("status") or not row.get("mode") or not row.get("container_name")):
+                continue
             if row["status"].lower() == "running" and row["mode"] == "select":
                 container = row["container_name"]
-                json_path = os.path.join(RUNTIME_TMP, "select_analysis", "infos", f"{container}.json")
-                if not os.path.isfile(json_path):
+                json_path = os.path.join(TMP_DIR, "select_analysis", "infos", f"{container}.json")
+                metadata = None
+
+                if os.path.isfile(json_path):
+                    try:
+                        with open(json_path, "r") as f:
+                            metadata = json.load(f)
+                    except (json.JSONDecodeError, OSError):
+                        pass
+
+                if metadata is None:
+                    exec_pairs_path = os.path.join(TMP_DIR, "exec_data_pairs.json")
+                    if os.path.isfile(exec_pairs_path):
+                        try:
+                            with open(exec_pairs_path, "r") as f:
+                                exec_pairs = json.load(f)
+                            
+                            if exec_pairs and len(exec_pairs) > 0:
+                                pair = exec_pairs[0]
+                                metadata = {
+                                    "brandId": pair.get("brand_id"),
+                                    "firmwareId": pair.get("firmware_id"),
+                                    "runId": pair.get("run_id"),
+                                    "binaryId": pair.get("executable_id"),
+                                    "dataChannelId": pair.get("data_channel_id")
+                                }
+                        except (json.JSONDecodeError, OSError) as e:
+                            continue
+
+                if metadata is None:
                     continue
 
-                try:
-                    with open(json_path, "r") as f:
-                        metadata = json.load(f)
-
-                    if brand_id_filter and metadata.get("brandId") != brand_id_filter:
-                        continue
-                    if firmware_id_filter and metadata.get("firmwareId") != firmware_id_filter:
-                        continue
-                    if run_id_filter and metadata.get("runId") != run_id_filter:
-                        continue
-
-                    running.append({
-                        "brandId": metadata.get("brandId"),
-                        "firmwareId": metadata.get("firmwareId"),
-                        "runId": metadata.get("runId"),
-                        "binaryId": metadata.get("binaryId"),
-                        "dataChannelId": metadata.get("dataChannelId")
-                    })
-                except (json.JSONDecodeError, OSError):
+                if brand_id_filter and metadata.get("brandId") != brand_id_filter:
                     continue
+                if firmware_id_filter and metadata.get("firmwareId") != firmware_id_filter:
+                    continue
+                if run_id_filter and metadata.get("runId") != run_id_filter:
+                    continue
+                if binary_id_filter and metadata.get("binaryId") != binary_id_filter:
+                    continue
+
+                running.append({
+                    "brandId": metadata.get("brandId"),
+                    "firmwareId": metadata.get("firmwareId"),
+                    "runId": metadata.get("runId"),
+                    "binaryId": metadata.get("binaryId"),
+                    "dataChannelId": metadata.get("dataChannelId"),
+                    "containerName": container
+                })
     except Exception as e:
         return jsonify({"error": "Failed to process running analyses", "message": str(e)}), 500
 
@@ -585,7 +742,7 @@ def select_analyses() -> Response:
     try:
         if brand_id_filter and firmware_id_filter:
             base_dir = os.path.join(
-                RUNTIME_TMP, "select_analysis", "results",
+                TMP_DIR, "select_analysis", "results",
                 brand_id_filter, firmware_id_filter
             )
 
@@ -601,33 +758,105 @@ def select_analyses() -> Response:
                         continue
 
                     binary_ids = os.listdir(binaries_path)
+
+                    if binary_id_filter:
+                        binary_ids = [b for b in binary_ids if b == binary_id_filter]
+
                     for binary_id in binary_ids:
                         data_channels_path = os.path.join(binaries_path, os.path.basename(binary_id))
+                        if not os.path.isdir(data_channels_path):
+                            continue
                         data_channel_ids = os.listdir(data_channels_path)
-                        for data_channel_id in data_channel_ids:
-                            result_path = os.path.join(binaries_path, binary_id, data_channel_id, "results.json")
+                        for sanitized_data_channel_id in data_channel_ids:
+                            result_path = os.path.join(binaries_path, binary_id, sanitized_data_channel_id, "results.json")
                             if os.path.isfile(result_path):
+                                try:
+                                    with open(result_path, 'r') as f:
+                                        result_data = json.load(f)
+                                        if isinstance(result_data, dict) and "original_data_channel_id" in result_data:
+                                            original_data_channel_id = result_data["original_data_channel_id"]
+                                        else:
+                                            original_data_channel_id = sanitized_data_channel_id
+                                except (json.JSONDecodeError, OSError):
+                                    original_data_channel_id = sanitized_data_channel_id
+
                                 done.append({
                                     "brandId": brand_id_filter,
                                     "firmwareId": firmware_id_filter,
                                     "runId": run_id,
                                     "binaryId": binary_id,
-                                    "dataChannelId": data_channel_id
+                                    "dataChannelId": original_data_channel_id
                                 })
     except Exception as e:
         return jsonify({"error": "Failed to process done analyses", "message": str(e)}), 500
 
-    return jsonify({
+    return {
         "running": nest_results(running, ["dataChannelId"]),
         "done": nest_results(done, ["dataChannelId"])
-    })
+    }
 
-@app.route('/fuzz_experiments', methods=['GET'])
-def fuzz_experiments() -> Response:
-    brand_id_filter    = request.args.get("brandId")
+@app.route('/select_analyses', methods=['GET'])
+def select_analyses() -> Response:
+    brand_id_filter = request.args.get("brandId")
     firmware_id_filter = request.args.get("firmwareId")
+    run_id_filter = request.args.get("runId")
+    binary_id_filter = request.args.get("binaryId")
 
-    running_exp_names = []
+    cache_key = f"select_analyses:{brand_id_filter}:{firmware_id_filter}:{run_id_filter}:{binary_id_filter}"
+
+    files_to_check = [SCHEDULE_CSV]
+
+    info_dir = os.path.join(TMP_DIR, "select_analysis", "infos")
+    if os.path.exists(info_dir):
+        info_files = glob.glob(os.path.join(info_dir, "*.json"))
+        files_to_check.extend(info_files)
+
+    if brand_id_filter and firmware_id_filter and run_id_filter:
+        results_dir = os.path.join(TMP_DIR, "select_analysis", "results", brand_id_filter, firmware_id_filter, run_id_filter)
+        if binary_id_filter:
+            results_dir = os.path.join(results_dir, binary_id_filter)
+        if os.path.exists(results_dir):
+            results_files = glob.glob(os.path.join(results_dir, "**", "results.json"), recursive=True)
+            files_to_check.extend(results_files)
+
+    current_etag, last_modified = generate_etag_for_files(files_to_check)
+
+    client_etag = request.headers.get('If-None-Match')
+    if check_etag_match(client_etag, current_etag):
+        response = Response('', 304)
+        response.headers['ETag'] = current_etag
+        return response
+
+    data = get_cached_or_compute(
+        cache_key,
+        lambda: compute_select_analyses_data(brand_id_filter, firmware_id_filter, run_id_filter, binary_id_filter)
+    )
+
+    response = jsonify(data)
+    response.headers['ETag'] = current_etag
+    if last_modified > 0:
+        response.headers['Last-Modified'] = datetime.fromtimestamp(last_modified).strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+    return response
+
+def get_fuzz_status(container_name: str) -> str:
+    if not container_name:
+        return "unknown"
+
+    status_file = os.path.join(TMP_DIR, "fuzz_status", f"{container_name}.json")
+
+    if not os.path.exists(status_file):
+        return "unknown"
+
+    try:
+        with open(status_file, 'r') as f:
+            status_data = json.load(f)
+        return status_data.get("status", "unknown")
+    except (OSError, json.JSONDecodeError):
+        return "unknown"
+
+def compute_fuzz_experiments_data(brand_id_filter=None, firmware_id_filter=None):
+    running_experiments = []
     done               = []
     seen_running       = set()
 
@@ -635,6 +864,8 @@ def fuzz_experiments() -> Response:
     rows = read_csv_rows(SCHEDULE_CSV)
 
     for row in rows:
+        if (not row.get("status") or not row.get("mode") or not row.get("firmware")):
+            continue
         if row["status"].lower() != "running" or row["mode"] != "fuzz":
             continue
 
@@ -649,8 +880,16 @@ def fuzz_experiments() -> Response:
             continue
 
         exp_name = row["exp_name"]
+        container_name = row.get("container_name", "")
+
         if exp_name not in seen_running:
-            running_exp_names.append(exp_name)
+            status = get_fuzz_status(container_name)
+
+            running_experiments.append({
+                "name": exp_name,
+                "container_name": container_name,
+                "status": status
+            })
             seen_running.add(exp_name)
 
     try:
@@ -661,10 +900,49 @@ def fuzz_experiments() -> Response:
     except OSError:
         pass
 
-    return jsonify({
-        "running": running_exp_names,
+    return {
+        "running": running_experiments,
         "done":    done
-    })
+    }
+
+@app.route('/fuzz_experiments', methods=['GET'])
+def fuzz_experiments() -> Response:
+    brand_id_filter = request.args.get("brandId")
+    firmware_id_filter = request.args.get("firmwareId")
+
+    cache_key = f"fuzz_experiments:{brand_id_filter}:{firmware_id_filter}"
+
+    files_to_check = [SCHEDULE_CSV]
+
+    if brand_id_filter and firmware_id_filter:
+        exp_dir = os.path.join(FUZZ_EXP_DIR, brand_id_filter, firmware_id_filter)
+        if os.path.exists(exp_dir):
+            for exp_name in os.listdir(exp_dir):
+                exp_path = os.path.join(exp_dir, exp_name)
+                if os.path.isdir(exp_path):
+                    for root, dirs, files in os.walk(exp_path):
+                        for file in files[:10]:  # Limit to avoid too many files
+                            files_to_check.append(os.path.join(root, file))
+
+    current_etag, last_modified = generate_etag_for_files(files_to_check)
+
+    client_etag = request.headers.get('If-None-Match')
+    if check_etag_match(client_etag, current_etag):
+        response = Response('', 304)
+        response.headers['ETag'] = current_etag
+        return response
+
+    data = get_cached_or_compute(
+        cache_key,
+        lambda: compute_fuzz_experiments_data(brand_id_filter, firmware_id_filter)
+    )
+
+    response = jsonify(data)
+    response.headers['ETag'] = current_etag
+    if last_modified > 0:
+        response.headers['Last-Modified'] = datetime.fromtimestamp(last_modified).strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+    return response
 
 @app.route('/execute', methods=['POST'])
 def execute():
@@ -676,8 +954,8 @@ def execute():
 
         os.environ["EXPERIMENTS_DATA"] = experiments_data_json
 
-        os.makedirs(RUNTIME_TMP, exist_ok=True)
-        fuzz_pars_path = os.path.join(RUNTIME_TMP, "fuzz_pars.json")
+        os.makedirs(TMP_DIR, exist_ok=True)
+        fuzz_pars_path = os.path.join(TMP_DIR, "fuzz_pars.json")
         with open(fuzz_pars_path, "w", encoding="utf-8") as f:
             f.write(experiments_data_json)
 
@@ -713,8 +991,8 @@ def remove_select() -> Response:
         return jsonify({'status': 'error', 'message': 'Missing parameter'}), 400
 
     path = os.path.join(
-        RUNTIME_TMP, 'select_analysis', 'results',
-        brand, firmware, run_id, os.path.basename(binary), data_channel
+        TMP_DIR, 'select_analysis', 'results',
+        brand, firmware, run_id, os.path.basename(binary), sanitize_data_channel_id(data_channel)
     )
     if not os.path.isdir(path):
         return jsonify({'status': 'error', 'message': f'Path not found: {path}'}), 404
@@ -736,7 +1014,7 @@ def remove_select_binary() -> Response:
         return jsonify({'status': 'error', 'message': 'Missing parameter'}), 400
 
     path = os.path.join(
-        RUNTIME_TMP, 'select_analysis', 'results',
+        TMP_DIR, 'select_analysis', 'results',
         brand, firmware, run_id, os.path.basename(binary)
     )
     if not os.path.isdir(path):
@@ -814,6 +1092,10 @@ def exp_info() -> Response:
         try:
             with open(SCHEDULE_CSV, newline='', encoding='utf-8') as csvfile:
                 reader = csv.DictReader(csvfile)
+                if reader.fieldnames is None:
+                    print(f"Warning: CSV file {SCHEDULE_CSV} has no headers or is empty", file=sys.stderr)
+                    return False, None
+
                 for row in reader:
                     if row.get("exp_name") == exp_name:
                         container_name = row.get("container_name")
@@ -929,6 +1211,89 @@ def exp_info() -> Response:
     merged = {**exp_info_data, **fuzzer_stats_data}
     return jsonify(merged), 200
 
+@app.route('/select_progress/<container_name>', methods=['GET'])
+def get_select_progress(container_name: str) -> Response:
+    progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
+
+    # Generate ETag based on the progress file
+    files_to_check = [progress_file] if os.path.exists(progress_file) else []
+    current_etag, last_modified = generate_etag_for_files(files_to_check)
+
+    # Check if client ETag matches current ETag
+    client_etag = request.headers.get('If-None-Match')
+    if check_etag_match(client_etag, current_etag):
+        response = Response('', 304)
+        response.headers['ETag'] = current_etag
+        return response
+
+    if not os.path.exists(progress_file):
+        response_data = {
+            "phase": "unknown",
+            "progress": 0.0,
+            "message": "No progress data available"
+        }
+        response = jsonify(response_data)
+        response.headers['ETag'] = current_etag
+        return response, 200
+
+    try:
+        with open(progress_file, 'r') as f:
+            progress_data = json.load(f)
+        response = jsonify(progress_data)
+        response.headers['ETag'] = current_etag
+        return response
+    except (OSError, json.JSONDecodeError) as e:
+        response_data = {
+            "phase": "error",
+            "progress": 0.0,
+            "message": f"Failed to read progress data: {e}"
+        }
+        response = jsonify(response_data)
+        response.headers['ETag'] = current_etag
+        return response, 500
+
+@app.route('/fuzz_progress/<container_name>', methods=['GET'])
+def get_fuzz_progress(container_name: str) -> Response:
+    """Get progress information for a fuzz experiment container."""
+    progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
+
+    # Generate ETag based on the progress file
+    files_to_check = [progress_file] if os.path.exists(progress_file) else []
+    current_etag, last_modified = generate_etag_for_files(files_to_check)
+
+    # Check if client ETag matches current ETag
+    client_etag = request.headers.get('If-None-Match')
+    if check_etag_match(client_etag, current_etag):
+        response = Response('', 304)
+        response.headers['ETag'] = current_etag
+        return response
+
+    if not os.path.exists(progress_file):
+        response_data = {
+            "phase": "unknown",
+            "progress": 0.0,
+            "message": "No progress data available"
+        }
+        response = jsonify(response_data)
+        response.headers['ETag'] = current_etag
+        return response, 200
+
+    try:
+        with open(progress_file, 'r') as f:
+            progress_data = json.load(f)
+        response = jsonify(progress_data)
+        response.headers['ETag'] = current_etag
+        return response
+    except (OSError, json.JSONDecodeError) as e:
+        response_data = {
+            "phase": "error",
+            "progress": 0.0,
+            "message": f"Failed to read progress data: {e}"
+        }
+        response = jsonify(response_data)
+        response.headers['ETag'] = current_etag
+        return response, 500
+
 if __name__ == '__main__':
     clear_non_running(SCHEDULE_CSV)
     proc = subprocess.run(
@@ -947,10 +1312,10 @@ if __name__ == '__main__':
 
     rows.sort(key=lambda x: (x[0], x[1]))
 
-    if not os.path.exists("runtime_tmp"):
-        os.makedirs("runtime_tmp")
+    if not os.path.exists("tmp"):
+        os.makedirs("tmp")
 
-    with open("runtime_tmp/cpu_ids.csv", "w", newline="") as f:
+    with open("tmp/cpu_ids.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["CPU ID", "Physical ID", "Logical ID"])
         for node, core, cpu in rows:
@@ -958,15 +1323,22 @@ if __name__ == '__main__':
 
     print("Wrote", len(rows), "rows to cpu_ids.csv")
 
-    with open("runtime_tmp/cpu_ids.csv") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            cpu_id = int(row["CPU ID"])
-            physical_id = int(row["Physical ID"])
-            logical_id = int(row["Logical ID"])
-            pair = (cpu_id, physical_id)
+    try:
+        with open("tmp/cpu_ids.csv") as f:
+            reader = csv.DictReader(f)
+            if reader.fieldnames is None:
+                print("Warning: CPU IDs CSV file has no headers or is empty", file=sys.stderr)
+            else:
+                for row in reader:
+                    cpu_id = int(row["CPU ID"])
+                    physical_id = int(row["Physical ID"])
+                    logical_id = int(row["Logical ID"])
+                    pair = (cpu_id, physical_id)
 
-            LOGICAL_TO_PAIR[logical_id] = pair
-            PAIR_TO_LOGICAL[pair].append(logical_id)
+                    LOGICAL_TO_PAIR[logical_id] = pair
+                    PAIR_TO_LOGICAL[pair].append(logical_id)
+    except (OSError, csv.Error, ValueError, KeyError) as e:
+        print(f"Error reading CPU IDs CSV file: {e}", file=sys.stderr)
 
+    ensure_server_directories()
     app.run(host='0.0.0.0', port=4000)

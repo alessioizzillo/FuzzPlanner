@@ -3105,8 +3105,8 @@ int main(int argc, char **argv, char **envp)
 
     runstate_init();
 
-    // char *env_var_debug = getenv("DEBUG");
-    // if (env_var_debug && !strcmp(env_var_debug, "1"))
+    char *env_var_debug = getenv("DEBUG");
+    if (env_var_debug && !strcmp(env_var_debug, "1"))
         debug = 1;
 
     if (debug){

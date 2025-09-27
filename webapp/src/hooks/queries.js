@@ -260,13 +260,15 @@ export function usePostSelect(brandId, firmwareId, runId, binaryId, dataChannelI
   )
 }
 
-export function useGetSelectAnalyses(brandId, firmwareId, runId, options = {}) {
+export function useGetSelectAnalyses(brandId, firmwareId, runId, binaryId, options = {}) {
   return useQuery({
-    queryKey: ['selectAnalyses', brandId, firmwareId, runId],
+    queryKey: ['selectAnalyses', brandId, firmwareId, runId, binaryId],
     queryFn: async () => {
-      const res = await api.get('/select_analyses', {
-        params: { brandId, firmwareId, runId },
-      })
+      const params = { brandId, firmwareId, runId }
+      if (binaryId) {
+        params.binaryId = binaryId
+      }
+      const res = await api.get('/select_analyses', { params })
       return res.data
     },
     enabled: !!brandId && !!firmwareId && !!runId,

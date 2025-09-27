@@ -2,6 +2,7 @@ import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { StoreProvider } from '@/store'
+import PollingDebugPanel from '@/components/PollingDebugPanel'
 import '@/styles/globals.css'
 import 'reactflow/dist/style.css'
 
@@ -17,6 +18,7 @@ export default function App ({ Component, pageProps }) {
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
         <Component {...pageProps} />
+        <PollingDebugPanel />
       </StoreProvider>
     </QueryClientProvider>
   )

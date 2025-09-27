@@ -164,7 +164,7 @@
 
 /* Maximum dictionary token size (-x), in bytes: */
 
-#define MAX_DICT_FILE       128
+#define MAX_DICT_FILE       2048
 
 /* Length limits for auto-detected dictionary tokens: */
 

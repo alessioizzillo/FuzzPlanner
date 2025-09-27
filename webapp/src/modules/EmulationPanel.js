@@ -7,9 +7,10 @@ import {
   useCreateFirmwareImage,
   useStartEmulation,
   usePauseEmulation,
-  useStopEmulation,
-  useCheckRun
+  useStopEmulation
 } from '@/hooks/queries'
+
+import { useOptimizedCheckRun } from '@/hooks/useOptimizedPolling'
 
 export default function EmulationPanel() {
   const brandId = useSelectedBrand()
@@ -21,11 +22,13 @@ export default function EmulationPanel() {
     refetch: refetchImage
   } = useCheckFirmwareImage(brandId, firmwareId)
 
-  const { 
-    data: statusData, 
-    refetch: refetchStatus, 
-    isFetching: statusLoading
-  } = useCheckRun(brandId, firmwareId)
+  const {
+    data: statusData,
+    status,
+    startPolling,
+    stopPolling,
+    refresh: refreshStatus
+  } = useOptimizedCheckRun(brandId, firmwareId)
 
   const hasImage = imgData?.status === 'succeeded'
 
@@ -37,42 +40,136 @@ export default function EmulationPanel() {
 
   const startMutation = useStartEmulation(brandId, firmwareId)
   const pauseMutation = usePauseEmulation(brandId, firmwareId)
-  const stopMutation  = useStopEmulation(brandId, firmwareId)
+  const stopMutation = useStopEmulation(brandId, firmwareId)
+
+  const [isOperationPending, setIsOperationPending] = useState(false)
+  const [pendingOperation, setPendingOperation] = useState(null) // 'start', 'pause', 'stop'
+
+  const getButtonConfig = (currentStatus) => {
+    switch (currentStatus) {
+      case 'not running':
+      case 'idle':
+        return {
+          start: { enabled: true, label: 'Start Emulation' },
+          pause: { enabled: false, label: 'Pause Emulation' },
+          stop: { enabled: false, label: 'Stop Emulation' }
+        }
+
+      case 'booting':
+      case 'listening':
+        return {
+          start: { enabled: false, label: 'Start Emulation' },
+          pause: { enabled: true, label: 'Pause Emulation' },
+          stop: { enabled: true, label: 'Stop Emulation' }
+        }
+
+      case 'paused':
+        return {
+          start: { enabled: true, label: 'Resume Emulation' },
+          pause: { enabled: false, label: 'Pause Emulation' },
+          stop: { enabled: true, label: 'Stop Emulation' }
+        }
+
+      case 'stopping':
+        return {
+          start: { enabled: false, label: 'Start Emulation' },
+          pause: { enabled: false, label: 'Pause Emulation' },
+          stop: { enabled: false, label: 'Stop Emulation' }
+        }
+
+      default:
+        return {
+          start: { enabled: false, label: 'Start Emulation' },
+          pause: { enabled: false, label: 'Pause Emulation' },
+          stop: { enabled: false, label: 'Stop Emulation' }
+        }
+    }
+  }
+
+  const buttonConfig = status ? getButtonConfig(status) : {
+    start: { enabled: false, label: 'Loading...' },
+    pause: { enabled: false, label: 'Loading...' },
+    stop: { enabled: false, label: 'Loading...' }
+  }
+
+  const getDisplayLabel = (key) => {
+    const base = buttonConfig[key].label || ''
+    const isPendingForKey = pendingOperation === key
+
+    if (isPendingForKey) {
+      if (base.toLowerCase().startsWith('resume')) return 'Resuming...'
+      if (base.toLowerCase().startsWith('start')) return 'Starting...'
+      if (base.toLowerCase().startsWith('pause')) return 'Pausing...'
+      if (base.toLowerCase().startsWith('stop')) return 'Stopping...'
+      return base + '...'
+    }
+
+    return base
+  }
+
+  useEffect(() => {
+    if (!pendingOperation) return
+    if (!status) return
+
+    const cfg = getButtonConfig(status)
+    if (cfg && cfg[pendingOperation] && !cfg[pendingOperation].enabled) {
+      setIsOperationPending(false)
+      setPendingOperation(null)
+    }
+  }, [status, pendingOperation])
 
   const onStart = useCallback(async () => {
-    await startMutation.mutateAsync({ params: { brandId, firmwareId } })
-    refetchStatus()
-  }, [brandId, firmwareId, startMutation, refetchStatus])
+    if (isOperationPending) return
+
+    setIsOperationPending(true)
+    setPendingOperation('start')
+    startPolling()
+
+    try {
+      await startMutation.mutateAsync({ params: { brandId, firmwareId } })
+      refreshStatus()
+    } catch (error) {
+      setIsOperationPending(false)
+      setPendingOperation(null)
+      console.error('Start emulation failed:', error)
+    }
+  }, [brandId, firmwareId, startMutation, refreshStatus, startPolling, isOperationPending])
 
   const onPause = useCallback(async () => {
-    await pauseMutation.mutateAsync({ params: { brandId, firmwareId } })
-    refetchStatus()
-  }, [brandId, firmwareId, pauseMutation, refetchStatus])
+    if (isOperationPending) return
+
+    setIsOperationPending(true)
+    setPendingOperation('pause')
+
+    try {
+      await pauseMutation.mutateAsync({ params: { brandId, firmwareId } })
+      refreshStatus()
+    } catch (error) {
+      setIsOperationPending(false)
+      setPendingOperation(null)
+      console.error('Pause emulation failed:', error)
+    }
+  }, [brandId, firmwareId, pauseMutation, refreshStatus, isOperationPending])
 
   const onStop = useCallback(async () => {
-    await stopMutation.mutateAsync({ params: { brandId, firmwareId } })
-    refetchStatus()
-  }, [brandId, firmwareId, stopMutation, refetchStatus])
+    if (isOperationPending) return
 
-  const [polling, setPolling] = useState(false)
+    setIsOperationPending(true)
+    setPendingOperation('stop')
 
-  useEffect(() => {
-    if (statusData?.status === 'booting') {
-      setPolling(true)
-      const intervalId = setInterval(async () => {
-        if (polling) refetchStatus()
-      }, 2000)
-      return () => clearInterval(intervalId)
-    } else {
-      setPolling(false)
+    setPendingOperation('stop-pause')
+
+    stopPolling()
+
+    try {
+      await stopMutation.mutateAsync({ params: { brandId, firmwareId } })
+      refreshStatus()
+    } catch (error) {
+      setIsOperationPending(false)
+      setPendingOperation(null)
+      console.error('Stop emulation failed:', error)
     }
-  }, [statusData, refetchStatus, polling])
-
-  const status = statusData?.status || 'idle'
-
-  useEffect(() => {
-    refetchStatus()
-  }, [refetchStatus])
+  }, [brandId, firmwareId, stopMutation, refreshStatus, stopPolling, isOperationPending])
 
   if (!brandId || !firmwareId) return null
 
@@ -85,14 +182,14 @@ export default function EmulationPanel() {
           disabled={!brandId || !firmwareId || imgLoading || hasImage || createImageMutation.isLoading || imgData?.status === 'running'}
         >
           {createImageMutation.isLoading
-            ? 'Creating…'
+            ? 'Creating...'
             : 'Create Image'}
         </button>
         <span>
           Image status:&nbsp;
           <strong>
             {imgLoading
-              ? 'Checking…'
+              ? 'Checking...'
               : hasImage
                 ? imgData?.status === 'running'
                   ? 'Running'
@@ -106,34 +203,28 @@ export default function EmulationPanel() {
         <button
           className="px-3 py-1 bg-green-600 text-white rounded disabled:opacity-50"
           onClick={onStart}
-          disabled={
-            !hasImage || 
-            startMutation.isLoading || 
-            ['booting','listening'].includes(status)
-          }
+          disabled={!hasImage || !buttonConfig.start.enabled || (isOperationPending && pendingOperation === 'start')}
         >
-          {startMutation.isLoading 
-            ? (status === 'paused' ? 'Resuming…' : 'Starting…')
-            : (status === 'paused' ? 'Resume Emulation' : 'Start Emulation')}
+          {getDisplayLabel('start')}
         </button>
         <button
           className="px-3 py-1 bg-yellow-600 text-white rounded disabled:opacity-50"
           onClick={onPause}
-          disabled={!hasImage || !['booting','listening'].includes(status) || pauseMutation.isLoading}
+          disabled={!hasImage || !buttonConfig.pause.enabled || (isOperationPending && (pendingOperation === 'pause' || pendingOperation === 'stop'))}
         >
-          {pauseMutation.isLoading ? 'Pausing…' : 'Pause Emulation'}
+          {getDisplayLabel('pause')}
         </button>
         <button
           className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-50"
           onClick={onStop}
-          disabled={!hasImage || !['booting', 'listening', 'paused'].includes(status) || stopMutation.isLoading}
+          disabled={!hasImage || !buttonConfig.stop.enabled || (isOperationPending && pendingOperation === 'stop')}
         >
-          {stopMutation.isLoading ? 'Stopping…' : 'Stop Emulation'}
+          {getDisplayLabel('stop')}
         </button>
         <span>
           Status:&nbsp;
           <strong>
-            {statusLoading ? status : statusData?.previousStatus || status}
+            {status}
             {status === 'listening' && statusData?.ip ? (
               <> — Connect to IP: <strong>{statusData.ip}</strong></>
             ) : null}

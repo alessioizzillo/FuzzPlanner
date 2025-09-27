@@ -9,6 +9,7 @@ import { useSelectedBrand } from '@/hooks/store/selectedBrand'
 import { useSelectedFirmware } from '@/hooks/store/selectedFirmware'
 import { useSelectedRun } from '@/hooks/store/selectedRun'
 import { useSelectAnalyses } from '@/hooks/store/useSelectAnalyses'
+import { useOptimizedSelectAnalyses } from '@/hooks/useOptimizedPolling'
 import { usePostSelect } from '@/hooks/queries'
 import { useCallback, useState } from 'react'
 
@@ -65,6 +66,7 @@ function Select({ cRef, dms, value }) {
   const [sent, setSent] = useState(false)
 
   const { pollNow } = useSelectAnalyses()
+  const { refresh: forceRefresh } = useOptimizedSelectAnalyses(brandId, firmwareId, runId, null, { includeBinaryFilter: false })
 
   const handleClick = useCallback(() => {
     const payload = {
@@ -84,11 +86,11 @@ function Select({ cRef, dms, value }) {
     postSelectMutation.mutate(payload, {
       onSuccess: () => {
         setSent(true)
-        pollNow()
+        forceRefresh() // Use optimized polling force refresh
         setTimeout(() => setSent(false), 3000)
       },
     })
-  }, [brandId, firmwareId, runId, binary.id, channel.id, postSelectMutation, pollNow])
+  }, [brandId, firmwareId, runId, binary.id, channel.id, postSelectMutation, forceRefresh])
 
   return (
     <div ref={cRef} className="w-6 h-6 flex items-center justify-center">
@@ -97,10 +99,10 @@ function Select({ cRef, dms, value }) {
           {!sent ? (
             <PaperAirplaneIcon
               onClick={handleClick}
-              className="cursor-pointer text-blue-600 hover:text-blue-800"
+              className="cursor-pointer text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-110 active:scale-95 transform hover:rotate-12"
             />
           ) : (
-            <CheckCircleIcon className="text-green-600" />
+            <CheckCircleIcon className="text-green-600 animate-bounce" />
           )}
         </>
       )}

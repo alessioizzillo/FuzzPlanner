@@ -41,6 +41,7 @@
 
 //#define LMBENCH
 extern int curr_syscall;
+extern int debug_pc;
 int lmbench_count = 0;
 int lmbench_times = 0;
 struct timeval lmbench_start;
@@ -714,7 +715,23 @@ int cpu_exec(CPUState *cpu)
             target_ulong pc = env->active_tc.PC;
 #elif defined(TARGET_ARM)
             target_ulong pc = env->regs[15];
+#elif defined(TARGET_I386)
+            target_ulong pc = env->segs[R_CS].base + env->eip;
 #endif
+
+            if (debug_pc) {
+                FILE *fp = fopen("debug/executed_pcs.log", "a+");
+                if (fp) {
+#ifdef TARGET_MIPS
+                    fprintf(fp, "0x%lx\n", (unsigned long)env->active_tc.PC);
+#elif defined(TARGET_ARM)
+                    fprintf(fp, "0x%lx\n", (unsigned long)env->regs[15]);
+#elif defined(TARGET_I386)
+                    fprintf(fp, "0x%lx\n", (unsigned long)(env->segs[R_CS].base + env->eip));
+#endif
+                    fclose(fp);
+                }
+            }
 
 #ifdef NO_MAPPING_AND_FUZZ
 #elif defined(MAPPING_WITHOUT_FUZZ)

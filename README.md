@@ -1,96 +1,145 @@
 # FuzzPlanner
 
-## Description
-
-FuzzPlanner is a visual analytics solution designed to support security operators in the process of designing fuzzing campaigns for device firmware. By employing innovative visual aids, FuzzPlanner helps operators identify the most suitable targets for fuzzing. Our solution facilitates the understanding of various aspects including:
-
-- Identifying the binaries executed by the firmware when emulated.
-- Analyzing the interactions between different binaries.
-- Identifying binaries that take inputs from the external world.
-- Determining the input channels that can be selected for fuzzing.
-
-![alt text](img/fuzzplanner.gif)
-
-### **A - Timeline**
-The **Timeline** environment (A) provides a temporal overview of all data and process interactions collected during the emulation. This environment helps users analyze the temporal behavior of the emulation. Key features include:
-
-- **Time Bins**: Interactions are grouped into time bins, allowing users to narrow their analysis to specific time intervals.
-- **Matrix Representation**: The matrix represents different types of interactions, such as data interactions (border, listen, read, write, r+w) and process interactions (fork and spawn).
-- **Color Encoding**: The color of cells encodes the highest score of data channels or base scores of CVEs, depending on the type of interaction.
-- **Brushing**: Users can brush horizontally on the matrix to focus on specific time intervals.
-- **Highlighting**: When a binary is selected, relevant bins for that binary are highlighted with a white border.
-
-### **B - Binaries Table**
-The **Binaries Table** environment (B) offers a table-based representation of all binaries executed during the emulation. This environment allows users to explore the binaries and prioritize them based on various criteria. Key features include:
-
-- **Columns**: The table columns reflect interactions related to the binary (reads, binary attributes, writes).
-- **Data Interactions**: Data interactions columns are represented as horizontal bar charts, indicating the highest score of the data channels involved.
-- **Binary Attributes**: The table displays binary attributes such as type, vendor-specific status, and CVE base scores.
-- **Sorting**: Users can sort the table based on different criteria.
-- **Filtering**: The table can be filtered based on the selected time span from the Timeline and data channel score thresholds.
-
-### **C - Binary Pane**
-The **Binary Pane** environment (C) provides a detailed view of data channels used by a selected binary. Key features include:
-
-- **Table Representation**: The table displays information about data channels, including how they are used, their type, score, and description.
-- **Experiment List**: Users can add binary-channel pairs to the list of experiments to be planned.
-- **Filtering**: Checkboxes allow users to filter interactions based on their type (e.g., border interactions).
-- **Vulnerabilities**: The environment also lists all vulnerabilities (CVEs) affecting the binary.
-
-### **D - Binary Graph**
-The **Binary Graph** environment (D) complements the Binary Pane and displays the network of interactions centered around the selected binary. Key features include:
-
-- **Node-Link Representation**: The graph uses a node-link representation, where nodes represent binaries and data channels, and edges represent their connections.
-- **Flow Representation**: Data interaction edges are colored light-red, and process interaction edges are light-blue. The thickness of edges corresponds to the number of interactions.
-- **Interaction Flow**: The graph helps users explore interactions from parent and child binaries, as well as data channels for reading and writing.
-- **Interactive Controls**: Users can filter or expand the graph to explore interactions further.
-
-### **E - Filtering Pane**
-The **Filtering Pane** environment (E) contains additional controls to filter the analyzed interactions based on their role and the score of data channels. Key features include:
-
-- **Interaction Role Filtering**: Users can filter interactions based on their type (e.g., border, listen, read/write).
-- **Data Channel Score Thresholds**: Users can set data channel score thresholds for interactions to be considered.
-- **Customizable Filtering**: This environment allows users to customize the filtering of analysis data.
-
-### **F - Experiment Pane**
-The **Experiment Pane** environment (F) contains the list of binary-channel tuples to be sent to the back-end to generate the fuzzing campaign execution plan. This environment is used to manage the planned experiments.
-
-These coordinated environments within the FUZZPLANNER visual component help operators analyze and plan their fuzzing campaigns efficiently.
+A visual analytics tool for designing fuzzing campaigns on firmware. FuzzPlanner helps security researchers analyze firmware behavior, identify attack surfaces, and plan effective fuzzing strategies through an intuitive web interface.
 
 
-## Requirements
+## Features
 
-To use FuzzPlanner, please ensure that you have Docker installed.
+- **🔍 Firmware Analysis**: Analyze binary execution patterns and interactions during firmware emulation
+- **📊 Visual Analytics**: Interactive timeline, binary tables, and network graphs for comprehensive analysis
+- **🎯 Target Selection**: Identify optimal fuzzing targets based on data flows and vulnerabilities
+- **⚡ Campaign Management**: Plan, execute, and monitor fuzzing experiments through a unified interface
+- **📈 Progress Tracking**: Real-time monitoring of fuzzing progress with detailed statistics
 
-## Get started
+## Quick Start
 
-To prepare the Docker image, follow these steps:
+### Prerequisites
 
-1. Open a terminal and navigate to the FuzzPlanner directory.
-2. Run the following command:
+- **Docker** (required for containerized deployment)
 
-    ```shellscript
-    sudo ./web.sh build-prod
-    sudo ./web.sh run-prod
-    ```
+### Installation
 
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd FuzzPlanner
+   ```
+
+2. **Build and setup the Docker environment**
+   ```bash
+   ./setup.sh
+   ```
+
+3. **Run the application**
+   ```bash
+   # Start the container
+   ./docker.sh run
+
+   # Attach to the container
+   ./docker.sh attach
+
+   # Inside the container, start the application
+   ./start.sh
+   ```
+
+4. **Access the interface**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:4000
+
+5. **Shutdown the application**
+   - Press `Ctrl+C` to stop the application
+   - Press `Ctrl+A` to detach from the container
+
+The setup script will automatically:
+- Build the Docker image using docker.sh
+- Install all dependencies inside the container
+- Configure the environment for FuzzPlanner
+- Commit the configured image for future use
 
 ## Usage
 
-You can interact with the FuzzPlanner visual component by browser on localhost:3000. You can analyze the emulation runs related to the firmware images: **D-Link DAP-2330 version 1.01**, **D-Link DSL-2740R_UK version 1.01**. The related runs have been obtained after the following operator's actions.
-1. The operator has run the firmware under a QEMU vm.
-2. *Session 1*: the operator has stimulated the firmware sending several HTTP web requests to the webserver **httpd**.
-3. The operator has paused the emulation.
-    - Automatically the information collected at run-time during the Session 1 have been stored into **run_0**.
-4. The operator has continued the emulation.
-5. *Session 2*: the operator has stimulated the firmware sending several commands to be executed to the remote shell **telnetd**.
-6. The operator has stopped the emulation.
-    - Automatically the information collected at run-time during the Session 2 have been added to those of the previous sessions (Session 1) and stored into **run_1**.
+### 1. Upload Firmware
+- Upload firmware images (supports various formats)
+- Configure emulation parameters
+- Start firmware emulation in QEMU
 
-## Paper
-You can check out our article into *paper* directory.
-- Coppa, Emilio, Alessio Izzillo, Riccardo Lazzeretti e Simone Lenti. **"FuzzPlanner: Visually Assisting the Design of Firmware Fuzzing Campaigns."** *2023 IEEE Symposium on Visualization for Cyber Security (VizSec).* IEEE, 2023.
+### 2. Analyze Execution
+- **Timeline View**: Explore temporal behavior of binary execution
+- **Binary Table**: Examine all executed binaries with interaction statistics
+- **Binary Graph**: Visualize inter-binary communication and data flows
+- **Channel Analysis**: Identify input/output channels and vulnerabilities
 
-## Presentation at VizSec
+### 3. Plan Fuzzing Campaign
+- Select promising binary-channel pairs for fuzzing
+- Configure fuzzing parameters (dictionaries, engines, etc.)
+- Launch experiments with real-time monitoring
 
-We are excited to present our findings and insights with the community at VizSec 2023 conference that will be held in Melbourne (Australia) on 22th October 2023.
+### 4. Monitor Results
+- Track fuzzing progress with live statistics
+- Analyze discovered crashes and hangs
+- Export results for further investigation
+
+## Troubleshooting
+
+### Fuzzing Experiments Stuck in "REPLAYING" Phase
+
+If your fuzzing experiments get stuck in the "REPLAYING" phase and don't progress, this typically indicates a mismatch between the target PC address identified during data-channel analysis and the actual PC address during fuzzing emulation. To resolve this:
+
+1. **Cancel the stuck experiment** - Stop the current fuzzing experiment
+2. **Restart the experiment** - Try launching the fuzzing experiment again, or
+3. **Re-analyze the data channel** - In the Run Manager, perform a new data-channel analysis on the target data channel you intend to fuzz
+
+This issue occurs because the "target pc" to hook (output from the data-channel analysis) sometimes doesn't match the actual program counter during the fuzzing experiment emulation, causing the fuzzer to wait indefinitely for the expected execution point.
+
+### Fuzzing Experiments Skip Phases and Go Directly to "COMPLETED"
+
+If your fuzzing experiments skip the "BOOTING" and "REPLAYING" phases and go directly to "COMPLETED" status, this indicates a backend desynchronization issue. The fuzzing Docker container is likely still running even though the interface shows it as completed. To resolve this:
+
+1. **Force remove the Docker container**
+   ```bash
+   docker rm -f <fuzz_container_name>
+   ```
+
+2. **Clean up related temporary data**
+   ```bash
+   # Remove fuzzing statistics
+   rm -rf tmp/fuzz_stat/<experiment_id>
+
+   # Remove fuzzing experiment data
+   rm -rf tmp/fuzz_experiments/<experiment_id>
+   ```
+
+3. **Restart the fuzzing experiment** - Launch the experiment again after cleanup
+
+This issue occurs when the backend loses synchronization with the running Docker containers, causing the interface to display incorrect status information while the actual fuzzing process may still be active in the background.
+
+## Architecture
+
+```
+FuzzPlanner/
+├── server_app.py           # Flask backend server
+├── engine.py               # Execution engine
+├── scheduler.py           # Container orchestration
+├── webapp/                # React frontend
+│   ├── src/components/    # UI components
+│   ├── src/modules/       # Main application modules
+│   └── src/hooks/         # Custom React hooks
+├── FirmAFL/              # Modified AFL for firmware
+├── scripts/              # Analysis and utility scripts
+└── config/               # Configuration files
+```
+
+## Key Components
+
+- **Timeline**: Temporal analysis of firmware execution
+- **Binary Table**: Statistical overview of executed binaries
+- **Binary Graph**: Network visualization of binary interactions
+- **Target Picker**: Binary and data channel selection interface
+- **Experiment Launcher**: Fuzzing campaign configuration
+- **Progress Monitor**: Real-time fuzzing statistics and results
+
+## Publication
+
+This tool is based on research presented at VizSec 2023:
+
+> Coppa, Emilio, Alessio Izzillo, Riccardo Lazzeretti e Simone Lenti. **"FuzzPlanner: Visually Assisting the Design of Firmware Fuzzing Campaigns."** *2023 IEEE Symposium on Visualization for Cyber Security (VizSec).* IEEE, 2023.

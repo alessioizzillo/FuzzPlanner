@@ -52,13 +52,13 @@ export default function Binary ({ className, binary }) {
           setSorting={setChannelsSorting}
         />
       </div>
-      <div className='ml-8'>
+      {/* <div className='ml-8'>
         <CveTable
           cves={binary.data.exec.cves}
           sorting={cveSorting}
           setSorting={setCveSorting}
         />
-      </div>
+      </div> */}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useSelectedRunView } from '@/hooks/store/selectedRun'
 import { useSelectedRun } from '@/hooks/store/selectedRun'
 import { useState } from 'react'
 import BinariesTable from '@/modules/BinariesTable/BinariesTable'
+import { useSelectedBinary, useSetSelectedBinary } from '@/hooks/store/selectedBinaryDataChannel'
 import Timeline from './Timeline/Timeline'
 import classNames from 'classnames'
 import BinaryGraph from './Binary/BinaryGraph'
@@ -13,7 +14,11 @@ export default function RunManager({ className }) {
   const runView     = useSelectedRunView()
   const [binariesSorting, setBinariesSorting] = useState([{ id: 'border', desc: true }])
   const [currentBinary, setCurrentBinary] = useState(null)
-  const [selectedBinary, setSelectedBinary] = useState(null)
+  const [binariesTableSelectedBinary, setBinariesTableSelectedBinary] = useState(null)
+
+  // Keep the original target binary picker selection separate
+  const targetBinaryId = useSelectedBinary()
+  const setTargetBinaryId = useSetSelectedBinary()
 
   // If no run has been chosen yet…
   if (!selectedRun) {
@@ -44,16 +49,16 @@ export default function RunManager({ className }) {
             setSorting={setBinariesSorting}
             currentBinary={currentBinary}
             setCurrentBinary={setCurrentBinary}
-            selectedBinary={selectedBinary}
-            setSelectedBinary={setSelectedBinary}
+            selectedBinary={binariesTableSelectedBinary}
+            setSelectedBinary={setBinariesTableSelectedBinary}
           />
         </div>
 
-        {selectedBinary !== null ? (
+        {binariesTableSelectedBinary && binariesTableSelectedBinary.id ? (
           <BinaryGraph
             className='flex-auto pt-2 mx-2 border-l'
-            binary={selectedBinary}
-            setSelectedBinary={setSelectedBinary}
+            binary={binariesTableSelectedBinary}
+            setSelectedBinary={setBinariesTableSelectedBinary}
           />
         ) : (
           <div className='flex-auto' />
@@ -63,7 +68,7 @@ export default function RunManager({ className }) {
           <RunViewConf className="flex-auto border-b" />
           
           <div className="flex flex-col flex-auto mt-2">
-            <RunningSelectExperiments className="flex-auto" />
+            <RunningSelectExperiments className="flex-auto" selectedBinaryFromTable={binariesTableSelectedBinary} />
           </div>
         </div>
       </div>
@@ -71,7 +76,7 @@ export default function RunManager({ className }) {
       <Timeline
         className='flex-none pt-2 mt-2 border-t border-gray-300 h-36'
         currentBinary={currentBinary}
-        selectedBinary={selectedBinary}
+        selectedBinary={binariesTableSelectedBinary}
       />
     </div>
   )

@@ -16,7 +16,11 @@ export default function ConfigPanel() {
     <div className="flex h-full bg-gray-900 text-gray-200 overflow-hidden">
 
       <div className="w-3/4 h-full flex flex-col overflow-hidden">
-        {selectedRun && <TargetPicker />}
+        {selectedRun && (
+          <div className="pt-0 px-4 pb-0">
+            <TargetPicker />
+          </div>
+        )}
 
         {selectedBinary && selectedDataChannel && (
           <div className="flex-1 overflow-auto mt-6">

@@ -12,19 +12,68 @@ import argparse
 from typing import Optional, List
 import pyshark
 import json
+from datetime import datetime
 from FirmAE.scripts.util import check_connection, get_iid
 
 BASE_DIR = os.getcwd()
-RUNTIME_TMP = os.path.join(BASE_DIR, "runtime_tmp")
+TMP_DIR = os.path.join(BASE_DIR, "tmp")
 FIRMAE_DIR = os.path.join(BASE_DIR, "FirmAE")
 PCAP_DIR = os.path.join(BASE_DIR, "pcap")
 TAINT_DIR = os.path.join(BASE_DIR, "taint_analysis")
 FIRMWARE_DIR = os.path.join(BASE_DIR, "firmwares")
 SCRIPTS_DIR = os.path.join(BASE_DIR, "scripts")
-SCHEDULE_CSV = os.path.join(BASE_DIR, "runtime_tmp", "schedule.csv")
-LOCK_DIR = os.path.join(BASE_DIR, "runtime_tmp")
+SCHEDULE_CSV = os.path.join(TMP_DIR, "schedule.csv")
+LOCK_DIR = TMP_DIR
 
 FULL_PERM = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO
+
+def sanitize_data_channel_id(data_channel_id: str) -> str:
+    if not data_channel_id:
+        return data_channel_id
+
+    sanitized = data_channel_id.replace('/', '_')
+    return sanitized
+
+def ensure_runtime_directories():
+    directories = [
+        os.path.join(TMP_DIR),
+        os.path.join(TMP_DIR, "progress"),
+        os.path.join(TMP_DIR, "select_analysis"),
+        os.path.join(TMP_DIR, "select_analysis", "infos"),
+        os.path.join(TMP_DIR, "select_analysis", "results")
+    ]
+
+    for directory in directories:
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except OSError as e:
+            print(f"Warning: Could not create directory {directory}: {e}", file=sys.stderr)
+
+def update_progress(container_name: str, phase: str, progress: float, message: str, details: dict = None):
+    progress_dir = os.path.join(TMP_DIR, "progress")
+
+    try:
+        os.makedirs(progress_dir, exist_ok=True)
+    except OSError as e:
+        print(f"Warning: Could not create progress directory {progress_dir}: {e}", file=sys.stderr)
+        return
+
+    progress_file = os.path.join(progress_dir, f"{container_name}.json")
+    data = {
+        "container_name": container_name,
+        "phase": phase,
+        "progress": progress,
+        "message": message,
+        "timestamp": datetime.now().isoformat(),
+        "details": details or {}
+    }
+
+    try:
+        with open(progress_file, 'w') as f:
+            json.dump(data, f, indent=2)
+    except (OSError, IOError) as e:
+        print(f"Warning: Could not write progress file {progress_file}: {e}", file=sys.stderr)
+
 
 def give_all_permissions_recursively(path):
     for root, dirs, files in os.walk(path):
@@ -362,47 +411,75 @@ def check(firmware: str, mode: str) -> str:
 
     return iid
 
-def run(firmware: str, capture: bool) -> None:
+def run(firmware: str, capture: bool, container_name: str = None) -> None:
     iid = check(firmware, "run")
 
     if not iid:
         return
-    
+
     work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+    shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
     web_check = os.path.join(work_dir, "web_check")
-    
+
     if not os.path.isfile(web_check) or "true" not in open(web_check).read():
         return
+
+    if container_name:
+        update_progress(container_name, "booting", 0.0, "Preparing emulation environment...")
 
     if os.path.exists(os.path.join(work_dir, "webserver_ready")):
         os.remove(os.path.join(work_dir, "webserver_ready"))
 
     shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
     os.environ["EXECUTION_MODE"] = "0"
-    
+
+    if container_name:
+        update_progress(container_name, "booting", 0.2, "Starting firmware emulation...")
+
     cmd = ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), firmware, "run", "0.0.0.0"]
     proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time_to_wait = float(open(os.path.join(work_dir, "time_web")).read().strip())
-    time.sleep(time_to_wait)
-    
+
+    if container_name:
+        update_progress(container_name, "booting", 0.4, f"Booting firmware ({int(time_to_wait)}s remaining)...")
+        for elapsed in range(int(time_to_wait)):
+            time.sleep(1)
+            progress = 0.4 + (0.6 * elapsed / time_to_wait)  # 0.4 to 1.0
+            remaining = int(time_to_wait - elapsed)
+            update_progress(container_name, "booting", progress, f"Booting firmware ({remaining}s remaining)...")
+    else:
+        time.sleep(time_to_wait)
+
     print("[+] Web service READY!")
     ready_flag = os.path.join(work_dir, "webserver_ready")
     open(ready_flag, 'w').close()
 
+    if container_name:
+        mode_str = "capture mode" if capture else "mode"
+        update_progress(container_name, "fuzzing", 1.0, f"Emulation ready in {mode_str}")
+
     if capture:
+        if container_name:
+            update_progress(container_name, "fuzzing", 1.0, "Starting packet capture...")
         interface = f"tap_run_{iid}_0"
         target_ip = open(os.path.join(work_dir, "ip")).read().strip()
         pcap_path = os.path.join(work_dir, "user_interaction.pcap")
         cmd = ["sudo", "-E", "python3", os.path.join(SCRIPTS_DIR, "capture_packets.py"), interface, target_ip, pcap_path]
         subprocess.run(cmd, check=True)
+        if container_name:
+            update_progress(container_name, "completed", 1.0, "Packet capture completed")
         os.kill(proc.pid, signal.SIGINT)
-    
+
     os.waitpid(proc.pid, 0)
+
+    if container_name and not capture:
+        update_progress(container_name, "completed", 1.0, "Emulation completed")
 
 def select(container_name: str, firmware: str) -> None:
     run_id   = check(firmware, "run")
     work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", run_id)
-    json_path = os.path.join(RUNTIME_TMP, 'exec_data_pairs.json')
+    shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
+    json_path = os.path.join(TMP_DIR, 'exec_data_pairs.json')
 
     if not os.path.exists(json_path):
         print(f"Error: exec-data JSON not found at {json_path}", file=sys.stderr)
@@ -427,7 +504,7 @@ def select(container_name: str, firmware: str) -> None:
 
         container_name = f"select_{i}"
 
-        running_info_path = os.path.join(RUNTIME_TMP, "select_analysis", "infos", f"{container_name}.json")
+        running_info_path = os.path.join(TMP_DIR, "select_analysis", "infos", f"{container_name}.json")
 
         if os.path.exists(running_info_path):
             with open(running_info_path, 'r') as f:
@@ -439,7 +516,7 @@ def select(container_name: str, firmware: str) -> None:
                 print(f"Skipping: {container_name} is being processed.", file=sys.stderr)
                 continue    
 
-        results_path = os.path.join(RUNTIME_TMP, "select_analysis", "results", pair.get("brand_id"), pair.get("firmware_id"), pair.get("executable_id"), pair.get("data_channel_id"), "results.json")
+        results_path = os.path.join(TMP_DIR, "select_analysis", "results", pair.get("brand_id"), pair.get("firmware_id"), pair.get("executable_id"), sanitize_data_channel_id(pair.get("data_channel_id")), "results.json")
 
         if os.path.exists(results_path):
             print(f"Skipping: {container_name} has been already processed.", file=sys.stderr)
@@ -451,12 +528,14 @@ def select(container_name: str, firmware: str) -> None:
             "brandId": pair.get("brand_id"),
             "firmwareId": pair.get("firmware_id"),
             "runId": pair.get("run_id"),
-            "binaryId": pair.get("executable_id"),
+            "binaryId": os.path.basename(pair.get("executable_id")),
             "dataChannelId": pair.get("data_channel_id")
         }
         
         with open(running_info_path, "w") as f:
             json.dump(metadata, f)
+
+        update_progress(container_name, "booting", 0.0, "Starting VM...")
 
         cmd = [
             "sudo", "-E", "./run.sh",
@@ -468,20 +547,30 @@ def select(container_name: str, firmware: str) -> None:
 
         time_file = os.path.join(work_dir, "time_web")
         time_to_wait = float(open(time_file).read().strip())
-        time.sleep(time_to_wait)
+
+        update_progress(container_name, "booting", 0.2, f"Booting VM ({int(time_to_wait)}s remaining)...")
+        for elapsed in range(int(time_to_wait)):
+            time.sleep(1)
+            progress = 0.2 + (0.8 * elapsed / time_to_wait)  # 0.2 to 1.0
+            remaining = int(time_to_wait - elapsed)
+            update_progress(container_name, "booting", progress, f"Booting VM ({remaining}s remaining)...")
+
+        update_progress(container_name, "replaying", 0.0, "VM ready, starting packet replay...")
         print("[+] Web service READY!")
 
         replay_pcap = os.path.join(
-            RUNTIME_TMP, "analysis", "results",
+            TMP_DIR, "analysis", "results",
             os.path.basename(os.path.dirname(firmware)),
             os.path.basename(firmware),
             "dynamic_analysis", pair["run_id"],
             "user_interaction.pcap"
         )
         target_ip = open(os.path.join(work_dir, "ip")).read().strip()
+
+        update_progress(container_name, "replaying", 0.0, "Starting packet replay...")
         subprocess.run(
             ["python3", os.path.join(SCRIPTS_DIR, "replay_packets.py"),
-             replay_pcap, target_ip, work_dir],
+             replay_pcap, target_ip, work_dir, container_name],
             check=True
         )
 
@@ -489,6 +578,7 @@ def select(container_name: str, firmware: str) -> None:
         send_signal_recursive(qemu_pid, signal.SIGKILL)
         proc.wait()
 
+        update_progress(container_name, "processing", 0.0, "Analyzing execution traces...")
         fork_log = os.path.join(work_dir, "debug", "forkpoints.log")
         seen = set()
         entries = []
@@ -506,24 +596,41 @@ def select(container_name: str, firmware: str) -> None:
                 entries.append({"syscall": syscall, "pc": pc, "pattern": pattern})
 
             out_path = os.path.join(
-                RUNTIME_TMP, "select_analysis", "results",
+                TMP_DIR, "select_analysis", "results",
                 os.path.basename(os.path.dirname(firmware)),
                 os.path.basename(firmware),
                 pair["run_id"], os.path.basename(pair["executable_id"]),
-                pair["data_channel_id"], "results.json"
+                sanitize_data_channel_id(pair["data_channel_id"]), "results.json"
             )
             os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+            # Create results structure with original data channel ID metadata
+            results = {
+                "original_data_channel_id": pair["data_channel_id"],
+                "sanitized_data_channel_id": sanitize_data_channel_id(pair["data_channel_id"]),
+                "entries": entries
+            }
+
             with open(out_path, "w") as outf:
-                json.dump(entries, outf, indent=2)
+                json.dump(results, outf, indent=2)
+
+            update_progress(container_name, "completed", 1.0, f"Analysis completed: {len(entries)} execution points found")
 
         try:
             os.remove(running_info_path)
         except OSError as e:
             print(f"Warning: could not delete {running_info_path}: {e}", file=sys.stderr)
 
+        try:
+            progress_file = f"tmp/progress/{container_name}.json"
+            if os.path.exists(progress_file):
+                os.remove(progress_file)
+        except OSError as e:
+            print(f"Warning: Could not remove progress file {progress_file}: {e}", file=sys.stderr)
+
 def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
     run_id   = check(firmware, container_name)
-    json_path = os.path.join(RUNTIME_TMP, 'fuzz_pars.json')
+    json_path = os.path.join(TMP_DIR, 'fuzz_pars.json')
     exp = load_experiment(json_path)
 
     try:
@@ -535,6 +642,7 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
 
     iid = str(check(firmware, container_name))
     work_dir = os.path.join(FIRMAE_DIR, "scratch", container_name, iid)
+    shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
 
     if "true" not in open(os.path.join(work_dir, "web_check")).read():
         print("Web check failed, skipping fuzz", file=sys.stderr)
@@ -547,6 +655,7 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
 
     os.environ["EXECUTION_MODE"] = "2"
     os.environ["FUZZ"] = "1"
+    os.environ["DEBUG_PC"] = "1"
     setup_mounts(work_dir)
 
     status = open("/proc/self/status").read()
@@ -580,6 +689,8 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
     with open(os.path.join(work_dir, "outputs", "exp_info.json"), "w+", encoding="utf-8") as out:
         json.dump(exp_info, out, indent=4, ensure_ascii=False)
 
+    update_progress(container_name, "booting", 0.0, "Starting fuzz experiment...")
+
     subprocess.Popen(
         ["sudo","-E","./run.sh",
          "-r", os.path.basename(os.path.dirname(firmware)),
@@ -587,11 +698,16 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
          container_name,"0.0.0.0"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
     )
-    time.sleep(sleep_duration)
+    for elapsed in range(int(sleep_duration)):
+        time.sleep(1)
+        progress = 0.1 + (0.3 * elapsed / sleep_duration)
+        remaining = int(sleep_duration - elapsed)
+        update_progress(container_name, "booting", progress, f"Booting firmware ({remaining}s remaining)...")
     print("[+] Web service READY!")
+    update_progress(container_name, "booting", 0.4, "Firmware ready, configuring mapping table...")
 
     replay_pcap = os.path.join(
-        RUNTIME_TMP, "analysis","results",
+        TMP_DIR, "analysis","results",
         os.path.basename(os.path.dirname(firmware)),
         os.path.basename(firmware),
         "dynamic_analysis",
@@ -599,10 +715,11 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
         "user_interaction.pcap"
     )
     target_ip = open(os.path.join(work_dir, "ip")).read().strip()
-    subprocess.run([
+
+    replay_proc = subprocess.Popen([
         "python3", os.path.join(SCRIPTS_DIR, "replay_packets.py"),
-        replay_pcap, target_ip, work_dir
-    ], check=True)
+        replay_pcap, target_ip, work_dir, container_name
+    ])
 
     subprocess.run(["sudo", "-E", "tee", "/proc/sys/kernel/core_pattern"], input=b"core\n", check=True)
 
@@ -621,26 +738,40 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
             line_count = 0
 
         if line_count > 20:
+            if replay_proc.poll() is None:
+                replay_proc.terminate()
+                try:
+                    replay_proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    replay_proc.kill()
+                    replay_proc.wait()
             break
+
+        print("mapping_table not ready...")
         time.sleep(2)
 
     print("\033[32m[+]\033[0m Web server has been reached !")
 
     if line_count > 20:
         print("\033[32m[+]\033[0m The Mapping Table of the binary program has been configured successfully!")
+        update_progress(container_name, "fuzzing", 0.5, "Mapping table configured, starting fuzzing...")
     else:
         print("\033[31m[-]\033[0m Mapping Table is not configured! Without configuration you will have problems later...we are stopping here. See the README to know more")
         sys.exit(1)
 
     print()
     print("\033[32m[+]\033[0m All set..Now we can start the fuzzer")
+    update_progress(container_name, "fuzzing", 0.7, "Starting AFL fuzzer...")
 
     shutil.copy(dict_path, "keywords")
 
-    with open(os.path.join(RUNTIME_TMP, "select_analysis", "results", firmware, exp["runId"], exp["executableId"], exp["data_channel_id"], "results.json"), "r") as f:
-        data = json.load(f)
+    with open(os.path.join(TMP_DIR, "select_analysis", "results", firmware, exp["runId"], exp["executableId"], sanitize_data_channel_id(exp["data_channel_id"]), "results.json"), "r") as f:
+        results = json.load(f)
+        data = results.get("entries", results) if isinstance(results, dict) else results
 
-    command = ["chroot", "."]
+    command = []
+    # command += ["gdb", "--batch", "--ex", "set follow-fork-mode child", "--ex", "run", "--ex", "bt", "--args"]
+    command += ["chroot", "."]
     command += ["./afl-fuzz"]
     command += ["-m", "none"]
     command += ["-t", "800000+"]
@@ -673,6 +804,8 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
 
     os.chdir(prev_dir)
 
+    update_progress(container_name, "completed", 1.0, "Fuzzing experiment completed")
+
     return ret
 
 def start(mode, firmware, out_dir, container_name) -> None:
@@ -682,9 +815,9 @@ def start(mode, firmware, out_dir, container_name) -> None:
     os.chdir(FIRMAE_DIR)
 
     if mode == "run":
-        run(firmware, False)
+        run(firmware, False, container_name)
     elif mode == "run_capture":
-        run(firmware, True)
+        run(firmware, True, container_name)
     elif mode == "select":
         select(container_name, firmware)
     elif mode == "check":
@@ -699,8 +832,13 @@ def start(mode, firmware, out_dir, container_name) -> None:
 if __name__ == "__main__":
     os.umask(0o000)
 
-    if os.path.exists("runtime_tmp/command"):
-        os.remove("runtime_tmp/command")
+    ensure_runtime_directories()
+
+    try:
+        if os.path.exists("tmp/command"):
+            os.remove("tmp/command")
+    except OSError as e:
+        print(f"Warning: Could not remove command file: {e}", file=sys.stderr)
     
     parser = argparse.ArgumentParser(description="Launch script")
     parser.add_argument(

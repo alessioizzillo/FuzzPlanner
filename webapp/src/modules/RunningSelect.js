@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import { useSelectAnalyses } from '@/hooks/store/useSelectAnalyses'
+import { useOptimizedSelectAnalyses } from '@/hooks/useOptimizedPolling'
+import SelectProgress from '@/components/SelectProgress'
 
 function flattenAnalyses(nested) {
   const result = []
@@ -8,12 +9,34 @@ function flattenAnalyses(nested) {
       for (const runId in nested[brandId][firmwareId]) {
         for (const binaryId in nested[brandId][firmwareId][runId]) {
           const item = nested[brandId][firmwareId][runId][binaryId]
-          if (item?.dataChannelId) {
+          if (item?.dataChannelIds && Array.isArray(item.dataChannelIds)) {
+            for (const channelItem of item.dataChannelIds) {
+              if (typeof channelItem === 'object' && channelItem.dataChannelId) {
+                result.push({
+                  brandId,
+                  firmwareId,
+                  runId,
+                  binaryId: item.binaryId || binaryId,
+                  dataChannelId: channelItem.dataChannelId,
+                  containerName: channelItem.containerName,
+                })
+              } else if (typeof channelItem === 'string') {
+                result.push({
+                  brandId,
+                  firmwareId,
+                  runId,
+                  binaryId: item.binaryId || binaryId,
+                  dataChannelId: channelItem,
+                })
+              }
+            }
+          } else if (item?.dataChannelId) {
+            // Legacy structure support: single dataChannelId
             result.push({
               brandId,
               firmwareId,
               runId,
-              binaryId,
+              binaryId: item.binaryId || binaryId,
               dataChannelId: item.dataChannelId,
             })
           }
@@ -35,11 +58,35 @@ function groupByBinaryId(items) {
   return grouped
 }
 
-export default function RunningSelectExperiments() {
-  const { running: rawRunning, done: rawDone } = useSelectAnalyses()
+export default function RunningSelectExperiments({ selectedBinaryFromTable }) {
+  const selectedBinaryId = selectedBinaryFromTable?.id
 
-  const running = useMemo(() => flattenAnalyses(rawRunning), [rawRunning])
-  const done = useMemo(() => flattenAnalyses(rawDone), [rawDone])
+  // Use the optimized polling hook that automatically handles the global state
+  const { running: rawRunning, done: rawDone, isLoading, error } = useOptimizedSelectAnalyses(
+    null, // brandId - will be fetched from global state inside the hook
+    null, // firmwareId - will be fetched from global state inside the hook
+    null, // runId - will be fetched from global state inside the hook
+    selectedBinaryId, // binaryId from BinariesTable selection
+    { includeBinaryFilter: true }
+  )
+
+  const running = useMemo(() => {
+    const flattened = flattenAnalyses(rawRunning)
+    if (!selectedBinaryId) return []
+
+    // Extract basename for filtering (since API returns basenames)
+    const binaryIdForFilter = selectedBinaryId.split('/').pop()
+    return flattened.filter(item => item.binaryId === binaryIdForFilter)
+  }, [rawRunning, selectedBinaryId])
+
+  const done = useMemo(() => {
+    const flattened = flattenAnalyses(rawDone)
+    if (!selectedBinaryId) return []
+
+    // Extract basename for filtering (since API returns basenames)
+    const binaryIdForFilter = selectedBinaryId.split('/').pop()
+    return flattened.filter(item => item.binaryId === binaryIdForFilter)
+  }, [rawDone, selectedBinaryId])
 
   const groupedRunning = useMemo(() => groupByBinaryId(running), [running])
   const groupedDone = useMemo(() => groupByBinaryId(done), [done])
@@ -66,6 +113,9 @@ export default function RunningSelectExperiments() {
                 <span className="text-gray-600 font-mono break-all">
                   {item.dataChannelId}
                 </span>
+                {type === 'running' && item.containerName && (
+                  <SelectProgress containerName={item.containerName} />
+                )}
               </div>
             )
           })}
@@ -83,7 +133,9 @@ export default function RunningSelectExperiments() {
         {running.length > 0 ? (
           renderGroup(groupedRunning, 'running')
         ) : (
-          <div className="p-2 text-sm text-gray-500">No running analyses</div>
+          <div className="p-3 text-sm text-gray-500 text-center">
+            {selectedBinaryId ? 'No running analyses' : 'Select a binary from the table above to view analyses'}
+          </div>
         )}
       </div>
 
@@ -94,7 +146,9 @@ export default function RunningSelectExperiments() {
         {done.length > 0 ? (
           renderGroup(groupedDone, 'done')
         ) : (
-          <div className="p-2 text-sm text-gray-500">No completed analyses</div>
+          <div className="p-3 text-sm text-gray-500 text-center">
+            {selectedBinaryId ? 'No completed analyses' : 'Select a binary from the table above to view analyses'}
+          </div>
         )}
       </div>
     </div>

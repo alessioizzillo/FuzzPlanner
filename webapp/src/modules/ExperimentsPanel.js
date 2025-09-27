@@ -1,26 +1,62 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useOptimizedFuzzExperiments } from '@/hooks/useOptimizedPolling'
 import { useSelectedBrand } from '@/hooks/store/selectedBrand'
 import { useSelectedFirmware } from '@/hooks/store/selectedFirmware'
-import { useFuzzExperimentsPolling } from '@/hooks/store/useFuzzExperiments'
 import { getExperimentInfo, removeExperiment } from '@/hooks/queries'
+import FuzzProgress from '@/components/FuzzProgress'
+import Icon from '@/components/Icon'
 
 export default function ExperimentsPanel() {
-  const brandId    = useSelectedBrand()
+  const brandId = useSelectedBrand()
   const firmwareId = useSelectedFirmware()
-
-  const { data, isFetching, error } = useFuzzExperimentsPolling(brandId, firmwareId)
-  const running = data?.running ?? []
-  const done    = data?.done    ?? []
+  const { data, isLoading: isFetching, error, running, done } = useOptimizedFuzzExperiments()
 
   const [selectedExp, setSelectedExp] = useState(null)
   const [expInfo, setExpInfo]         = useState(null)
-  const [loadingRemove, setLoadingRemove] = useState(false)
+  const [removingExps, setRemovingExps] = useState(new Set())
 
   const [loadingRunningExps, setLoadingRunningExps] = useState(new Set())
 
+  const visibleRunning = useMemo(() => {
+    const filtered = running.filter(exp => {
+      const name = typeof exp === 'string' ? exp : exp.name
+      const isRemoving = removingExps.has(name)
+      return !isRemoving
+    })
+    return filtered
+  }, [running, removingExps])
+
+  const visibleDone = useMemo(() => {
+    const filtered = done.filter(name => {
+      const isRemoving = removingExps.has(name)
+      return !isRemoving
+    })
+    return filtered
+  }, [done, removingExps])
+
   useEffect(() => {
-    setLoadingRunningExps(new Set(running))
+    const runningNames = running.map(exp =>
+      typeof exp === 'string' ? exp : exp.name
+    )
+    setLoadingRunningExps(new Set(runningNames))
   }, [running])
+
+  useEffect(() => {
+    const allExperimentNames = new Set([
+      ...running.map(exp => typeof exp === 'string' ? exp : exp.name),
+      ...done
+    ])
+
+    setRemovingExps(prev => {
+      const cleaned = new Set()
+      for (const expName of prev) {
+        if (allExperimentNames.has(expName)) {
+          cleaned.add(expName)
+        }
+      }
+      return cleaned
+    })
+  }, [running, done])
 
   const detailsRef = useRef(null)
   const scrollPos = useRef(0)
@@ -50,7 +86,7 @@ export default function ExperimentsPanel() {
 
         setExpInfo(info)
 
-        if (running.includes(selectedExp)) {
+        if (running.some(exp => (typeof exp === 'string' ? exp : exp.name) === selectedExp)) {
           const fuzzerStatsKeys = [
             'fuzz_time',
             'execs_done',
@@ -90,7 +126,7 @@ export default function ExperimentsPanel() {
         if (isMounted) {
           setExpInfo({ error: 'Failed to load experiment info' })
 
-          if (running.includes(selectedExp)) {
+          if (running.some(exp => (typeof exp === 'string' ? exp : exp.name) === selectedExp)) {
             setLoadingRunningExps(prev => new Set(prev).add(selectedExp))
           }
         }
@@ -111,16 +147,20 @@ export default function ExperimentsPanel() {
   }
 
   const handleRemoveExperiment = async (expName) => {
-    if (!window.confirm(`Are you sure you want to remove experiment "${expName}"?`)) return
-    
-    setLoadingRemove(true)
+    if (removingExps.has(expName)) return
+
+    if (selectedExp === expName) {
+      setSelectedExp(null)
+      setExpInfo(null)
+    }
+
+    setRemovingExps(prev => {
+      const newSet = new Set(prev).add(expName)
+      return newSet
+    })
+
     try {
       await removeExperiment({ brandId, firmwareId, expName })
-
-      if (selectedExp === expName) {
-        setSelectedExp(null)
-        setExpInfo(null)
-      }
 
       setLoadingRunningExps(prev => {
         const copy = new Set(prev)
@@ -130,8 +170,12 @@ export default function ExperimentsPanel() {
     } catch (err) {
       console.error('Failed to remove experiment:', err)
       alert('Failed to remove experiment: ' + err.message)
-    } finally {
-      setLoadingRemove(false)
+
+      setRemovingExps(prev => {
+        const copy = new Set(prev)
+        copy.delete(expName)
+        return copy
+      })
     }
   }
 
@@ -145,48 +189,83 @@ export default function ExperimentsPanel() {
             Running Experiments
           </div>
           <div className="flex-1 overflow-auto">
-            {(isFetching && running.length === 0) && (
+            {(isFetching && visibleRunning.length === 0) && (
               <div className="p-4 text-center text-gray-500">No running</div>
             )}
-            {(!isFetching && running.length === 0) && (
+            {(!isFetching && visibleRunning.length === 0) && (
               <div className="p-4 text-center text-gray-500">No running</div>
             )}
-            {running.map(name => {
+            {visibleRunning.map(exp => {
+              const name = typeof exp === 'string' ? exp : exp.name
+              const status = typeof exp === 'object' ? exp.status : 'unknown'
+
               const isSelected = selectedExp === name
               const isLoadingLabel = loadingRunningExps.has(name)
+
+              const getStatusDisplay = () => {
+                switch (status) {
+                  case 'booting':
+                    return {
+                      text: 'Booting',
+                      className: 'bg-orange-200 text-orange-800'
+                    }
+                  case 'fuzzing':
+                    return {
+                      text: 'Fuzzing',
+                      className: 'bg-green-200 text-green-800'
+                    }
+                  default:
+                    return {
+                      text: 'Running',
+                      className: 'bg-blue-200 text-blue-800'
+                    }
+                }
+              }
+
+              const statusDisplay = getStatusDisplay()
 
               return (
                 <div
                   key={`run_${name}`}
-                  className={`px-4 py-2 flex justify-between items-center transition ${
+                  className={`px-4 py-2 transition ${
                     isSelected ? 'bg-blue-100 font-semibold' : 'hover:bg-blue-50'
                   }`}
                 >
-                  <span
-                    className="cursor-pointer flex-1"
-                    onClick={() => handleSelectExperiment(name)}
-                  >
-                    {name}
-                  </span>
-
-                  {isLoadingLabel ? (
-                    <span className="text-xs px-2 py-0.5 rounded bg-yellow-200 text-yellow-800 mr-2">
-                      Loading…
+                  {/* Top row: Name and Remove button */}
+                  <div className="flex justify-between items-center mb-1">
+                    <span
+                      className="cursor-pointer flex-1 truncate pr-2"
+                      onClick={() => handleSelectExperiment(name)}
+                      title={name}
+                    >
+                      {name}
                     </span>
-                  ) : (
-                    <span className="text-xs px-2 py-0.5 rounded bg-green-200 text-green-800 mr-2">
-                      Running
-                    </span>
-                  )}
 
-                  <button
-                    className="text-red-500 hover:text-red-700 text-lg font-bold"
-                    onClick={() => handleRemoveExperiment(name)}
-                    disabled={loadingRemove}
-                    title="Stop & Remove Running Experiment"
-                  >
-                    ❌
-                  </button>
+                    <button
+                      className={`-ml-5 rounded transition-colors ${
+                        removingExps.has(name)
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-red-500 hover:text-red-700 hover:bg-red-50'
+                      }`}
+                      onClick={() => handleRemoveExperiment(name)}
+                      disabled={removingExps.has(name)}
+                      title={removingExps.has(name) ? "Removing..." : "Stop & Remove Running Experiment"}
+                    >
+                      <Icon
+                        name={removingExps.has(name) ? "loading" : "trash"}
+                        className={`w-4 h-4 ${removingExps.has(name) ? 'animate-spin' : ''}`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Bottom row: Progress info */}
+                  <div className="flex justify-between items-center">
+                    <div className="flex-1">
+                      {typeof exp === 'object' && exp.container_name && (
+                        <FuzzProgress containerName={exp.container_name} />
+                      )}
+                    </div>
+                  </div>
                 </div>
               )
             })}
@@ -198,13 +277,13 @@ export default function ExperimentsPanel() {
             Completed Experiments
           </div>
           <div className="flex-1 overflow-auto">
-            {(isFetching && done.length === 0) && (
+            {(isFetching && visibleDone.length === 0) && (
               <div className="p-4 text-center text-gray-500">No completed</div>
             )}
-            {(!isFetching && done.length === 0) && (
+            {(!isFetching && visibleDone.length === 0) && (
               <div className="p-4 text-center text-gray-500">No completed</div>
             )}
-            {done.map(name => (
+            {visibleDone.map(name => (
               <div
                 key={`done_${name}`}
                 className={`px-4 py-2 flex justify-between items-center transition ${
@@ -218,17 +297,20 @@ export default function ExperimentsPanel() {
                   {name}
                 </span>
 
-                <span className="text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-800 mr-2">
-                  Done
-                </span>
-
                 <button
-                  className="text-gray-500 hover:text-red-600 text-lg"
+                  className={`-ml-5 rounded transition-colors ${
+                    removingExps.has(name)
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-red-500 hover:text-red-700 hover:bg-red-50'
+                  }`}
                   onClick={() => handleRemoveExperiment(name)}
-                  disabled={loadingRemove}
-                  title="Remove Completed Experiment"
+                  disabled={removingExps.has(name)}
+                  title={removingExps.has(name) ? "Removing..." : "Remove Completed Experiment"}
                 >
-                  🗑
+                  <Icon
+                    name={removingExps.has(name) ? "loading" : "trash"}
+                    className={`w-4 h-4 ${removingExps.has(name) ? 'animate-spin' : ''}`}
+                  />
                 </button>
               </div>
             ))}
@@ -243,8 +325,9 @@ export default function ExperimentsPanel() {
       >
         {selectedExp ? (
           <>
-            <div className="font-bold text-blue-700 mb-3 text-lg">
-              📄 Details for <span className="underline">{selectedExp}</span>
+            <div className="font-bold text-blue-700 mb-3 text-lg flex items-center gap-2">
+              <Icon name="document" className="w-5 h-5" />
+              Details for <span className="underline">{selectedExp}</span>
             </div>
 
             {!expInfo ? (
@@ -255,7 +338,10 @@ export default function ExperimentsPanel() {
               <div className="space-y-4">
 
                 <div>
-                  <h3 className="text-md font-semibold text-gray-700 mb-1">📝 Metadata</h3>
+                  <h3 className="text-md font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                    <Icon name="metadata" className="w-4 h-4" />
+                    Metadata
+                  </h3>
                   <div className="bg-gray-50 border rounded p-3 text-sm space-y-1">
                     {Object.entries(expInfo)
                       .filter(([key]) => typeof expInfo[key] === 'string')
@@ -269,7 +355,10 @@ export default function ExperimentsPanel() {
                 </div>
 
                 <div>
-                  <h3 className="text-md font-semibold text-gray-700 mb-1">🎯 Fuzzer Stats</h3>
+                  <h3 className="text-md font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                    <Icon name="stats" className="w-4 h-4" />
+                    Fuzzer Stats
+                  </h3>
                   <div className="bg-gray-50 border rounded p-3 text-sm space-y-1">
                     {[
                       'fuzz_time',

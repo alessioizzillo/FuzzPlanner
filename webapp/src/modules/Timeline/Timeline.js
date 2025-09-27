@@ -54,11 +54,11 @@ function Brush ({ brushRef, dms, timeScale, xScale, timeSpan, updateTimeSpan }) 
 }
 
 function setStroke ({ binariesBinsById, currentBinary, selectedBinary, b, e }) {
-  if (selectedBinary !== null) {
+  if (selectedBinary && selectedBinary.id) {
     const sel = binariesBinsById[selectedBinary.id].bins[b.id].types[e.id].length > 0
     if (sel) return '#FFF'
     else return ''
-  } else if (currentBinary !== null) {
+  } else if (currentBinary && currentBinary.id) {
     const cur = binariesBinsById[currentBinary.id].bins[b.id].types[e.id].length > 0
     if (cur) return '#FFF'
     else return ''

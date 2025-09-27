@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# FuzzPlanner Setup Script
+# This script handles the complete Docker-based setup process
+
 function download()
 {
   sudo apt-get update;
@@ -12,6 +15,41 @@ function download()
     sudo apt-get install $line -y;
   done < FirmAFL/packages.txt
 }
+
+function setup_docker_environment()
+{
+  echo "[FuzzPlanner] Building Docker image..."
+  ./docker.sh build
+
+  echo "[FuzzPlanner] Starting container to run setup..."
+  ./docker.sh run
+
+  echo "[FuzzPlanner] Waiting for container to be ready..."
+  sleep 5
+
+  echo "[FuzzPlanner] Running setup inside container..."
+  docker exec FuzzPlanner /bin/bash -c "cd /FuzzPlanner && ./setup.sh install"
+
+  echo "[FuzzPlanner] Committing configured container to new image..."
+  docker commit FuzzPlanner fuzzplanner
+
+  echo "[FuzzPlanner] Stopping and removing temporary container..."
+  docker stop FuzzPlanner
+  docker rm FuzzPlanner
+
+  echo ""
+  echo "[FuzzPlanner] Setup complete! Use './docker.sh run' to start FuzzPlanner"
+  echo ""
+  echo "Access the application at:"
+  echo "  Frontend: http://localhost:3000"
+  echo "  Backend:  http://localhost:4000"
+
+  exit 0
+}
+
+if [ "$1" != "install" ]; then
+  setup_docker_environment
+fi
 
 apt update;
 apt install sudo -y;

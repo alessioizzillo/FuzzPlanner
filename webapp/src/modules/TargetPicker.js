@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react'
 import Picker from '@/components/Picker'
+import Icon from '@/components/Icon'
 import { useSelectedBrand } from '@/hooks/store/selectedBrand'
 import { useSelectedFirmware } from '@/hooks/store/selectedFirmware'
 import { useSelectedRun } from '@/hooks/store/selectedRun'
-import { useSelectAnalyses } from '@/hooks/store/useSelectAnalyses'
+import { useOptimizedSelectAnalyses } from '@/hooks/useOptimizedPolling'
 import {
   useSelectedBinary,
   useSetSelectedBinary,
@@ -23,12 +24,34 @@ function flattenAnalyses(nested) {
         const binaryMap = runMap[runId]
         for (const binaryId in binaryMap) {
           const item = binaryMap[binaryId]
-          if (item?.dataChannelId) {
+          if (item?.dataChannelIds && Array.isArray(item.dataChannelIds)) {
+            for (const channelItem of item.dataChannelIds) {
+              if (typeof channelItem === 'object' && channelItem.dataChannelId) {
+                result.push({
+                  brandId,
+                  firmwareId,
+                  runId,
+                  binaryId: item.binaryId || binaryId,
+                  dataChannelId: channelItem.dataChannelId,
+                  containerName: channelItem.containerName,
+                })
+              } else if (typeof channelItem === 'string') {
+                result.push({
+                  brandId,
+                  firmwareId,
+                  runId,
+                  binaryId: item.binaryId || binaryId,
+                  dataChannelId: channelItem,
+                })
+              }
+            }
+          } else if (item?.dataChannelId) {
+            // Legacy structure support: single dataChannelId
             result.push({
               brandId,
               firmwareId,
               runId,
-              binaryId,
+              binaryId: item.binaryId || binaryId,
               dataChannelId: item.dataChannelId,
             })
           }
@@ -44,8 +67,8 @@ export default function TargetPicker() {
   const firmwareId = useSelectedFirmware()
   const runId = useSelectedRun()
 
-  // Now also grab refresh from useSelectAnalyses
-  const { running, done, refresh } = useSelectAnalyses()
+  // For Target Binary picker, we want to see ALL binaries, not filtered by currently selected binary
+  const { running, done, refresh } = useOptimizedSelectAnalyses(null, null, null, null, { includeBinaryFilter: false })
 
   const selectedBinary = useSelectedBinary()
   const setSelectedBinary = useSetSelectedBinary()
@@ -135,7 +158,8 @@ export default function TargetPicker() {
     <div className="flex space-x-4">
       <div className="flex-1 min-w-0">
         <h2 className="text-lg font-bold mb-2 text-yellow-400 flex items-center gap-2">
-          🖥️ Target Binary
+          <Icon name="target" className="w-5 h-5" />
+          Target Binary
         </h2>
         <div className="flex items-center">
           <Picker
@@ -151,10 +175,10 @@ export default function TargetPicker() {
               title="Remove all select analyses for this binary"
               onClick={handleRemoveBinary}
               disabled={loading}
-              className="ml-1 text-red-500 hover:text-red-700"
+              className="-ml-5 rounded transition-colors text-red-500 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400 disabled:cursor-not-allowed"
               type="button"
             >
-              🗑️
+              <Icon name="trash" className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -162,7 +186,8 @@ export default function TargetPicker() {
 
       <div className="flex-1 min-w-0">
         <h2 className="text-lg font-bold mb-2 text-yellow-400 flex items-center gap-2">
-          📡 Data Channel
+          <Icon name="analyze" className="w-5 h-5" />
+          Data Channel
         </h2>
         <div className="flex items-center">
           <Picker
@@ -178,10 +203,10 @@ export default function TargetPicker() {
               title="Remove select analysis for this data channel"
               onClick={handleRemoveChannel}
               disabled={loading}
-              className="ml-1 text-red-500 hover:text-red-700"
+              className="-ml-5 rounded transition-colors text-red-500 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400 disabled:cursor-not-allowed"
               type="button"
             >
-              🗑️
+              <Icon name="trash" className="w-4 h-4" />
             </button>
           )}
         </div>

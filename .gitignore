@@ -1,4 +1,4 @@
-runtime_tmp
+tmp/*
 webapp/node_modules
 webapp/.next
 FirmAE/firm_db_*

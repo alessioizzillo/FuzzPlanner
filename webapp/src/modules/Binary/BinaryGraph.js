@@ -91,6 +91,12 @@ export default function BinaryGraph ({ className, binary, setSelectedBinary }) {
   const [depth, setDepth] = useState({ inProc: 0, inData: 0, outProc: 0, outData: 0 })
   const binaryView = useMemo(() => getRunView({ runGraph, timeSpan, conf: initialState.selectedRunView.conf }), [])
   const allBinariesById = binaryView.binariesById
+  // Add defensive check to prevent runtime error
+  if (!binary || !binary.id) {
+    console.error('BinaryGraph: binary prop is invalid:', binary)
+    return <div className={className}>Invalid binary data</div>
+  }
+
   const binId = binary.id
   const [graph, setGraph] = useState(getBinaryGraph({ binId, binariesById, depth }))
   const updateDepth = useCallback(({ id, v }) => {

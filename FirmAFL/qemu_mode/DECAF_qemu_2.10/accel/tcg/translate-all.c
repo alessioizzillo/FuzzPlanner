@@ -680,33 +680,9 @@ static inline void *alloc_code_gen_buffer(void)
     size_t size = tcg_ctx.code_gen_buffer_size;
     void *buf;
 
-    /* Constrain the position of the buffer based on the host cpu.
-       Note that these addresses are chosen in concert with the
-       addresses assigned in the relevant linker script file.  */
-# if defined(__PIE__) || defined(__PIC__)
-    /* Don't bother setting a preferred location if we're building
-       a position-independent executable.  We're more likely to get
-       an address near the main executable if we let the kernel
-       choose the address.  */
-# elif defined(__x86_64__) && defined(MAP_32BIT)
-    /* Force the memory down into low memory with the executable.
-       Leave the choice of exact location with the kernel.  */
-    flags |= MAP_32BIT;
-    /* Cannot expect to map more than 800MB in low memory.  */
-    if (size > 800u * 1024 * 1024) {
-        tcg_ctx.code_gen_buffer_size = size = 800u * 1024 * 1024;
-    }
-# elif defined(__sparc__)
+    /* Use fixed deterministic address for consistent TB allocation across runs.
+       This removes ASLR and ensures basic blocks execute at the same TB addresses.  */
     start = 0x40000000ul;
-# elif defined(__s390x__)
-    start = 0x90000000ul;
-# elif defined(__mips__)
-#  if _MIPS_SIM == _ABI64
-    start = 0x128000000ul;
-#  else
-    start = 0x08000000ul;
-#  endif
-# endif
 
     buf = mmap((void *)start, size + qemu_real_host_page_size,
                PROT_NONE, flags, -1, 0);
@@ -717,9 +693,9 @@ static inline void *alloc_code_gen_buffer(void)
 #ifdef __mips__
     if (cross_256mb(buf, size)) {
         /* Try again, with the original still mapped, to avoid re-acquiring
-           that 256mb crossing.  This time don't specify an address.  */
+           that 256mb crossing.  Use deterministic address for consistency.  */
         size_t size2;
-        void *buf2 = mmap(NULL, size + qemu_real_host_page_size,
+        void *buf2 = mmap((void *)(start + 0x10000000), size + qemu_real_host_page_size,
                           PROT_NONE, flags, -1, 0);
         switch ((int)(buf2 != MAP_FAILED)) {
         case 1:

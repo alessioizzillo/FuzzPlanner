@@ -3,15 +3,50 @@ from scapy.all import *
 import sys
 from time import sleep
 import errno
+import json
+import os
+from datetime import datetime
 
+BASE_DIR = "/FuzzPlanner"
+TMP_DIR = os.path.join(BASE_DIR, "tmp")
 input_pcap = sys.argv[1]
 dst_ip = sys.argv[2]
 work_dir = sys.argv[3]
+container_name = sys.argv[4] if len(sys.argv) > 4 else None
 
-with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
-    f.write(f"input_pcap {input_pcap}\n")
+debug = 1 if os.environ.get("DEBUG") == "1" or os.environ.get("DEBUG_PC") == "1" else 0
+
+def update_replay_progress(container_name: str, phase: str, progress: float, message: str, details: dict = None):
+    if not container_name:
+        return
+
+    progress_dir = os.path.join(BASE_DIR, "tmp", "progress")
+    os.makedirs(progress_dir, exist_ok=True)
+    progress_file = os.path.join(progress_dir, f"{container_name}.json")
+
+    data = {
+        "container_name": container_name,
+        "phase": phase,
+        "progress": progress,
+        "message": message,
+        "timestamp": datetime.now().isoformat(),
+        "details": details or {}
+    }
+
+    try:
+        with open(progress_file, 'w') as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Could not update progress: {e}", file=sys.stderr)
+
+if debug:
+    with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
+        f.write(f"input_pcap {input_pcap}\n")
 
 packets = rdpcap(input_pcap)
+total_packets = len(packets)
+
+update_replay_progress(container_name, "replaying", 0.0, f"Starting packet replay: {total_packets} packets to send")
 
 prev_timestamp = 0
 i = 0
@@ -20,8 +55,9 @@ first_tcp_connection_successful = False
 for pkt in packets:
     if prev_timestamp:
         sleep_time = pkt.time - prev_timestamp
-        with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
-            f.write(f"SLEEP {sleep_time:.6f}\n")
+        if debug:
+            with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
+                f.write(f"SLEEP {sleep_time:.6f}\n")
         sleep(float(sleep_time))
     else:
         sleep_time = 0
@@ -74,8 +110,9 @@ for pkt in packets:
                         connected = True
                         first_tcp_connection_successful = True
                     except (socket.timeout, socket.error) as e:
-                        with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
-                            f.write(f"[INIT] Retry TCP to {network_pkt.dst}:{transport_pkt.dport} — {str(e)}\n")
+                        if debug:
+                            with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
+                                f.write(f"[INIT] Retry TCP to {network_pkt.dst}:{transport_pkt.dport} — {str(e)}\n")
                         sleep(0.1)
                         sock.close()
                         continue
@@ -91,15 +128,17 @@ for pkt in packets:
                         connected = True
                     except (socket.timeout, socket.error) as e:
                         retry_count += 1
-                        with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
-                            f.write(f"Retry {retry_count}/{max_retries} TCP to {network_pkt.dst}:{transport_pkt.dport} — {str(e)}\n")
+                        if debug:
+                            with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
+                                f.write(f"Retry {retry_count}/{max_retries} TCP to {network_pkt.dst}:{transport_pkt.dport} — {str(e)}\n")
                         sleep(0.1)
                         sock.close()
                         continue
 
                 if not connected:
-                    with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
-                        f.write(f"Failed to connect to {network_pkt.dst}:{transport_pkt.dport} after {max_retries} retries\n")
+                    if debug:
+                        with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
+                            f.write(f"Failed to connect to {network_pkt.dst}:{transport_pkt.dport} after {max_retries} retries\n")
                     continue
 
             try:
@@ -113,9 +152,20 @@ for pkt in packets:
             sock.sendto(payload, (network_pkt.dst, transport_pkt.dport))
             sock.close()
 
-        with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
-            f.write(f"SENT PACKET {i}\n")
+        if debug:
+            with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
+                f.write(f"SENT PACKET {i}\n")
         i += 1
 
-with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
-    f.write("FINISH!\n")
+        if container_name and total_packets > 0:
+            progress = i / total_packets
+            update_replay_progress(container_name, "replaying", progress,
+                                 f"Sent {i}/{total_packets} packets ({progress:.1%})")
+
+if debug:
+    with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
+        f.write("FINISH!\n")
+
+if container_name:
+    update_replay_progress(container_name, "replaying", 1.0,
+                         f"Packet replay completed: {i} packets sent")

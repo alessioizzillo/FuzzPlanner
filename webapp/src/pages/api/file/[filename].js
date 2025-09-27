@@ -10,7 +10,7 @@ const FILES = {
 }
 
 //
-const DIR_ROOT = path.join('/', 'FuzzPlanner', 'runtime_tmp', 'analysis', 'results')
+const DIR_ROOT = path.join('/', 'FuzzPlanner', 'tmp', 'analysis', 'results')
 
 function getStaticDir (brandId, fwId) { 
   return path.join(DIR_ROOT, brandId, fwId, 'static_analysis', 'data') 

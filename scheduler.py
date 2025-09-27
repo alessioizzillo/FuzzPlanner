@@ -10,17 +10,25 @@ import json
 from time import sleep
 from typing import Dict, List, Optional, Set, Tuple
 
-SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+BASE_DIR = os.getcwd()
+TMP_DIR = os.path.join(BASE_DIR, 'tmp')
 N_CPU_MAX = os.cpu_count() or 1
 CPUS_WHITELIST: Optional[List[int]] = None
-RUNTIME_TMP = os.path.join(SCRIPT_DIR, 'runtime_tmp')
-AFFINITY_FILE = os.path.join(RUNTIME_TMP, 'affinity.dat')
-AFFINITY_LOCK = os.path.join(RUNTIME_TMP, 'affinity.lock')
-SCHEDULE_LOCK = os.path.join(RUNTIME_TMP, 'schedule.lock')
+AFFINITY_FILE = os.path.join(TMP_DIR, 'affinity.dat')
+AFFINITY_LOCK = os.path.join(TMP_DIR, 'affinity.lock')
+SCHEDULE_LOCK = os.path.join(TMP_DIR, 'schedule.lock')
 
 def read_csv_rows(path: str) -> List[Dict[str, str]]:
-    with open(path, newline="") as f:
-        return list(csv.DictReader(f))
+    try:
+        with open(path, newline="") as f:
+            reader = csv.DictReader(f)
+            if reader.fieldnames is None:
+                print(f"Warning: CSV file {path} has no headers or is empty")
+                return []
+            return list(reader)
+    except (OSError, csv.Error) as e:
+        print(f"Error reading CSV file {path}: {e}")
+        return []
 
 def usage_and_exit() -> None:
     print("Usage: python3 experiments.py")
@@ -48,7 +56,7 @@ def get_running_containers() -> Dict[int, str]:
     return mapping
 
 def read_affinity() -> Dict[int, str]:
-    os.makedirs(RUNTIME_TMP, exist_ok=True)
+    os.makedirs(TMP_DIR, exist_ok=True)
 
     if not os.path.exists(AFFINITY_FILE):
         return {i: 'none' for i in range(N_CPU_MAX)}
@@ -157,9 +165,9 @@ def assign_names(csv_file: str, idx: int, num_cores: int,
 def clean_param_name(p: str) -> str:
     return re.sub(r"\s*\(.*?\)", "", p).strip()
 
-def parse_schedule(csv_file: str) -> List[Tuple[str, str, str, str, str, str, str]]:
+def parse_schedule(csv_file: str) -> List[Tuple[str, str, str, str, str, str]]:
     lock = lock_file(SCHEDULE_LOCK)
-    experiments: List[Tuple[str, str, str, str, str, str, str]] = []
+    experiments: List[Tuple[str, str, str, str, str, str]] = []
     
     with open(csv_file, newline='') as fp:
         reader = csv.reader(fp)
@@ -194,11 +202,11 @@ def run_experiment(log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]],
     write_affinity(aff)
     lock.close()
     
-    cmd_file = os.path.join(RUNTIME_TMP, 'command')
+    cmd_file = os.path.join(TMP_DIR, 'command')
     
     with open(cmd_file, 'w') as f:
         exp_str = f"--output {exp_path}" if exp_path else ""
-        f.write(f"python3 start.py --mode {mode} --firmware {firmware} "
+        f.write(f"python3 engine.py --mode {mode} --firmware {firmware} "
                 f"--container_name {cont_name} {exp_str}\n")
     
     script = 'run_exp_host' if mode in ('run','run_capture') else 'run_exp_bridge'
@@ -234,16 +242,23 @@ def parse_affinity(mode: Optional[str] = None) -> Tuple[Dict[str, Set[int]], Set
 
 def cleanup_stale_running_select_analyses(csv_file: str):
     schedule_rows = read_csv_rows(csv_file)
-    valid_containers: Set[str] = {
-        row["container_name"]
-        for row in schedule_rows
-        if row["status"].lower() == "running" and row["mode"] == "select"
-    }
+    valid_containers: Set[str] = set()
 
-    analyses_dir = os.path.join(RUNTIME_TMP, "select_analysis", "infos")
+    for row in schedule_rows:
+        try:
+            # Check if the row has the required fields and matches our criteria
+            if (row.get("status", "").lower() == "running" and
+                row.get("mode", "") == "select" and
+                "container_name" in row):
+                valid_containers.add(row["container_name"])
+        except (KeyError, AttributeError):
+            # Skip malformed rows
+            continue
+
+    analyses_dir = os.path.join(TMP_DIR, "select_analysis", "infos")
 
     if not os.path.isdir(analyses_dir):
-        print(f"[!] Directory does not exist: {analyses_dir}")
+        # print(f"[!] Directory does not exist: {analyses_dir}")
         return
 
     for filename in os.listdir(analyses_dir):
@@ -277,11 +292,15 @@ def ensure_experiment_consistency(csv_file: str) -> None:
         if len(row) < len(headers): continue
 
         status, exp_name, container_name, num_cores, mode, firmware = row
-        keep = (
-                not (status and container_name not in running_containers.values()) and
-                (mode in {'check', 'run', 'run_capture', 'select'} or
-                not ((status == "" or exp_name == "" or container_name == "") and not (status == "" and exp_name == "" and container_name == "")))
-            )
+
+        if status == "" and exp_name == "" and container_name == "" and mode == "fuzz":
+            keep = True
+        else:
+            keep = (
+                    not (status and container_name not in running_containers.values()) and
+                    (mode in {'check', 'run', 'run_capture', 'select'} or
+                    not ((status == "" or exp_name == "" or container_name == "") and not (status == "" and exp_name == "" and container_name == "")))
+                )
         if keep:
             valid_rows.append(row)
 
@@ -293,25 +312,54 @@ def ensure_experiment_consistency(csv_file: str) -> None:
 def run_container(schedule_csv: str, log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]], exp_dir: Optional[str]) -> bool:
     ensure_experiment_consistency(schedule_csv)
     exps = parse_schedule(schedule_csv)
-    
-    for idx, (status, name, cont, cores, mode, fw) in enumerate(exps):
+
+    for idx, exp_tuple in enumerate(exps):
+        print(f"Debug: Processing experiment {idx}: {exp_tuple}")
+
+        if len(exp_tuple) >= 6:
+            status, name, cont, cores, mode, fw = exp_tuple[:6]
+        else:
+            print(f"Warning: Unexpected tuple length {len(exp_tuple)} for experiment {idx}")
+            continue
+
         if status == '':
-            exp_name, cont_name = assign_names(schedule_csv, idx, int(cores), cont, exp_dir, mode)
-            run_experiment(log_to_pair, pair_to_log, mode, fw, os.path.join(exp_dir,exp_name) if exp_name else '', cont_name, int(cores))
-    
+            print(f"Debug: cores value is '{cores}' (type: {type(cores)})")
+
+            try:
+                if cores and cores.strip():
+                    num_cores = int(cores.strip())
+                else:
+                    num_cores = 1
+                    print(f"Debug: Using default cores=1 (original value was '{cores}')")
+            except (ValueError, AttributeError) as e:
+                num_cores = 1
+                print(f"Debug: Error parsing cores '{cores}': {e}. Using default cores=1")
+
+            exp_name, cont_name = assign_names(schedule_csv, idx, num_cores, cont, exp_dir, mode)
+            run_experiment(log_to_pair, pair_to_log, mode, fw, os.path.join(exp_dir,exp_name) if exp_name else '', cont_name, num_cores)
+
     return True
 
 def get_container_info(firmware: str, schedule_csv: str) -> Tuple[Optional[str], Optional[str]]:
     ensure_experiment_consistency(schedule_csv)
-    
+
     if not os.path.isfile(schedule_csv): return None, None
-    
-    with open(schedule_csv, newline='') as fp:
-        for row in csv.DictReader(fp):
-            print(row.get('mode'), row.get('firmware'), firmware)
-            if row.get('mode') in ('run','run_capture') and row.get('firmware')==firmware:
-                return row.get('status'), row.get('container_name')
-    
+
+    try:
+        with open(schedule_csv, newline='') as fp:
+            reader = csv.DictReader(fp)
+            if reader.fieldnames is None:
+                print(f"Warning: CSV file {schedule_csv} has no headers or is empty")
+                return None, None
+
+            for row in reader:
+                print(row.get('mode'), row.get('firmware'), firmware)
+                if row.get('mode') in ('run','run_capture') and row.get('firmware')==firmware:
+                    return row.get('status'), row.get('container_name')
+    except (OSError, csv.Error) as e:
+        print(f"Error reading CSV file {schedule_csv}: {e}")
+        return None, None
+
     return None, None
 
 def clear_non_running(schedule_csv: str) -> None:

@@ -3150,6 +3150,8 @@ int main(int argc, char **argv, char **envp)
         execution_mode = atoi(env_var_execution_mode);
 
         if (execution_mode) {
+            remove("forkpoints.log");
+
             FILE *fd_replay;
             if (debug)
                 fd_replay = fopen("debug/full_debug_replay.log", "a+");

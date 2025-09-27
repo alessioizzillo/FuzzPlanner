@@ -579,7 +579,7 @@ def select(container_name: str, firmware: str) -> None:
         proc.wait()
 
         update_progress(container_name, "processing", 0.0, "Analyzing execution traces...")
-        fork_log = os.path.join(work_dir, "debug", "forkpoints.log")
+        fork_log = os.path.join(work_dir, "forkpoints.log")
         seen = set()
         entries = []
         

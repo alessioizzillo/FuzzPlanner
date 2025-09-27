@@ -3582,7 +3582,7 @@ skip_to_pos:
 
                                     if (execution_mode)
                                     {
-                                        FILE *fd_forkpoints = fopen("debug/forkpoints.log", "a+");
+                                        FILE *fd_forkpoints = fopen("forkpoints.log", "a+");
 #if TARGET_LONG_BITS == 32
                                         fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, sizeof(pattern)));
 #else
@@ -3682,7 +3682,7 @@ skip_to_pos:
 
                                     if (execution_mode)
                                     {
-                                        FILE *fd_forkpoints = fopen("debug/forkpoints.log", "a+");
+                                        FILE *fd_forkpoints = fopen("forkpoints.log", "a+");
 #if TARGET_LONG_BITS == 32
                                         fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, sizeof(pattern)));
 #else
@@ -3738,7 +3738,7 @@ skip_to_pos:
 
                                     if (execution_mode)
                                     {
-                                        FILE *fd_forkpoints = fopen("debug/forkpoints.log", "a+");
+                                        FILE *fd_forkpoints = fopen("forkpoints.log", "a+");
 #if TARGET_LONG_BITS == 32
                                         fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, sizeof(pattern)));
 #else                                

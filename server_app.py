@@ -819,23 +819,13 @@ def select_analyses() -> Response:
             results_files = glob.glob(os.path.join(results_dir, "**", "results.json"), recursive=True)
             files_to_check.extend(results_files)
 
-    current_etag, last_modified = generate_etag_for_files(files_to_check)
-
-    client_etag = request.headers.get('If-None-Match')
-    if check_etag_match(client_etag, current_etag):
-        response = Response('', 304)
-        response.headers['ETag'] = current_etag
-        return response
-
-    data = get_cached_or_compute(
-        cache_key,
-        lambda: compute_select_analyses_data(brand_id_filter, firmware_id_filter, run_id_filter, binary_id_filter)
-    )
+    # Disable ETag caching for select_analyses to ensure fresh data
+    data = compute_select_analyses_data(brand_id_filter, firmware_id_filter, run_id_filter, binary_id_filter)
 
     response = jsonify(data)
-    response.headers['ETag'] = current_etag
-    if last_modified > 0:
-        response.headers['Last-Modified'] = datetime.fromtimestamp(last_modified).strftime('%a, %d %b %Y %H:%M:%S GMT')
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
 
     return response
 

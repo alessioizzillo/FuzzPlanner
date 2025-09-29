@@ -391,7 +391,7 @@ void traverse_mmap(CPUState *env, void *opaque)
         if (DECAF_read_ptr(env, vma_curr + OFFSET_PROFILE.vma_vm_end, &vma_vm_end) < 0)
             goto next;
 
-        DECAF_printf("memory %x:%x ", vma_vm_start, vma_vm_end); 
+        // DECAF_printf("memory %x:%x ", vma_vm_start, vma_vm_end); 
 
         // read the struct* file entry of the curr vma, used to then extract the dentry of the this page
         if (DECAF_read_ptr(env, vma_curr + OFFSET_PROFILE.vma_vm_file, &vma_file) < 0 || !vma_file)
@@ -422,7 +422,7 @@ void traverse_mmap(CPUState *env, void *opaque)
         if (strlen(name)==0)
             goto next;
 
-        DECAF_printf("%s ", name);
+        // DECAF_printf("%s ", name);
 
 
         if (!strcmp(last_mod_name.c_str(), name))
@@ -460,11 +460,12 @@ void traverse_mmap(CPUState *env, void *opaque)
         if(VMI_find_module_by_base(proc->cr3, vma_vm_start) != mod)
         {
             VMI_insert_module(proc->pid, mod_vm_start , mod);
+            // compute_module_info(proc->pid, (void *)mod, vma_vm_start);
         }
         
 
 next:
-        DECAF_printf("\n");
+        // DECAF_printf("\n");
         if (DECAF_read_ptr(env, vma_curr + OFFSET_PROFILE.vma_vm_next, &vma_next) < 0)
             break;
 
@@ -668,6 +669,7 @@ int find_linux(CPUState *env, uintptr_t insn_handle)
 void linux_vmi_init()
 { 	
 	DECAF_registerOptimizedBlockBeginCallback(&new_proc_callback, NULL, OFFSET_PROFILE.proc_exec_connector, OCB_CONST);
+    DECAF_registerOptimizedBlockBeginCallback(&new_proc_callback, NULL, OFFSET_PROFILE.proc_fork_connector, OCB_CONST);
 	DECAF_registerOptimizedBlockBeginCallback(&new_kmod_callback, NULL, OFFSET_PROFILE.trim_init_extable, OCB_CONST);
 	DECAF_registerOptimizedBlockBeginCallback(&proc_end_callback, NULL, OFFSET_PROFILE.proc_exit_connector, OCB_CONST);
     DECAF_register_callback(DECAF_TLB_EXEC_CB, Linux_tlb_call_back, NULL);
@@ -755,10 +757,11 @@ gpa_t mips_get_cur_pgd(CPUState *env){
                 break;
         }
         if (i >= sizeof(handlers)/sizeof(handlers[0])) {
-                printf("TLBMiss handler dump:\n");
-            for (i = 0; i < 0x80; i+= 4)
-                //printf("0x%08x: 0x%08x\n", ebase + i, ldl_phys(env->as, ebase + i));
-            cpu_abort(env, "TLBMiss handler signature not recognised\n");
+            //     printf("TLBMiss handler dump:\n");
+            // for (i = 0; i < 0x80; i+= 4)
+            //     //printf("0x%08x: 0x%08x\n", ebase + i, ldl_phys(env->as, ebase + i));
+            // cpu_abort(env, "TLBMiss handler signature not recognised\n");
+            return 0;
         }
         address = (lui_ins & 0xffff) << 16;
         address += (((int32_t)(lw_ins & 0xffff)) << 16) >> 16;
@@ -822,7 +825,7 @@ void traverse_mmap_new(CPUState *env, void *opaque, FILE *fp)
         if (DECAF_read_ptr(env, vma_curr + OFFSET_PROFILE.vma_vm_end,  &vma_vm_end) < 0)
             goto next;
 
-        DECAF_printf("memory %x:%x ", vma_vm_start, vma_vm_end);    
+        // DECAF_printf("memory %x:%x ", vma_vm_start, vma_vm_end);    
 
 //zyw obtain the memory area property
         if (DECAF_read_ptr(env, vma_curr + OFFSET_PROFILE.vma_vm_flags, &vma_flags) < 0)      

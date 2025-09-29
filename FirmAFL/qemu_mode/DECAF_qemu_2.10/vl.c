@@ -31,6 +31,7 @@
 #include "extern_vars.h"
 
 int debug = 0;
+int debug_pc = 0;
 int fuzz = 0;
 int target_syscall = 0;
 unsigned long target_pc = 0;
@@ -3109,7 +3110,11 @@ int main(int argc, char **argv, char **envp)
     if (env_var_debug && !strcmp(env_var_debug, "1"))
         debug = 1;
 
-    if (debug){
+    char *env_var_debug_pc = getenv("DEBUG_PC");
+    if (env_var_debug_pc && !strcmp(env_var_debug_pc, "1"))
+        debug_pc = 1;
+
+    if (debug || debug_pc){
         struct stat st = {0};
         if (!stat("debug", &st))
             system("rm -r debug");

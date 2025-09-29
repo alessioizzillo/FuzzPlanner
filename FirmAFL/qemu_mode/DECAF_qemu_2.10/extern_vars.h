@@ -1,4 +1,6 @@
+#define MAX_PROCESS_NAME_LENGTH 30
 extern int debug;
+extern int debug_pc;
 extern int fuzz;
 extern int target_syscall;
 extern unsigned long target_pc;

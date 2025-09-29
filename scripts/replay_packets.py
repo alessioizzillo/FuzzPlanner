@@ -40,6 +40,7 @@ def update_replay_progress(container_name: str, phase: str, progress: float, mes
         print(f"Warning: Could not update progress: {e}", file=sys.stderr)
 
 if debug:
+    os.makedirs(f"{work_dir}/debug", exist_ok=True)
     with open(f"{work_dir}/debug/replay_packets.log", "a+") as f:
         f.write(f"input_pcap {input_pcap}\n")
 

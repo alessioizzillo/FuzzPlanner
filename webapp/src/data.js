@@ -175,6 +175,10 @@ export function getRunGraph ({ runData, runLogs }) {
   function handleExecutableFile (eId) {
     if (graph.hasNode(eId)) { return }
     const exec = runData.executableFilesById[eId]
+    if (!exec) {
+      console.warn(`Executable file with ID ${eId} not found in runData.executableFilesById`)
+      return
+    }
     if (exec.type === 'binary') {
       graph.addNode(eId, {
         type: 'executable',
@@ -194,16 +198,20 @@ export function getRunGraph ({ runData, runLogs }) {
         data: exec
       })
       handleExecutableFile(exec.symlink_target)
-      graph.addDirectedEdgeWithKey(
-        `symbolink-${eId}-${exec.symlink_target}`,
-        eId,
-        exec.symlink_target,
-        {
-          type: 'symbolink',
-          subtype: null,
-          data: {}
-        }
-      )
+      if (graph.hasNode(exec.symlink_target)) {
+        graph.addDirectedEdgeWithKey(
+          `symbolink-${eId}-${exec.symlink_target}`,
+          eId,
+          exec.symlink_target,
+          {
+            type: 'symbolink',
+            subtype: null,
+            data: {}
+          }
+        )
+      } else {
+        console.warn(`Symlink target ${exec.symlink_target} could not be added to graph, skipping edge creation`)
+      }
     }
   }
   //

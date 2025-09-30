@@ -27,6 +27,9 @@ elif [[ "${MODE}" == *"fuzz"* ]]; then
 elif [[ "${MODE}" == *"select"* ]]; then
     suffix=${MODE#*"select"}
     mode_abbr="se${suffix}"
+elif [[ "${MODE}" == *"pcap_replay"* ]]; then
+    suffix=${MODE#*"pcap_replay"}
+    mode_abbr="pr${suffix}"
 else
     echo "ERROR: Insert mode!"
     exit 1

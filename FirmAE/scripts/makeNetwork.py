@@ -47,6 +47,9 @@ elif [[ "${BASENAME}" == *"fuzz"* ]]; then
 elif [[ "${BASENAME}" == *"select"* ]]; then
     suffix=$(echo "${BASENAME}" | sed -n 's/.*select\([^\.]*\)\.sh/\\1/p')
     MODE="select${suffix}"
+elif [[ "${BASENAME}" == *"pcap_replay"* ]]; then
+    suffix=$(echo "${BASENAME}" | sed -n 's/.*pcap_replay\([^\.]*\)\.sh/\\1/p')
+    MODE="pcap_replay${suffix}"
 fi
 
 IMAGE=`get_fs ${IID} ${MODE}`
@@ -337,6 +340,9 @@ def startNetwork(network, iid):
     elif "select" in MODE:
         suffix = MODE.split("select", 1)[1]
         mode_abbr = f"se{suffix}"
+    elif "pcap_replay" in MODE:
+        suffix = MODE.split("pcap_replay", 1)[1]
+        mode_abbr = f"pr{suffix}"
     else:
         assert(0)
 

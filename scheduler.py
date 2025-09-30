@@ -310,7 +310,6 @@ def ensure_experiment_consistency(csv_file: str) -> None:
     lock.close()
 
 def run_container(schedule_csv: str, log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]], exp_dir: Optional[str]) -> bool:
-    ensure_experiment_consistency(schedule_csv)
     exps = parse_schedule(schedule_csv)
 
     for idx, exp_tuple in enumerate(exps):

@@ -89,6 +89,31 @@ def get_brand(infile, psql_ip, mode):
         else:
             return ""
 
+def get_result(iid, psql_ip, mode):
+    value = os.getenv("NO_PSQL")
+
+    if value == "1":
+        csv_file_path = "/FuzzPlanner/FirmAE/firm_db_%s.csv"%(mode)
+        try:
+            with open(csv_file_path, mode='r') as csvfile:
+                csv_reader = csv.DictReader(csvfile)
+                for row in csv_reader:
+                    if row['id'] == str(iid):
+                        return row.get('result', '')
+            return ""
+        except FileNotFoundError:
+            return ""
+        except Exception as e:
+            return ""
+    else:
+        q = "SELECT result FROM image WHERE id = '%s'" % iid
+        result = query_(q, psql_ip, mode)
+
+        if result:
+            return result[0]
+        else:
+            return ""
+
 def check_connection(psql_ip, mode):
     value = os.getenv("NO_PSQL")
 
@@ -112,5 +137,8 @@ if __name__ == '__main__':
         print(get_iid(infile, psql_ip, mode))
     if sys.argv[1] == 'get_brand':
         print(get_brand(infile, psql_ip, mode))
+    if sys.argv[1] == 'get_result':
+        iid = infile
+        print(get_result(iid, psql_ip, mode))
     if sys.argv[1] == 'check_connection':
         exit(check_connection(psql_ip, mode))

@@ -24,6 +24,9 @@ if [ "${MODE}" == "run" ]; then
 elif [[ "${MODE}" == *"fuzz"* ]]; then
     suffix=${MODE#*"fuzz"}
     mode_abbr="fu${suffix}"
+elif [[ "${MODE}" == *"select"* ]]; then
+    suffix=${MODE#*"select"}
+    mode_abbr="se${suffix}"
 else
     echo "ERROR: Insert mode!"
     exit 1

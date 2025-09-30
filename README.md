@@ -81,37 +81,35 @@ The setup script will automatically:
 
 ## Troubleshooting
 
-### Fuzzing Experiments Stuck in "REPLAYING" Phase
-
-If your fuzzing experiments get stuck in the "REPLAYING" phase and don't progress, this typically indicates a mismatch between the target PC address identified during data-channel analysis and the actual PC address during fuzzing emulation. To resolve this:
-
-1. **Cancel the stuck experiment** - Stop the current fuzzing experiment
-2. **Restart the experiment** - Try launching the fuzzing experiment again, or
-3. **Re-analyze the data channel** - In the Run Manager, perform a new data-channel analysis on the target data channel you intend to fuzz
-
-This issue occurs because the "target pc" to hook (output from the data-channel analysis) sometimes doesn't match the actual program counter during the fuzzing experiment emulation, causing the fuzzer to wait indefinitely for the expected execution point.
-
-### Fuzzing Experiments Skip Phases and Go Directly to "COMPLETED"
-
-If your fuzzing experiments skip the "BOOTING" and "REPLAYING" phases and go directly to "COMPLETED" status, this indicates a backend desynchronization issue. The fuzzing Docker container is likely still running even though the interface shows it as completed. To resolve this:
-
-1. **Force remove the Docker container**
-   ```bash
-   docker rm -f <fuzz_container_name>
-   ```
-
-2. **Clean up related temporary data**
-   ```bash
-   # Remove fuzzing statistics
-   rm -rf tmp/fuzz_stat/<experiment_id>
-
-   # Remove fuzzing experiment data
-   rm -rf tmp/fuzz_experiments/<experiment_id>
-   ```
-
 3. **Restart the fuzzing experiment** - Launch the experiment again after cleanup
 
 This issue occurs when the backend loses synchronization with the running Docker containers, causing the interface to display incorrect status information while the actual fuzzing process may still be active in the background.
+
+### Firmware Image Creation Fails
+
+If you encounter issues when creating a firmware image using the "Create Image" button, the FuzzPlanner container may have become unstable. To resolve this:
+
+1. **Detach from the container**
+   ```bash
+   # Press Ctrl+A to detach from the container
+   ```
+
+2. **Restart the FuzzPlanner container**
+   ```bash
+   docker restart FuzzPlanner
+   ```
+
+3. **Reattach to the container**
+   ```bash
+   ./docker.sh attach
+   ```
+
+4. **Restart the application if needed**
+   ```bash
+   ./start.sh
+   ```
+
+This issue can occur when firmware extraction processes encounter errors or consume excessive resources, requiring a clean restart of the container environment.
 
 ## Architecture
 

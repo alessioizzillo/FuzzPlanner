@@ -346,9 +346,14 @@ def copy_image(dst_mode, firmware):
 
     replace_pattern_in_file(run_file, f'IID={src_iid}', f'IID={dst_iid}')
 
-    if container_name in dst_mode:
-        suffix = dst_mode.split(container_name, 1)[1]
+    if "fuzz" in dst_mode:
+        suffix = dst_mode.split("fuzz", 1)[1]
         dst_abbr_mode = f"fu{suffix}"
+    elif "select" in dst_mode:
+        suffix = dst_mode.split("select", 1)[1]
+        dst_abbr_mode = f"se{suffix}"
+    else:
+        assert(0)
 
     replace_pattern_in_file(run_file, '_run_', f'_{dst_abbr_mode}_')
     replace_pattern_in_file(run_file, f'_{src_iid}', f'_{dst_iid}')
@@ -398,8 +403,9 @@ def check(firmware: str, mode: str) -> str:
             exit(1)
 
     iid = subprocess.check_output(["sudo", "-E", "./scripts/util.py", "get_iid", firmware, "0.0.0.0", mode]).decode('utf-8').strip()
-
-    if iid == "" or not os.path.exists(os.path.join(FIRMAE_DIR, "scratch", mode, iid)):
+    result = subprocess.check_output(["sudo", "-E", "./scripts/util.py", "get_result", iid, "0.0.0.0", mode]).decode('utf-8').strip() if iid else ""
+    
+    if iid == "" or not os.path.exists(os.path.join(FIRMAE_DIR, "scratch", mode, iid)) or result != 'true':
         if any(mode.startswith(m) for m in {"run", "run_capture", "check"}):
             subprocess.run(["sudo", "-E", "./run.sh", "-c", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "run", "0.0.0.0"])
         else:

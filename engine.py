@@ -445,6 +445,9 @@ def copy_image(dst_mode, firmware):
     elif "select" in dst_mode:
         suffix = dst_mode.split("select", 1)[1]
         dst_abbr_mode = f"se{suffix}"
+    elif "pcap_replay" in dst_mode:
+        suffix = dst_mode.split("pcap_replay", 1)[1]
+        dst_abbr_mode = f"pr{suffix}"
     else:
         assert(0)
 

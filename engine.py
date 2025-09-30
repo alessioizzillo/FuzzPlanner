@@ -666,7 +666,7 @@ def pcap_replay(firmware: str, container_name: str = None, pcap_name: str = None
         if not os.path.exists(pcap_dir_dest):
             if container_name:
                 update_progress(container_name, "analyzing", 0.97, "Copying PCAP file to pcap directory...")
-            shutil.copy(pcap_path, pcap_dir_dest)
+            shutil.copy(pcap_path, os.path.join(pcap_dir_dest, "user_interaction.pcap"))
 
         cmd_str = " ".join(cmd) + f"; cp {pcap_path} {out}"
         print(f"[*] Analysis command: {cmd_str}")

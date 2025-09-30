@@ -586,17 +586,53 @@ def select(container_name: str, firmware: str) -> None:
         entries = []
         
         if os.path.exists(fork_log):
-            for line in open(fork_log):
-                parts = line.strip().split(",")
-                if len(parts) < 3:
-                    continue
-                syscall, pc, pattern = parts[:3]
-                key = (pc, pattern)
-                if key in seen:
-                    continue
-                seen.add(key)
-                entries.append({"syscall": syscall, "pc": pc, "pattern": pattern})
+            total_lines = 0
+            skipped_empty = 0
+            skipped_invalid = 0
+            skipped_placeholder = 0
+            skipped_duplicate = 0
 
+            for line_num, line in enumerate(open(fork_log), 1):
+                total_lines += 1
+                line = line.strip()
+                if not line:
+                    skipped_empty += 1
+                    continue
+
+                parts = line.split(",")
+                if len(parts) < 3:
+                    print(f"Warning: Invalid forkpoint entry at line {line_num}: {line}", file=sys.stderr)
+                    skipped_invalid += 1
+                    continue
+
+                syscall, pc, pattern = parts[:3]
+
+                syscall = syscall.strip()
+                pc = pc.strip()
+                pattern = pattern.strip()
+
+                if not syscall or not pc or not pattern:
+                    print(f"Warning: Skipping forkpoint with empty data at line {line_num}: syscall='{syscall}', pc='{pc}', pattern='{pattern}'", file=sys.stderr)
+                    skipped_invalid += 1
+                    continue
+
+                if pattern.lower() == '':
+                    print(f"Warning: Skipping forkpoint with placeholder pattern at line {line_num}: '{pattern}'", file=sys.stderr)
+                    skipped_placeholder += 1
+                    continue
+
+                key = (pc.lower(), pattern.lower())
+                if key in seen:
+                    skipped_duplicate += 1
+                    continue
+
+                seen.add(key)
+                entries.append({
+                    "syscall": syscall,
+                    "pc": pc,
+                    "pattern": pattern
+                })
+            
             out_path = os.path.join(
                 TMP_DIR, "select_analysis", "results",
                 os.path.basename(os.path.dirname(firmware)),

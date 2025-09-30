@@ -3115,16 +3115,16 @@ int main(int argc, char **argv, char **envp)
     if (env_var_debug_pc && !strcmp(env_var_debug_pc, "1"))
         debug_pc = 1;
 
+    FILE *fd = fopen("full_system_syscall.log", "w+");
+    fprintf(fd, "ERR,TS,PID,PPID,PROCNAME,SYSCALL,RET0,RET1,A0,A1,A2,A3,A4\n");
+    fclose(fd);
+
     if (debug || debug_pc){
         struct stat st = {0};
         if (!stat("debug", &st))
             system("rm -r debug");
         
         mkdir("debug", 0777);
-
-        FILE *fd = fopen("debug/full_system_syscall.log", "w+");
-        fprintf(fd, "ERR,TS,PID,PPID,PROCNAME,SYSCALL,RET0,RET1,A0,A1,A2,A3,A4\n");
-        fclose(fd);
 
         fd = fopen("debug/full_system_syscall_debug.log", "w+");
         fprintf(fd, "ERR,TS,PID,PPID,PROCNAME,SYSCALL,RET0,RET1,A0,A1,A2,A3,A4\n");

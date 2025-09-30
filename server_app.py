@@ -494,7 +494,7 @@ def pause_and_analyze() -> Response:
     script = os.path.join(os.getcwd(), "scripts", "analysis.py")
     cmd = [
         "python3", script, combined, out,
-        os.path.join(work, "debug", "full_system_syscall.log"),
+        os.path.join(work, "full_system_syscall.log"),
         os.path.join(work, "image_backup"),
         os.path.join(FIRMWARES_DIR, combined),
         FACT_IP, FACT_PORT, fact_uid if fact_uid else "None"
@@ -529,7 +529,7 @@ def stop_emulation() -> Response:
         script = os.path.join(os.getcwd(), "scripts", "analysis.py")
         cmd = [
             "python3", script, combined, out,
-            os.path.join(work, "debug", "full_system_syscall.log"),
+            os.path.join(work, "full_system_syscall.log"),
             os.path.join(work, "image_backup"),
             os.path.join(FIRMWARES_DIR, combined),
             FACT_IP, FACT_PORT, fact_uid if fact_uid else "None"

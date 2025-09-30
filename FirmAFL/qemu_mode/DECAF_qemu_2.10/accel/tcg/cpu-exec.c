@@ -3536,7 +3536,7 @@ skip_to_pos:
                         if (execution_mode)
                         {   
                             FILE *fd;
-                            if (debug) fd = fopen("debug/full_system_syscall.log", "a+");
+                            fd = fopen("full_system_syscall.log", "a+");
 
                             if (state->into_syscall == 4005) // open
                             {
@@ -3550,7 +3550,7 @@ skip_to_pos:
                                     strncpy(path, buf, strlen(buf - 1));
                                 else
                                     strncpy(path, buf, strlen(buf));
-                                if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,{path:%s},%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, path, a1, a2, a3, a4);
+                                fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,{path:%s},%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, path, a1, a2, a3, a4);
 
                                 if (debug) {
                                     fd_replay = fopen("debug/full_debug_replay.log", "a+");
@@ -3589,7 +3589,7 @@ skip_to_pos:
                                 { // AF_UNIX
                                     struct sockaddr_un sockaddr;
                                     DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_un), &sockaddr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{path:%s},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, sockaddr.sun_path, a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{path:%s},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, sockaddr.sun_path, a2, a3, a4);
                                     sprintf(sock_params, "path:%s", sockaddr.sun_path);
                                 }
                                 else if (family == 2 || family == 512)
@@ -3597,7 +3597,7 @@ skip_to_pos:
                                     struct sockaddr_in sockaddr;
                                     DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_in), &sockaddr);
                                     char *addr = inet_ntoa(sockaddr.sin_addr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{addr:%s;port:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, addr, ntohs(sockaddr.sin_port), a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{addr:%s;port:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, addr, ntohs(sockaddr.sin_port), a2, a3, a4);
                                     sprintf(sock_params, "addr:%s;port:%d", addr, ntohs(sockaddr.sin_port));
                                 }
                                 else if (family == 10 || family == 2560)
@@ -3605,14 +3605,14 @@ skip_to_pos:
                                     struct sockaddr_in sockaddr;
                                     DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_in), &sockaddr);
                                     char *addr = inet_ntoa(sockaddr.sin_addr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{addr:%s;port:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, addr, ntohs(sockaddr.sin_port), a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{addr:%s;port:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, addr, ntohs(sockaddr.sin_port), a2, a3, a4);
                                     sprintf(sock_params, "addr:%s;port:%d", addr, ntohs(sockaddr.sin_port));
                                 }
                                 else if (family == 16 || family == 4096)
                                 { // AF_NETLINK
                                     struct sockaddr_nl sockaddr;
                                     DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_nl), &sockaddr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{pid:%d;groups:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, ntohl(sockaddr.nl_pid), ntohl(sockaddr.nl_groups), a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{pid:%d;groups:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, ntohl(sockaddr.nl_pid), ntohl(sockaddr.nl_groups), a2, a3, a4);
                                     sprintf(sock_params, "pid:%d;groups:%d", ntohl(sockaddr.nl_pid), ntohl(sockaddr.nl_groups));                           
                                 }
                                 else if (family == 17 || family == 4352)
@@ -3623,11 +3623,11 @@ skip_to_pos:
                                     DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_ll), &sockaddr);
                                     memcpy(x, sockaddr.sll_addr, 8);
                                     p = &sockaddr;
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{ifindex:%d;protocol:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, ntohl(sockaddr.sll_ifindex), ntohs(sockaddr.sll_protocol), a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{ifindex:%d;protocol:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, ntohl(sockaddr.sll_ifindex), ntohs(sockaddr.sll_protocol), a2, a3, a4);
                                     sprintf(sock_params, "ifindex:%d;protocol:%d", ntohl(sockaddr.sll_ifindex), ntohs(sockaddr.sll_protocol));
                                 }
                                 else
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             
                                 if (execution_mode && !strcmp(target_sock_params, sock_params))
                                 {
@@ -3649,27 +3649,27 @@ skip_to_pos:
                                 { // AF_UNIX
                                     struct sockaddr_un sockaddr;
                                     DECAF_read_mem(cpu, a4, sizeof(struct sockaddr_un), &sockaddr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{path:%s}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, sockaddr.sun_path);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{path:%s}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, sockaddr.sun_path);
                                 }
                                 else if (family == 2 || family == 512)
                                 { // AF_INET
                                     struct sockaddr_in sockaddr;
                                     DECAF_read_mem(cpu, a4, sizeof(struct sockaddr_in), &sockaddr);
                                     char *addr = inet_ntoa(sockaddr.sin_addr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{addr:%s;port:%d}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, addr, ntohs(sockaddr.sin_port));
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{addr:%s;port:%d}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, addr, ntohs(sockaddr.sin_port));
                                 }
                                 else if (family == 10 || family == 2560)
                                 { // AF_INET6
                                     struct sockaddr_in sockaddr;
                                     DECAF_read_mem(cpu, a4, sizeof(struct sockaddr_in), &sockaddr);
                                     char *addr = inet_ntoa(sockaddr.sin_addr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{addr:%s;port:%d}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, addr, ntohs(sockaddr.sin_port));
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{addr:%s;port:%d}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, addr, ntohs(sockaddr.sin_port));
                                 }
                                 else if (family == 16 || family == 4096)
                                 { // AF_NETLINK
                                     struct sockaddr_nl sockaddr;
                                     DECAF_read_mem(cpu, a4, sizeof(struct sockaddr_nl), &sockaddr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{pid:%d;groups:%d}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, ntohl(sockaddr.nl_pid), ntohl(sockaddr.nl_groups));
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{pid:%d;groups:%d}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, ntohl(sockaddr.nl_pid), ntohl(sockaddr.nl_groups));
                                 }
                                 else if (family == 17 || family == 4352)
                                 { // AF_PACKET
@@ -3679,10 +3679,10 @@ skip_to_pos:
                                     DECAF_read_mem(cpu, a4, sizeof(struct sockaddr_ll), &sockaddr);
                                     memcpy(x, sockaddr.sll_addr, 8);
                                     p = &sockaddr;
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{ifindex:%d;protocol:%d}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, ntohl(sockaddr.sll_ifindex), ntohs(sockaddr.sll_protocol));
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,{ifindex:%d;protocol:%d}\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, ntohl(sockaddr.sll_ifindex), ntohs(sockaddr.sll_protocol));
                                 }
                                 else
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             
                                 if (execution_mode && target_replay_syscall == state->into_syscall && !strcmp(target_exec, state->procname))
                                 {
@@ -3785,27 +3785,27 @@ skip_to_pos:
                                 { // AF_UNIX
                                     struct sockaddr_un sockaddr;
                                     DECAF_read_mem(cpu, msg_name_addr, sizeof(struct sockaddr_un), &sockaddr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{path:%s},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, sockaddr.sun_path, a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{path:%s},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, sockaddr.sun_path, a2, a3, a4);
                                 }
                                 else if (family == 2 || family == 512)
                                 { // AF_INET
                                     struct sockaddr_in sockaddr;
                                     DECAF_read_mem(cpu, msg_name_addr, sizeof(struct sockaddr_in), &sockaddr);
                                     char *addr = inet_ntoa(sockaddr.sin_addr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{addr:%s;port:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, addr, ntohs(sockaddr.sin_port), a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{addr:%s;port:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, addr, ntohs(sockaddr.sin_port), a2, a3, a4);
                                 }
                                 else if (family == 10 || family == 2560)
                                 { // AF_INET6
                                     struct sockaddr_in sockaddr;
                                     DECAF_read_mem(cpu, msg_name_addr, sizeof(struct sockaddr_in), &sockaddr);
                                     char *addr = inet_ntoa(sockaddr.sin_addr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{addr:%s;port:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, addr, ntohs(sockaddr.sin_port), a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{addr:%s;port:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, addr, ntohs(sockaddr.sin_port), a2, a3, a4);
                                 }
                                 else if (family == 16 || family == 4096)
                                 { // AF_NETLINK
                                     struct sockaddr_nl sockaddr;
                                     DECAF_read_mem(cpu, msg_name_addr, sizeof(struct sockaddr_nl), &sockaddr);
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{pid:%d;groups:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, ntohl(sockaddr.nl_pid), ntohl(sockaddr.nl_groups), a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{pid:%d;groups:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, ntohl(sockaddr.nl_pid), ntohl(sockaddr.nl_groups), a2, a3, a4);
                                 }
                                 else if (family == 17 || family == 4352)
                                 { // AF_PACKET
@@ -3815,10 +3815,10 @@ skip_to_pos:
                                     DECAF_read_mem(cpu, msg_name_addr, sizeof(struct sockaddr_ll), &sockaddr);
                                     memcpy(x, sockaddr.sll_addr, 8);
                                     p = &sockaddr;
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{ifindex:%d;protocol:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, ntohl(sockaddr.sll_ifindex), ntohs(sockaddr.sll_protocol), a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,{ifindex:%d;protocol:%d},%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, ntohl(sockaddr.sll_ifindex), ntohs(sockaddr.sll_protocol), a2, a3, a4);
                                 }
                                 else
-                                    if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                    fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             
                                 if (execution_mode && target_replay_syscall == state->into_syscall && !strcmp(target_exec, state->procname))
                                 {
@@ -3916,7 +3916,7 @@ skip_to_pos:
                             }
                             else if (state->into_syscall == 4003 || state->into_syscall == 4175)     //read, recv
                             {
-                                if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
 
                                 if (execution_mode && target_replay_syscall == state->into_syscall && !strcmp(target_exec, state->procname))
                                 {
@@ -4023,7 +4023,7 @@ skip_to_pos:
                                         }
                                     }
                                 }
-                                if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             }
                             else if (state->into_syscall == 4168) // accept
                             {
@@ -4032,7 +4032,7 @@ skip_to_pos:
                                     if (target_replay_fd == a0)
                                         target_replay_fd = ret_value_0;
                                 }
-                                if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             }
                             else if (state->into_syscall == 4006) // close
                             {
@@ -4041,12 +4041,12 @@ skip_to_pos:
                                     if (target_replay_fd == a0)
                                         target_replay_fd = 0;
                                 }
-                                if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             }                            
                             else
-                                if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             
-                            if (debug) fclose(fd);
+                            fclose(fd);
 
 
                             if (debug) fd = fopen("debug/full_system_syscall_debug.log", "a+");

@@ -155,6 +155,7 @@ static inline tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
     TranslationBlock *last_tb;
     int tb_exit;
     uint8_t *tb_ptr = itb->tc_ptr;
+    static int first = 0;
 
 /*
 #ifdef NO_MAPPING_AND_FUZZ
@@ -169,10 +170,14 @@ static inline tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
                            itb->tc_ptr, cpu->cpu_index, itb->pc,
                            lookup_symbol(itb->pc));
 
-    if(debug_pc && itb->pc < 0x80000000)
+    if(debug || debug_pc)
     {
         FILE *fffp;
         fffp = fopen("debug/pc.log","a+");
+        if (!first) {
+            fprintf(fffp, "\n--------STARTED USER-MODE CHILD--------\n\n");
+            first = 1;
+        }
         fprintf(fffp, "pc: 0x%lx, pid: %d\n", itb->pc, getpid());
         fclose(fffp);
     }
@@ -719,19 +724,19 @@ int cpu_exec(CPUState *cpu)
             target_ulong pc = env->segs[R_CS].base + env->eip;
 #endif
 
-            if (debug_pc) {
-                FILE *fp = fopen("debug/executed_pcs.log", "a+");
-                if (fp) {
-#ifdef TARGET_MIPS
-                    fprintf(fp, "0x%lx\n", (unsigned long)env->active_tc.PC);
-#elif defined(TARGET_ARM)
-                    fprintf(fp, "0x%lx\n", (unsigned long)env->regs[15]);
-#elif defined(TARGET_I386)
-                    fprintf(fp, "0x%lx\n", (unsigned long)(env->segs[R_CS].base + env->eip));
-#endif
-                    fclose(fp);
-                }
-            }
+//             if (debug_pc) {
+//                 FILE *fp = fopen("debug/executed_pcs.log", "a+");
+//                 if (fp) {
+// #ifdef TARGET_MIPS
+//                     fprintf(fp, "0x%lx\n", (unsigned long)env->active_tc.PC);
+// #elif defined(TARGET_ARM)
+//                     fprintf(fp, "0x%lx\n", (unsigned long)env->regs[15]);
+// #elif defined(TARGET_I386)
+//                     fprintf(fp, "0x%lx\n", (unsigned long)(env->segs[R_CS].base + env->eip));
+// #endif
+//                     fclose(fp);
+//                 }
+//             }
 
 #ifdef NO_MAPPING_AND_FUZZ
 #elif defined(MAPPING_WITHOUT_FUZZ)

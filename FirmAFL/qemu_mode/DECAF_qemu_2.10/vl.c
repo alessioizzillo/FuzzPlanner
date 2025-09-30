@@ -35,6 +35,7 @@ int debug_pc = 0;
 int fuzz = 0;
 int target_syscall = 0;
 unsigned long target_pc = 0;
+char *target_pattern = NULL;
 
 #ifdef FUZZ
 extern const char *aflFile;
@@ -3148,6 +3149,22 @@ int main(int argc, char **argv, char **envp)
     char *env_var_target_pc = getenv("TARGET_PC");
     if (env_var_target_pc)
         target_pc = (unsigned long)strtol(env_var_target_pc, NULL, 16);
+
+    char *env_var_target_pattern = getenv("TARGET_PATTERN");
+    if (env_var_target_pattern) {
+        target_pattern = strdup(env_var_target_pattern);
+        if (debug) {
+            FILE *fd_init_debug = fopen("debug/target_pattern_init.log", "w");
+            fprintf(fd_init_debug, "TARGET_PATTERN initialized: %s\n", target_pattern);
+            fclose(fd_init_debug);
+        }
+    } else {
+        if (debug) {
+            FILE *fd_init_debug = fopen("debug/target_pattern_init.log", "w");
+            fprintf(fd_init_debug, "TARGET_PATTERN not set (NULL)\n");
+            fclose(fd_init_debug);
+        }
+    }
 
     char *env_var_execution_mode = getenv("EXECUTION_MODE");
     if (env_var_execution_mode)

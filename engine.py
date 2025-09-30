@@ -105,11 +105,13 @@ def export_env_vars(exp: dict):
     params = exp.get("chosen_parameters", {})
     os.environ["TARGET_PC"]        = str(params.get("pc"))
     os.environ["TARGET_SYSCALL"]   = str(params.get("syscall"))
+    os.environ["TARGET_PATTERN"]   = str(params.get("pattern", ""))
 
     print(f'export TARGET_EXECUTABLE="{exp.get("executableId")}"')
     print(f'export TARGET_CHANNEL="{exp.get("data_channel_id")}"')
     print(f'export TARGET_PC="{params.get("pc")}"')
     print(f'export TARGET_SYSCALL="{params.get("syscall")}"')
+    print(f'export TARGET_PATTERN="{params.get("pattern", "")}"')
 
     for feature in exp.get("set_engine_features", []):
         name  = feature.get("name")

@@ -64,6 +64,74 @@ int CP0_UserLocal = 0;
 #include <stdlib.h>
 #include <stdio.h>
 
+static int decode_escape_sequences(const char* input, char** output, size_t* output_len) {
+    if (!input || !output || !output_len) return -1;
+
+    size_t len = strlen(input);
+    *output = malloc(len + 1);
+    if (!*output) return -1;
+
+    size_t i = 0, j = 0;
+    while (i < len) {
+        if (input[i] == '\\' && i + 1 < len) {
+            if (input[i + 1] == 'u' && i + 5 < len) {
+                char hex_str[5];
+                memcpy(hex_str, &input[i + 2], 4);
+                hex_str[4] = '\0';
+
+                unsigned int code_point = strtoul(hex_str, NULL, 16);
+                if (code_point <= 0xFF) {
+                    (*output)[j++] = (char)code_point;
+                } else {
+                    (*output)[j++] = input[i];
+                    (*output)[j++] = input[i + 1];
+                    (*output)[j++] = input[i + 2];
+                    (*output)[j++] = input[i + 3];
+                    (*output)[j++] = input[i + 4];
+                    (*output)[j++] = input[i + 5];
+                }
+                i += 6;
+            } else {
+                switch (input[i + 1]) {
+                    case 'n': (*output)[j++] = '\n'; break;
+                    case 'r': (*output)[j++] = '\r'; break;
+                    case 't': (*output)[j++] = '\t'; break;
+                    case '\\': (*output)[j++] = '\\'; break;
+                    case '"': (*output)[j++] = '"'; break;
+                    case '0': (*output)[j++] = '\0'; break;
+                    default:
+                        (*output)[j++] = input[i];
+                        (*output)[j++] = input[i + 1];
+                        break;
+                }
+                i += 2;
+            }
+        } else {
+            (*output)[j++] = input[i++];
+        }
+    }
+    *output_len = j;
+    return 0;
+}
+
+static char* bytes_to_hex(const void* data, size_t len) {
+    if (!data || len == 0) return strdup("(empty)");
+
+    char* hex_str = malloc(len * 3 + 1); // 2 hex chars + space per byte + null terminator
+    if (!hex_str) return strdup("(malloc failed)");
+
+    const unsigned char* bytes = (const unsigned char*)data;
+    char* ptr = hex_str;
+
+    for (size_t i = 0; i < len; i++) {
+        if (i > 0) *ptr++ = ' ';
+        sprintf(ptr, "%02x", bytes[i]);
+        ptr += 2;
+    }
+    *ptr = '\0';
+
+    return hex_str;
+}
 
 typedef struct {
     char addr[16];
@@ -1145,7 +1213,7 @@ static void callbacktests_loadmodule_callback(VMI_Callback_Params* params)
     
     if (params->cp.cr3 && !status && !strcmp(procname, target_exec)) {
         FILE *module_file = fopen("debug/modules.log","a+");
-        fprintf(module_file, "%s:::%s:::0x%lx\n", procname, params->lm.name, params->lm.base);
+        fprintf(module_file, "%s:::%s:::0x%lx:::0x%lx\n", procname, params->lm.name, params->lm.base, params->lm.base+params->lm.size);
         fclose(module_file);
     }       
 }
@@ -1386,20 +1454,38 @@ static inline tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
     }
     else
     {
+        if (itb->pc < kernel_base) {
+            uint32_t pid;
+            uint32_t par_pid;
+            char procname[MAX_PROCESS_NAME_LENGTH] = {0};
+            int status = -1;
+            
+            if (debug || debug_pc) {
+                target_ulong pgd = DECAF_getPGD(cpu);
 
-#ifdef FUZZ
-        if(afl_user_fork && !into_syscall && itb->pc < kernel_base) //important
-        //if(afl_user_fork && into_syscall == 0 && itb->pc!=last_log_pc) //important
-        {
-            target_ulong pgd = DECAF_getPGD(cpu);
-            if(pgd == target_pgd)
+                if (pgd)
+                    status = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
+                
+                if (pgd && !status && !strcmp(procname, target_exec)) {
+                    FILE *module_file = fopen("debug/pc.log","a+");
+                    fprintf(module_file, "0x%lx\n", itb->pc);
+                    fclose(module_file);
+                }
+            }
+#ifdef FUZZ        
+            if(afl_user_fork && !into_syscall) //important
+            //if(afl_user_fork && into_syscall == 0 && itb->pc!=last_log_pc) //important
             {
-                //last_log_pc = itb->pc;
-                CPUArchState *env = cpu->env_ptr;
-                AFL_QEMU_CPU_SNIPPET2;
-            }   
-        }
+            target_ulong pgd = DECAF_getPGD(cpu);
+                if(pgd == target_pgd)
+                {
+                    //last_log_pc = itb->pc;
+                    CPUArchState *env = cpu->env_ptr;
+                    AFL_QEMU_CPU_SNIPPET2;
+                }   
+            }
 #endif
+        }
     }
     return ret;
 }
@@ -2398,8 +2484,13 @@ int specify_fork_pc(CPUState *cpu)
     if(start_fork_pc == 0 && handle_recv == 2) //skip recv network_fd
     {
         if (debug){
+            target_ulong pgd = DECAF_getPGD(cpu); 
+            uint32_t pid;
+            uint32_t par_pid;
+            char procname[64];
+            int ret = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
             FILE *fd= fopen("debug/pre_fork_syscalls.log","a+");
-            fprintf(fd, "\nCPU restarted. start_fork_pc = 0x%lx\n\n", pc);
+            fprintf(fd, "\nCPU restarted. start_fork_pc = 0x%lx %s %d\n\n", pc, procname, pid);
             fclose(fd);
         }
 
@@ -2444,8 +2535,12 @@ int start_fork(CPUState *cpu, target_ulong pc)
         if(pgd == target_pgd)
         {
             if (debug){
+                uint32_t pid;
+                uint32_t par_pid;
+                char procname[64];
+                int ret = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
                 FILE *fd= fopen("debug/pre_fork_syscalls.log","a+");
-                fprintf(fd, "\nSTART FORK!\n\n");
+                fprintf(fd, "\nSTART FORK! %s %d\n\n", procname, pid);
                 fclose(fd);
             }
 #endif //DECAF
@@ -3589,7 +3684,7 @@ skip_to_pos:
                                 else
                                     if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             
-                                if (execution_mode && target_replay_syscall == state->into_syscall)
+                                if (execution_mode && target_replay_syscall == state->into_syscall && !strcmp(target_exec, state->procname))
                                 {
                                     int len;
 
@@ -3602,7 +3697,7 @@ skip_to_pos:
                                     memset(pattern, 0, sizeof(len));
 
                                     tlb_fill(cpu, a1, MMU_DATA_LOAD, cpu_mmu_index(env, true), 0);
-                                    DECAF_read_mem(cpu, a1, len-1, pattern);
+                                    DECAF_read_mem(cpu, a1, len, pattern);
 
                                     if (debug) {
                                         FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
@@ -3614,30 +3709,68 @@ skip_to_pos:
                                     {
                                         FILE *fd_forkpoints = fopen("forkpoints.log", "a+");
 #if TARGET_LONG_BITS == 32
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, sizeof(pattern)));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, len));
 #else
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-8, visualizeUTF8(pattern, sizeof(pattern)));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-8, visualizeUTF8(pattern, len));
 #endif
 
                                         fclose(fd_forkpoints);
 
-#if TARGET_LONG_BITS == 32
-                                        if (cur_program_pc == target_pc+4){
-#else
-                                        if (cur_program_pc == target_pc+8){
-#endif
-                                            if (debug) {
-                                                FILE *fd= fopen("debug/pre_fork_syscalls.log","a+");
-                                                fprintf(fd, "\nForkpoint found! SAVE CPU STATE & RESTART!!!\n");
-                                                fclose(fd);
+                                        int match_found = 0;
+                                        char *decoded_pattern = NULL;
+                                        size_t decoded_len = 0;
+                                        size_t compare_len = 0;
+                                        char *current_hex = NULL;
+                                        char *target_hex = NULL;
+
+                                        if (target_pattern) {
+                                            if (decode_escape_sequences(target_pattern, &decoded_pattern, &decoded_len) == 0 && decoded_pattern) {
+                                                if (decoded_len == len && memcmp(pattern, decoded_pattern, decoded_len) == 0) {
+                                                    match_found = 1;
+                                                }
+
+                                                if (debug) {
+                                                    FILE *fd_pattern_debug = fopen("debug/pattern_match_debug.log", "a+");
+                                                    current_hex = bytes_to_hex(pattern, len);
+                                                    target_hex = bytes_to_hex(decoded_pattern, decoded_len);
+                                                    char *forkpoint_hex = bytes_to_hex(pattern, sizeof(pattern));
+
+                                                    fprintf(fd_pattern_debug, "Pattern matching - target_pattern: %s, decoded_len: %zu, current_len: %d, ret_value_0: %d, sizeof_pattern: %zu, match_found: %d, process: %s\n",
+                                                            target_pattern ? target_pattern : "NULL",
+                                                            decoded_len,
+                                                            len,
+                                                            ret_value_0,
+                                                            sizeof(pattern),
+                                                            match_found,
+                                                            state->procname);
+                                                    fprintf(fd_pattern_debug, "Current hex (len):      %s\n", current_hex ? current_hex : "NULL");
+                                                    fprintf(fd_pattern_debug, "Target hex:             %s\n", target_hex ? target_hex : "NULL");
+                                                    fprintf(fd_pattern_debug, "Forkpoint hex (sizeof): %s\n", forkpoint_hex ? forkpoint_hex : "NULL");
+
+                                                    if (forkpoint_hex) free(forkpoint_hex);
+                                                    fclose(fd_pattern_debug);
+                                                }
                                             }
-
-                                            handle_recv = 2;
-                                            accept_fd = a0;
-                                            loadCPUShState(&pre_fork_cpustate, env, NULL);
-
-                                            goto end;
                                         }
+
+                                        if (target_pattern && match_found) {
+                                            if (!strcmp(target_exec, state->procname)) {
+                                                if (debug) {
+                                                    FILE *fd= fopen("debug/pre_fork_syscalls.log","a+");
+                                                    fprintf(fd, "\nForkpoint found! SAVE CPU STATE & RESTART!!! %s\n", state->procname);
+                                                    fclose(fd);
+                                                }
+
+                                                handle_recv = 2;
+                                                accept_fd = a0;
+                                                loadCPUShState(&pre_fork_cpustate, env, NULL);
+
+                                                if (decoded_pattern) free(decoded_pattern);
+                                                goto end;
+                                            }
+                                        }
+
+                                        if (decoded_pattern) free(decoded_pattern);
                                     }
                                 }
                             }
@@ -3687,7 +3820,7 @@ skip_to_pos:
                                 else
                                     if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             
-                                if (execution_mode && target_replay_syscall == state->into_syscall)
+                                if (execution_mode && target_replay_syscall == state->into_syscall && !strcmp(target_exec, state->procname))
                                 {
                                     target_ulong iov_msg_addr, msg_addr;
                                     int len;
@@ -3704,7 +3837,7 @@ skip_to_pos:
                                     DECAF_read_ptr(cpu, a1+8, &iov_msg_addr);
                                     DECAF_read_ptr(cpu, iov_msg_addr, &msg_addr);
 
-                                    DECAF_read_mem(cpu, msg_addr, len-1, pattern);
+                                    DECAF_read_mem(cpu, msg_addr, len, pattern);
 
                                     if (debug) {
                                         FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
@@ -3716,38 +3849,76 @@ skip_to_pos:
                                     {
                                         FILE *fd_forkpoints = fopen("forkpoints.log", "a+");
 #if TARGET_LONG_BITS == 32
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, sizeof(pattern)));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, len));
 #else
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-8, visualizeUTF8(pattern, sizeof(pattern)));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-8, visualizeUTF8(pattern, len));
 #endif
 
                                         fclose(fd_forkpoints);
 
-#if TARGET_LONG_BITS == 32
-                                        if (cur_program_pc == target_pc+4){
-#else
-                                        if (cur_program_pc == target_pc+8){
-#endif
-                                            if (debug) {
-                                                FILE *fd= fopen("debug/pre_fork_syscalls.log","a+");
-                                                fprintf(fd, "\nForkpoint found! SAVE CPU STATE & RESTART!!!\n");
-                                                fclose(fd);
+                                        int match_found = 0;
+                                        char *decoded_pattern = NULL;
+                                        size_t decoded_len = 0;
+                                        size_t compare_len = 0;
+                                        char *current_hex = NULL;
+                                        char *target_hex = NULL;
+
+                                        if (target_pattern) {
+                                            if (decode_escape_sequences(target_pattern, &decoded_pattern, &decoded_len) == 0 && decoded_pattern) {
+                                                if (decoded_len == len && memcmp(pattern, decoded_pattern, decoded_len) == 0) {
+                                                    match_found = 1;
+                                                }
+
+                                                if (debug) {
+                                                    FILE *fd_pattern_debug = fopen("debug/pattern_match_debug.log", "a+");
+                                                    current_hex = bytes_to_hex(pattern, len);
+                                                    target_hex = bytes_to_hex(decoded_pattern, decoded_len);
+                                                    char *forkpoint_hex = bytes_to_hex(pattern, sizeof(pattern));
+
+                                                    fprintf(fd_pattern_debug, "Pattern matching - target_pattern: %s, decoded_len: %zu, current_len: %d, ret_value_0: %d, sizeof_pattern: %zu, match_found: %d, process: %s\n",
+                                                            target_pattern ? target_pattern : "NULL",
+                                                            decoded_len,
+                                                            len,
+                                                            ret_value_0,
+                                                            sizeof(pattern),
+                                                            match_found,
+                                                            state->procname);
+                                                    fprintf(fd_pattern_debug, "Current hex (len):      %s\n", current_hex ? current_hex : "NULL");
+                                                    fprintf(fd_pattern_debug, "Target hex:             %s\n", target_hex ? target_hex : "NULL");
+                                                    fprintf(fd_pattern_debug, "Forkpoint hex (sizeof): %s\n", forkpoint_hex ? forkpoint_hex : "NULL");
+
+                                                    if (forkpoint_hex) free(forkpoint_hex);
+                                                    fclose(fd_pattern_debug);
+                                                }
                                             }
-
-                                            handle_recv = 2;
-                                            accept_fd = a0;
-                                            loadCPUShState(&pre_fork_cpustate, env, NULL);
-
-                                            goto end;
                                         }
+
+                                        if (target_pattern && match_found) {
+                                            if (!strcmp(target_exec, state->procname)) {
+                                                if (debug) {
+                                                    FILE *fd= fopen("debug/pre_fork_syscalls.log","a+");
+                                                    fprintf(fd, "\nForkpoint found! SAVE CPU STATE & RESTART!!! %s\n", state->procname);
+                                                    fclose(fd);
+                                                }
+
+                                                handle_recv = 2;
+                                                accept_fd = a0;
+                                                loadCPUShState(&pre_fork_cpustate, env, NULL);
+
+                                                if (decoded_pattern) free(decoded_pattern);
+                                                goto end;
+                                            }
+                                        }
+
+                                        if (decoded_pattern) free(decoded_pattern);
                                     }
                                 }
                             }
                             else if (state->into_syscall == 4003 || state->into_syscall == 4175)     //read, recv
                             {
                                 if (debug) fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
-                            
-                                if (execution_mode && target_replay_syscall == state->into_syscall)
+
+                                if (execution_mode && target_replay_syscall == state->into_syscall && !strcmp(target_exec, state->procname))
                                 {
                                     int len;
 
@@ -3760,13 +3931,13 @@ skip_to_pos:
                                     memset(pattern, 0, sizeof(len));
 
                                     tlb_fill(cpu, a1, MMU_DATA_LOAD, cpu_mmu_index(env, true), 0);
-                                    DECAF_read_mem(cpu, a1, len-1, pattern);
+                                    DECAF_read_mem(cpu, a1, len, pattern);
 
                                     // printf("pattern: %s, len: %d\n", pattern, ret_value_0);
 
                                     if (debug) {
                                         FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                        fprintf(fd_replay, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                        fprintf(fd_replay, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n0x%lx\n%s\n\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4, cur_program_pc-4, pattern);
                                         fclose(fd_replay);
                                     }                      
 
@@ -3780,23 +3951,61 @@ skip_to_pos:
 #endif                                        
                                         fclose(fd_forkpoints);
 
-#if TARGET_LONG_BITS == 32
-                                        if (cur_program_pc == target_pc+4){
-#else
-                                        if (cur_program_pc == target_pc+8){
-#endif
-                                            if (debug){
-                                                FILE *fd= fopen("debug/pre_fork_syscalls.log","a+");
-                                                fprintf(fd, "\nForkpoint found! SAVE CPU STATE & RESTART!!!\n");
-                                                fclose(fd);
+                                        int match_found = 0;
+                                        char *decoded_pattern = NULL;
+                                        size_t decoded_len = 0;
+                                        size_t compare_len = 0;
+                                        char *current_hex = NULL;
+                                        char *target_hex = NULL;
+
+                                        if (target_pattern) {
+                                            if (decode_escape_sequences(target_pattern, &decoded_pattern, &decoded_len) == 0 && decoded_pattern) {
+                                                if (decoded_len == len && memcmp(pattern, decoded_pattern, decoded_len) == 0) {
+                                                    match_found = 1;
+                                                }
+
+                                                if (debug) {
+                                                    FILE *fd_pattern_debug = fopen("debug/pattern_match_debug.log", "a+");
+                                                    current_hex = bytes_to_hex(pattern, len);
+                                                    target_hex = bytes_to_hex(decoded_pattern, decoded_len);
+                                                    char *forkpoint_hex = bytes_to_hex(pattern, sizeof(pattern));
+
+                                                    fprintf(fd_pattern_debug, "Pattern matching - target_pattern: %s, decoded_len: %zu, current_len: %d, ret_value_0: %d, sizeof_pattern: %zu, match_found: %d, process: %s\n",
+                                                            target_pattern ? target_pattern : "NULL",
+                                                            decoded_len,
+                                                            len,
+                                                            ret_value_0,
+                                                            sizeof(pattern),
+                                                            match_found,
+                                                            state->procname);
+                                                    fprintf(fd_pattern_debug, "Current hex (len):      %s\n", current_hex ? current_hex : "NULL");
+                                                    fprintf(fd_pattern_debug, "Target hex:             %s\n", target_hex ? target_hex : "NULL");
+                                                    fprintf(fd_pattern_debug, "Forkpoint hex (sizeof): %s\n", forkpoint_hex ? forkpoint_hex : "NULL");
+
+                                                    if (forkpoint_hex) free(forkpoint_hex);
+                                                    fclose(fd_pattern_debug);
+                                                }
                                             }
-
-                                            handle_recv = 2;
-                                            accept_fd = a0;
-                                            loadCPUShState(&pre_fork_cpustate, env, NULL);
-
-                                            goto end;
                                         }
+
+                                        if (target_pattern && match_found) {
+                                            if (!strcmp(target_exec, state->procname)) {
+                                                if (debug) {
+                                                    FILE *fd= fopen("debug/pre_fork_syscalls.log","a+");
+                                                    fprintf(fd, "\nForkpoint found! SAVE CPU STATE & RESTART!!! %s\n", state->procname);
+                                                    fclose(fd);
+                                                }
+
+                                                handle_recv = 2;
+                                                accept_fd = a0;
+                                                loadCPUShState(&pre_fork_cpustate, env, NULL);
+
+                                                if (decoded_pattern) free(decoded_pattern);
+                                                goto end;
+                                            }
+                                        }
+
+                                        if (decoded_pattern) free(decoded_pattern);
                                     }
                                 }
                             }

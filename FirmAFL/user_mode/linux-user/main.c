@@ -3559,18 +3559,8 @@ void cpu_loop(CPUMIPSState *env)
 
 #ifdef MEM_MAPPING   
                 int file_opti = 0;
-
-                if(debug)
-                {
-                    FILE *fffp;
-                    fffp = fopen("debug/pc.log","a+"); 
-                    fprintf(fffp, "syscall: %d\n", syscall_num);
-                    fclose(fffp);
-                }
-
                 int local_or_not = determine_local_or_not(syscall_num, program_id, env, &file_opti);
 
-            
                 /*
                 else if(syscall_num == 178)
                 {

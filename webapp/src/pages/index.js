@@ -1,6 +1,7 @@
 import BrandPicker from '@/modules/BrandPicker'
 import FirmwarePicker from '@/modules/FirmwarePicker'
 import RunPicker from '@/modules/RunPicker'
+import PcapPicker from '@/modules/PcapPicker'
 import EmulationPanel from '@/modules/EmulationPanel'
 import ConfigPanel from '@/modules/ConfigPanel'
 import RunManager from '@/modules/RunManager'
@@ -25,14 +26,24 @@ export default function Home () {
 
       <div className='flex flex-col flex-1 overflow-hidden p-2'>
 
-        <div className='flex space-x-2 mb-2'>
+        <div className='flex space-x-8 mb-2'>
           <BrandPicker />
           {selectedBrand && <FirmwarePicker />}
           {selectedBrand && selectedFirmware && (
-            <RunPicker
-              selectedRun={selectedRun}
-              onRunSelect={setSelectedRun}
-            />
+            <>
+              <div className='flex items-center space-x-2'>
+                <label className='text-sm font-medium text-gray-300'>Analysis Run:</label>
+                <RunPicker
+                  selectedRun={selectedRun}
+                  onRunSelect={setSelectedRun}
+                />
+              </div>
+
+              <div className='flex items-center space-x-2'>
+                <label className='text-sm font-medium text-gray-300'>PCAP file:</label>
+                <PcapPicker />
+              </div>
+            </>
           )}
         </div>
 

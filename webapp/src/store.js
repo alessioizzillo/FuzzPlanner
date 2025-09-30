@@ -28,7 +28,10 @@ export const initialState = {
   selectedBinary: null,
   selectedDataChannel: null,
   selectAnalysesByFirmware: {},
-  fuzzExperimentsByFirmware: {}
+  fuzzExperimentsByFirmware: {},
+  selectedPcap: null,
+  selectedPcapAnalysis: {},
+  pcapsByFirmware: {}
 }
 
 const useValue = () => useStateReact(initialState)

@@ -21,6 +21,8 @@ def phase_1A_view_1(out_dir, interactions, processes, executable_files, data_cha
         executable["border_data_channels"] = {}
 
         for data_channel_id in border_executables_dict_view_1[exec_id]:
+            if data_channel_id not in data_channels:
+                continue
             kind = data_channels[data_channel_id]["kind"]
             if kind not in executable["border_data_channels"]:
                 executable["border_data_channels"][kind] = {data_channel_id : {"num" : 1, "score" : data_channels[data_channel_id]["score"]}}
@@ -108,6 +110,8 @@ def phase_1A_view_2(out_dir, border_executables_dict_view_1, interactions, proce
 
         view_2 = {"num_client_executables": len(border_executables_dict_view_2[exec_id]["client_executables"]), "num_server_executables": len(border_executables_dict_view_2[exec_id]["server_executables"]), "data_channels" : []}
         for data_channel_id in border_executables_dict_view_2[exec_id]["channels"]:
+            if data_channel_id not in data_channels:
+                continue
             kind = data_channels[data_channel_id]["kind"]
             used = data_channels[data_channel_id]["used"]
             score = data_channels[data_channel_id]["score"]
@@ -143,6 +147,8 @@ def phase_1A_view_3(out_dir, border_executables_dict_view_2, executable_files, i
     for exec_id in border_executables_dict_view_2:
         i = 0
         for data_channel_id in border_executables_dict_view_2[exec_id]["channels"]:
+            if data_channel_id not in data_channels:
+                continue
             kind = data_channels[data_channel_id]["kind"]
             used = data_channels[data_channel_id]["used"]
             score = data_channels[data_channel_id]["score"]
@@ -212,16 +218,18 @@ def phase_1B_view_1(out_dir, interactions, processes, executable_files, data_cha
 
     for int in interactions:
         channel = interactions[int]["channel"]
+        if channel not in data_channels:
+            continue
         sources = interactions[int]["sources"]
         sinks = interactions[int]["sinks"]
-        
+
         if sources:
             for source in sources:
                 source_exe = processes[source["pid"]]["executable"]
                 for sink in sinks:
                     sink_exe = processes[sink["pid"]]["executable"]
                     edge_data = G.get_edge_data(source_exe, sink_exe)
-                    if edge_data == None or not any(channel == data["edge_name"] for data in edge_data.values()):                
+                    if edge_data == None or not any(channel == data["edge_name"] for data in edge_data.values()):
                         G.add_edge(source_exe, sink_exe, edge_name=channel, score=data_channels[channel]["score"], time=sink["time"])
                         if "start_time" not in G.nodes[source_exe]:
                             G.add_node(source_exe, **{"start_time" : processes[source["pid"]]["start_time"]})
@@ -232,7 +240,7 @@ def phase_1B_view_1(out_dir, interactions, processes, executable_files, data_cha
             for sink in sinks:
                 sink_exe = processes[sink["pid"]]["executable"]
                 edge_data = G.get_edge_data(source_exe, sink_exe)
-                if edge_data == None or not any(channel == data["edge_name"] for data in edge_data.values()):                
+                if edge_data == None or not any(channel == data["edge_name"] for data in edge_data.values()):
                     G.add_edge(source_exe, sink_exe, edge_name=channel, score=data_channels[channel]["score"])
                     if "start_time" not in G.nodes[sink_exe]:
                         G.add_node(sink_exe, **{"start_time" : processes[sink["pid"]]["start_time"]})
@@ -304,16 +312,18 @@ def phase_1B_view_3(out_dir, graph, data_channels, processes):
     attrs = nx.get_edge_attributes(graph, "edge_name")
 
     for channel_id in set(attrs.values()):
+        if channel_id not in data_channels:
+            continue
         listening = {}
         subgraph = nx.DiGraph()
 
         subgraph.add_node(channel_id, kind="channel")
-        
+
         list_executables = []
 
         for source, sink, attributes in graph.edges(data=True):
             edge_name = attributes.get("edge_name")
-            
+
             if edge_name == channel_id:
                 subgraph.add_node(source, kind="executable")
                 subgraph.add_node(sink, kind="executable")

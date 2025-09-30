@@ -32,3 +32,7 @@ export async function getDataChannels (brandId, fwId, runId) {
 export async function getInteractions (brandId, fwId, runId) {
   return await getFile('file/interactions', { brandId, fwId, runId })
 }
+
+export async function getPcaps (brandId, fwId) {
+  return await getFile('pcap', { brandId, fwId })
+}

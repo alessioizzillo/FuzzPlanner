@@ -350,6 +350,8 @@ def dynamic_analysis():
             proc_fds[proc_pid][1][ret] = "socket(domain:%s,type:%s,protocol:%s)" % (a0, a1, a2)          
 
         elif(syscall == bind_syscall or syscall == connect_syscall):
+            if a0 not in proc_fds[proc_pid][1]:
+                continue
             pattern = r"\{(.+?)\}"
             match = re.search(pattern, proc_fds[proc_pid][1][a0])
 
@@ -372,15 +374,17 @@ def dynamic_analysis():
                 elif ("domain:1" in tmp):
                     kind = "unix_socket"
                 else:
-                    kind = "unknown_socket" 
+                    kind = "unknown_socket"
                 data_channels_dict[proc_fds[proc_pid][1][a0]] = {"kind" : kind, "used" : False, "listening_pids" : [], "score": 0.0}
 
         elif(syscall == accept_syscall):
-            proc_fds[proc_pid][1][ret] = proc_fds[proc_pid][1][a0]
+            if a0 in proc_fds[proc_pid][1]:
+                proc_fds[proc_pid][1][ret] = proc_fds[proc_pid][1][a0]
 
         elif(syscall == listen_syscall):
-            if data_channels_dict[proc_fds[proc_pid][1][a0]]["kind"] == "inet_socket" or data_channels_dict[proc_fds[proc_pid][1][a0]]["kind"] == "inet6_socket":
-                data_channels_dict[proc_fds[proc_pid][1][a0]]["listening_pids"].append({"time" : ts, "pid" : proc_pid})
+            if a0 in proc_fds[proc_pid][1] and proc_fds[proc_pid][1][a0] in data_channels_dict:
+                if data_channels_dict[proc_fds[proc_pid][1][a0]]["kind"] == "inet_socket" or data_channels_dict[proc_fds[proc_pid][1][a0]]["kind"] == "inet6_socket":
+                    data_channels_dict[proc_fds[proc_pid][1][a0]]["listening_pids"].append({"time" : ts, "pid" : proc_pid})
 
         elif(syscall == pipe_syscall):
             proc_fds[proc_pid][1][ret] = 'pipe_%s_%s_%s' % (proc_pid, ret, ret2)
@@ -404,13 +408,18 @@ def dynamic_analysis():
                 data_channels_dict[proc_fds[proc_pid][1][ret]] = {"kind" : kind, "used": False, "listening_pids" : [], "score": 0.0}  
         
         elif(syscall == close_syscall):
-            if ret == 0:
+            if ret == 0 and a0 in proc_fds[proc_pid][1]:
+                fd_obj = proc_fds[proc_pid][1][a0]
                 proc_fds[proc_pid][1].pop(a0)
-                for dict_pid in data_channels_dict[proc_fds[proc_pid][1][a0]]["listening_pids"]:
-                    if proc_pid == dict_pid["pid"]:
-                        data_channels_dict[proc_fds[proc_pid][1][a0]]["listening_pids"].remove(dict_pid)
+                if fd_obj in data_channels_dict:
+                    for dict_pid in data_channels_dict[fd_obj]["listening_pids"]:
+                        if proc_pid == dict_pid["pid"]:
+                            data_channels_dict[fd_obj]["listening_pids"].remove(dict_pid)
         
         elif(syscall in input_syscalls.values()):
+            if a0 not in proc_fds[proc_pid][1]:
+                continue
+
             if syscall == input_syscalls["recvfrom"] or syscall == input_syscalls["recvmsg"]:
                 pattern = r"\{(.+?)\}"
                 match = re.search(pattern, proc_fds[proc_pid][1][a0])
@@ -434,7 +443,7 @@ def dynamic_analysis():
                     elif ("domain:1" in tmp):
                         kind = "unix_socket"
                     else:
-                        kind = "unknown_socket" 
+                        kind = "unknown_socket"
                     data_channels_dict[proc_fds[proc_pid][1][a0]] = {"kind" : kind, "used": False, "listening_pids" : [], "score": 0.0}
 
                 if data_channels_dict[proc_fds[proc_pid][1][a0]]["kind"] == "inet_socket" or data_channels_dict[proc_fds[proc_pid][1][a0]]["kind"] == "inet6_socket":
@@ -460,6 +469,9 @@ def dynamic_analysis():
                         sinks_without_sources_dict[obj]["remaining_bytes"]+=read_bytes
 
         elif(syscall in output_syscalls.values()):
+            if a0 not in proc_fds[proc_pid][1]:
+                continue
+
             if syscall == output_syscalls["sendto"] or syscall == output_syscalls["sendmsg"]:
                 pattern = r"\{(.+?)\}"
                 match = re.search(pattern, proc_fds[proc_pid][1][a0])
@@ -483,8 +495,8 @@ def dynamic_analysis():
                     elif ("domain:1" in tmp):
                         kind = "unix_socket"
                     else:
-                        kind = "unknown_socket" 
-                    data_channels_dict[proc_fds[proc_pid][1][a0]] = {"kind" : kind, "used": False, "listening_pids" : [], "score": 0.0}                
+                        kind = "unknown_socket"
+                    data_channels_dict[proc_fds[proc_pid][1][a0]] = {"kind" : kind, "used": False, "listening_pids" : [], "score": 0.0}
 
             obj = proc_fds[proc_pid][1][a0]
 
@@ -557,21 +569,21 @@ def post_analysis_checks(out_dir):
                 log_file.write("ERROR: the interaction %s (%s) has sources and sinks empty!\n" % (int_id, interactions_dict[int_id]))
                 err = True                
 
-            if data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "pipe":
+            if interactions_dict[int_id]["channel"] in data_channels_dict and data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "pipe":
                 if len(interactions_dict[int_id]["sources"]) == 0:
                     log_file.write("WARNING: interaction %s (%s) has no source!\n" % (int_id, interactions_dict[int_id]))
                 if len(interactions_dict[int_id]["sinks"]) == 0:
                     log_file.write("WARNING: interaction %s (%s) has no sink!\n" % (int_id, interactions_dict[int_id]))
-            elif data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "unix_socket":
+            elif interactions_dict[int_id]["channel"] in data_channels_dict and data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "unix_socket":
                 if len(interactions_dict[int_id]["sources"]) == 0:
                     log_file.write("WARNING: interaction %s (%s) has no source!\n" % (int_id, interactions_dict[int_id]))
                 if len(interactions_dict[int_id]["sinks"]) == 0:
                     log_file.write("WARNING: interaction %s (%s) has no sink!\n" % (int_id, interactions_dict[int_id]))
-            elif data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "inet_socket":
+            elif interactions_dict[int_id]["channel"] in data_channels_dict and data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "inet_socket":
                 if any((ts, proc_pid) in interactions_dict[int_id]["sources"] for (ts, proc_pid) in interactions_dict[int_id]["sinks"]):
                     log_file.write("ERROR: some source process of the interaction %s (%s) is a sink process too!\n" % (int_id, interactions_dict[int_id]))
                     err = True                    
-            elif data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "inet6_socket":
+            elif interactions_dict[int_id]["channel"] in data_channels_dict and data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "inet6_socket":
                 if any((ts, proc_pid) in interactions_dict[int_id]["sources"] for (ts, proc_pid) in interactions_dict[int_id]["sinks"]):
                     log_file.write("ERROR: some source process of the interaction %s (%s) is a sink process too!\n" % (int_id, interactions_dict[int_id]))
                     err = True

@@ -3533,7 +3533,7 @@ skip_to_pos:
                         target_ulong ret_value_0 = env->regs[0]; //???
                         target_ulong ret_value_1 = env->regs[0]; //???
 #endif
-                        if (execution_mode)
+                        if (1)
                         {   
                             FILE *fd;
                             fd = fopen("full_system_syscall.log", "a+");

@@ -71,6 +71,7 @@ pip3 install -q scapy;
 pip3 install -q flask;
 pip3 install -q flask_cors;
 pip3 install -q docker;
+pip3 install -q dpkt;
 git clone https://github.com/KimiNewt/pyshark.git
 cd pyshark/src
 sudo python3 setup.py install

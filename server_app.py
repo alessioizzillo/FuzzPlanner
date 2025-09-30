@@ -36,7 +36,8 @@ SCHEDULE_HEADER = [
     "container_name",
     "num_cores",
     "mode",
-    "firmware"
+    "firmware",
+    "pcap_name"
 ]
 
 # Caching utilities
@@ -287,7 +288,7 @@ def create_firmware_image() -> Response:
     if not os.path.exists(file_path):
         return jsonify({"status": "error", "message": f"Firmware '{os.path.join(brand, firmware)}' not found"}), 404
 
-    append_csv_row(SCHEDULE_CSV, SCHEDULE_HEADER, [""] * 3 + ["1"] + ["check", os.path.join(brand, firmware)])
+    append_csv_row(SCHEDULE_CSV, SCHEDULE_HEADER, ["", "", "", "1", "check", os.path.join(brand, firmware), ""])
     success = run_container(SCHEDULE_CSV, LOGICAL_TO_PAIR, PAIR_TO_LOGICAL, None)
     return ("OK", 200) if success else (jsonify({"status": "error", "message": "Image creation failed"}), 400)
 
@@ -394,7 +395,7 @@ def emulate() -> Response:
         update_schedule_status(SCHEDULE_CSV, "running", container_name=cname)
         return ("OK", 200)
     else:
-        append_csv_row(SCHEDULE_CSV, SCHEDULE_HEADER, [""] * 3 + ["1"] + ["run_capture", os.path.join(brand, firmware)])
+        append_csv_row(SCHEDULE_CSV, SCHEDULE_HEADER, ["", "", "", "1", "run_capture", os.path.join(brand, firmware), ""])
         success = run_container(SCHEDULE_CSV, LOGICAL_TO_PAIR, PAIR_TO_LOGICAL, None)
 
         return ("OK", 200) if success else (jsonify({"status": "error", "message": "Emulation failed"}), 400)
@@ -489,19 +490,14 @@ def pause_and_analyze() -> Response:
     subprocess.run(["docker", "exec", cname, "pkill", "-SIGTSTP", "-f", "capture_packets.py"])
 
     work = os.path.join(SCRATCH_DIR, 'run', run_id)
-    analysis_dir = os.path.join(TMP_DIR, "analysis", "results", combined, "dynamic_analysis")
-    out = os.path.join(analysis_dir, next_run_folder(analysis_dir))
-    script = os.path.join(os.getcwd(), "scripts", "analysis.py")
-    cmd = [
-        "python3", script, combined, out,
-        os.path.join(work, "full_system_syscall.log"),
-        os.path.join(work, "image_backup"),
-        os.path.join(FIRMWARES_DIR, combined),
-        FACT_IP, FACT_PORT, fact_uid if fact_uid else "None"
-    ]
-    print(" ".join(cmd) + f"; cp {os.path.join(work, 'user_interaction.pcap')} {out}")
-    cmd_str = " ".join(cmd) + f"; cp {os.path.join(work, 'user_interaction.pcap')} {out}"
-    subprocess.Popen(cmd_str, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    pcap_source = os.path.join(work, 'user_interaction.pcap')
+    if os.path.exists(pcap_source):
+        pcap_dir = os.path.join(BASE_DIR, "pcap", brand, firmware, "http")
+        os.makedirs(pcap_dir, exist_ok=True)
+        pcap_dest = os.path.join(pcap_dir, "user_interaction.pcap")
+        shutil.copy(pcap_source, pcap_dest)
+        print(f"[INFO] PCAP copied to {pcap_dest} - use Analysis button to analyze")
     return jsonify({"status": "paused"}), 200
 
 @app.route("/stop_emulation", methods=["POST"])
@@ -522,21 +518,15 @@ def stop_emulation() -> Response:
     ensure_experiment_consistency(SCHEDULE_CSV)
 
     if status != "paused":
-        print("analyzing...")
         work = os.path.join(SCRATCH_DIR, 'run', run_id)
-        analysis_dir = os.path.join(TMP_DIR, "analysis", "results", combined, "dynamic_analysis")
-        out = os.path.join(analysis_dir, next_run_folder(analysis_dir))
-        script = os.path.join(os.getcwd(), "scripts", "analysis.py")
-        cmd = [
-            "python3", script, combined, out,
-            os.path.join(work, "full_system_syscall.log"),
-            os.path.join(work, "image_backup"),
-            os.path.join(FIRMWARES_DIR, combined),
-            FACT_IP, FACT_PORT, fact_uid if fact_uid else "None"
-        ]
-        print(" ".join(cmd) + f"; cp {os.path.join(work, 'user_interaction.pcap')} {out}")
-        cmd_str = " ".join(cmd) + f"; cp {os.path.join(work, 'user_interaction.pcap')} {out}"
-        subprocess.Popen(cmd_str, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        pcap_source = os.path.join(work, 'user_interaction.pcap')
+        if os.path.exists(pcap_source):
+            pcap_dir = os.path.join(BASE_DIR, "pcap", brand, firmware, "http")
+            os.makedirs(pcap_dir, exist_ok=True)
+            pcap_dest = os.path.join(pcap_dir, "user_interaction.pcap")
+            shutil.copy(pcap_source, pcap_dest)
+            print(f"[INFO] PCAP copied to {pcap_dest} - use Analysis button to analyze")
 
     return jsonify({"status": "stopped"}), 200
 
@@ -572,7 +562,7 @@ def select() -> Response:
     append_csv_row(
         SCHEDULE_CSV,
         SCHEDULE_HEADER,
-        ["", "", "", "1", "select", os.path.join(brandId, firmwareId)]
+        ["", "", "", "1", "select", os.path.join(brandId, firmwareId), ""]
     )
 
     success = run_container(SCHEDULE_CSV, LOGICAL_TO_PAIR, PAIR_TO_LOGICAL, None)
@@ -959,7 +949,7 @@ def execute():
     append_csv_row(
         SCHEDULE_CSV,
         SCHEDULE_HEADER,
-        ["", "", "", "1", "fuzz", os.path.join(brandId, firmwareId)]
+        ["", "", "", "1", "fuzz", os.path.join(brandId, firmwareId), ""]
     )
 
     success = run_container(SCHEDULE_CSV, LOGICAL_TO_PAIR, PAIR_TO_LOGICAL, os.path.join(FUZZ_EXP_DIR, brandId, firmwareId))
@@ -1283,6 +1273,125 @@ def get_fuzz_progress(container_name: str) -> Response:
         response = jsonify(response_data)
         response.headers['ETag'] = current_etag
         return response, 500
+
+def get_pcap_files(brand: str, firmware: str) -> List[str]:
+    pcap_dir = os.path.join(BASE_DIR, "pcap", brand, firmware, "http")
+    if not os.path.isdir(pcap_dir):
+        return []
+
+    pcap_files = []
+    for file in os.listdir(pcap_dir):
+        if file.endswith('.pcap') or file.endswith('.pcapng'):
+            pcap_files.append(file)
+
+    return sorted(pcap_files)
+
+def save_emulation_pcap(brand: str, firmware: str, run_id: str, pcap_data: bytes) -> bool:
+    try:
+        pcap_dir = os.path.join(BASE_DIR, "pcap", brand, firmware, "http")
+        os.makedirs(pcap_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"emulation_run_{run_id}_{timestamp}.pcap"
+        filepath = os.path.join(pcap_dir, filename)
+
+        with open(filepath, 'wb') as f:
+            f.write(pcap_data)
+
+        return True
+    except Exception as e:
+        print(f"Error saving PCAP: {e}")
+        return False
+
+@app.route("/pcaps")
+def list_pcaps() -> Response:
+    brand = request.args.get("brandId")
+    firmware = request.args.get("firmwareId")
+
+    if not brand or not firmware:
+        return jsonify({"status": "error", "message": "Missing brandId or firmwareId parameter"}), 400
+
+    try:
+        pcap_files = get_pcap_files(brand, firmware)
+        return jsonify({"brand": brand, "firmwareId": firmware, "pcap": pcap_files}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to list PCAP files: {e}"}), 500
+
+
+@app.route("/remove_pcap", methods=["POST"])
+def remove_pcap() -> Response:
+    brand = request.args.get("brandId")
+    firmware = request.args.get("firmwareId")
+    pcap_name = request.args.get("pcapName")
+
+    if not brand or not firmware or not pcap_name:
+        return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+
+    try:
+        pcap_path = os.path.join(BASE_DIR, "pcap", brand, firmware, "http", pcap_name)
+
+        if not os.path.exists(pcap_path):
+            return jsonify({"status": "error", "message": "PCAP file not found"}), 404
+
+        os.remove(pcap_path)
+        return jsonify({"status": "success", "message": f"PCAP file '{pcap_name}' removed successfully"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to remove PCAP file: {e}"}), 500
+
+@app.route("/analyze_pcap", methods=["POST"])
+def analyze_pcap() -> Response:
+    brand = request.args.get("brandId")
+    firmware = request.args.get("firmwareId")
+    pcap_name = request.args.get("pcapName")
+
+    if not brand or not firmware or not pcap_name:
+        return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+
+    try:
+        pcap_path = os.path.join(BASE_DIR, "pcap", brand, firmware, "http", pcap_name)
+
+        if not os.path.exists(pcap_path):
+            return jsonify({"status": "error", "message": "PCAP file not found"}), 404
+
+        combined = os.path.join(brand, firmware)
+
+        status, cname = get_container_info(combined, SCHEDULE_CSV)
+        if status == "running":
+            return jsonify({"status": "error", "message": "Analysis already running for this firmware"}), 400
+
+        append_csv_row(SCHEDULE_CSV, SCHEDULE_HEADER, ["", "", "", "1", "pcap_replay", combined, pcap_name])
+        success = run_container(SCHEDULE_CSV, LOGICAL_TO_PAIR, PAIR_TO_LOGICAL, None)
+
+        if success:
+            # Get the container name that was assigned after starting the container
+            status, container_name = get_container_info(combined, SCHEDULE_CSV)
+            return jsonify({
+                "status": "success",
+                "message": f"Started PCAP replay analysis for {pcap_name}",
+                "pcap_name": pcap_name,
+                "firmware": combined,
+                "container_name": container_name
+            }), 200
+        else:
+            return jsonify({"status": "error", "message": "Failed to start PCAP replay analysis"}), 500
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to analyze PCAP file: {e}"}), 500
+
+@app.route("/progress/<container_name>", methods=["GET"])
+def get_progress(container_name: str) -> Response:
+    progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
+
+    if not os.path.exists(progress_file):
+        return jsonify({"error": "Progress not found"}), 404
+
+    try:
+        with open(progress_file, 'r') as f:
+            progress_data = json.load(f)
+        return jsonify(progress_data), 200
+    except (OSError, json.JSONDecodeError) as e:
+        return jsonify({"error": f"Failed to read progress: {e}"}), 500
+
 
 if __name__ == '__main__':
     clear_non_running(SCHEDULE_CSV)

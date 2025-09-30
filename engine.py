@@ -14,7 +14,12 @@ import pyshark
 import json
 from datetime import datetime
 from FirmAE.scripts.util import check_connection, get_iid
+import dpkt
+import socket
+from collections import defaultdict
 
+FACT_IP = "http://192.168.30.177"
+FACT_PORT = "5000"
 BASE_DIR = os.getcwd()
 TMP_DIR = os.path.join(BASE_DIR, "tmp")
 FIRMAE_DIR = os.path.join(BASE_DIR, "FirmAE")
@@ -26,6 +31,94 @@ SCHEDULE_CSV = os.path.join(TMP_DIR, "schedule.csv")
 LOCK_DIR = TMP_DIR
 
 FULL_PERM = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO
+
+HTTP_METHODS = [b"GET", b"POST", b"PUT", b"DELETE", b"HEAD", b"OPTIONS", b"PATCH", b"TRACE", b"CONNECT"]
+
+def replay_pcap_requests(pcap_path, target_ip, port=80, timeout=5, container_name=None):
+    results = []
+    request_count = 0
+
+    with open(pcap_path, "rb") as f:
+        pcap = dpkt.pcap.Reader(f)
+        sessions = defaultdict(list)
+
+        for ts, buf in pcap:
+            try:
+                eth = dpkt.ethernet.Ethernet(buf)
+                if not isinstance(eth.data, dpkt.ip.IP):
+                    continue
+                ip = eth.data
+                if not isinstance(ip.data, dpkt.tcp.TCP):
+                    continue
+                tcp = ip.data
+                if len(tcp.data) == 0:
+                    continue
+
+                session_key = (ip.src, tcp.sport, ip.dst, tcp.dport)
+                sessions[session_key].append((ts, tcp.seq, bytes(tcp.data)))
+
+            except Exception as e:
+                print(f"[DEBUG] Skipping packet due to exception: {e}")
+                continue
+
+        total_http_requests = sum(1 for session_key, packets in sessions.items() if packets and any(b''.join([pkt[2] for pkt in packets]).startswith(method) for method in HTTP_METHODS))
+
+        for session_key, packets in sessions.items():
+            if not packets:
+                continue
+
+            packets.sort(key=lambda x: x[1])
+            session_data = b''.join([pkt[2] for pkt in packets])
+
+            if any(session_data.startswith(method) for method in HTTP_METHODS):
+                request_count += 1
+
+                if container_name:
+                    progress = 0.8 + (0.15 * request_count / total_http_requests)
+                    update_progress(container_name, "analyzing", progress, f"Replaying request {request_count}/{total_http_requests}...")
+
+                try:
+                    print(f"[*] Replaying HTTP request {request_count}")
+
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(timeout)
+
+                    sock.connect((target_ip, port))
+
+                    sock.send(session_data)
+
+                    response = b""
+                    try:
+                        while True:
+                            chunk = sock.recv(4096)
+                            if not chunk:
+                                break
+                            response += chunk
+                    except socket.timeout:
+                        pass
+
+                    sock.close()
+
+                    results.append({
+                        'request_size': len(session_data),
+                        'response_size': len(response),
+                        'success': True
+                    })
+
+                    print(f"[+] Request {request_count} completed: {len(session_data)} bytes sent, {len(response)} bytes received")
+
+                    time.sleep(0.5)
+
+                except Exception as e:
+                    print(f"[!] Error replaying request {request_count}: {e}")
+                    results.append({
+                        'request_size': len(session_data),
+                        'response_size': 0,
+                        'success': False,
+                        'error': str(e)
+                    })
+
+    return results, request_count
 
 def sanitize_data_channel_id(data_channel_id: str) -> str:
     if not data_channel_id:
@@ -419,6 +512,178 @@ def check(firmware: str, mode: str) -> str:
 
     return iid
 
+def pcap_replay(firmware: str, container_name: str = None, pcap_name: str = None) -> None:
+    if not pcap_name:
+        print("Error: No PCAP file specified for replay")
+        return
+
+    iid = check(firmware, "run")
+    if not iid:
+        return
+
+    work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+    shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
+    web_check = os.path.join(work_dir, "web_check")
+    if not os.path.isfile(web_check) or "true" not in open(web_check).read():
+        return
+
+    if container_name:
+        update_progress(container_name, "booting", 0.0, f"Starting PCAP replay analysis for {pcap_name}...")
+
+    brand = os.path.basename(os.path.dirname(firmware))
+    firmware_name = os.path.basename(firmware)
+    pcap_path = os.path.join(BASE_DIR, "pcap", brand, firmware_name, "http", pcap_name)
+
+    if not os.path.exists(pcap_path):
+        print(f"Error: PCAP file not found: {pcap_path}")
+        if container_name:
+            update_progress(container_name, "error", 0.0, f"PCAP file not found: {pcap_name}")
+        return
+
+    if os.path.exists(os.path.join(work_dir, "webserver_ready")):
+        os.remove(os.path.join(work_dir, "webserver_ready"))
+
+    shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
+    os.environ["EXECUTION_MODE"] = "0"
+
+    if container_name:
+        update_progress(container_name, "booting", 0.2, f"Starting firmware emulation for PCAP replay...")
+
+    cmd = ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), firmware, "run", "0.0.0.0"]
+    process = subprocess.Popen(cmd)
+    time_to_wait = float(open(os.path.join(work_dir, "time_web")).read().strip())
+
+    if container_name:
+        update_progress(container_name, "booting", 0.4, f"Booting firmware for PCAP replay ({int(time_to_wait)}s remaining)...")
+
+    qemu_pid = process.pid
+    print(f"[*] Booting firmware, wait {int(time_to_wait)} seconds...")
+    time.sleep(time_to_wait)
+
+    target_ip = open(os.path.join(work_dir, "ip")).read().strip()
+    print(f"[+] Target IP: {target_ip}")
+
+    print("[*] Waiting for web service to be ready...")
+    max_retries = 30
+    retry_count = 0
+    service_ready = False
+    web_port = 80
+
+    ports_to_try = [80]
+
+    while retry_count < max_retries and not service_ready:
+        for port in ports_to_try:
+            try:
+                test_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                test_sock.settimeout(1)
+                result = test_sock.connect_ex((target_ip, port))
+                test_sock.close()
+
+                if result == 0:
+                    service_ready = True
+                    web_port = port
+                    print(f"[+] Web service is ready on {target_ip}:{port}")
+                    break
+
+            except Exception as e:
+                continue
+
+        if not service_ready:
+            print(f"[*] Web service not ready yet, retrying... ({retry_count + 1}/{max_retries})")
+            retry_count += 1
+            time.sleep(2)
+
+    if not service_ready:
+        print(f"[!] Web service failed to start after {max_retries} attempts")
+        print(f"[!] Tried ports: {ports_to_try}")
+        if container_name:
+            update_progress(container_name, "error", 0.0, "Web service failed to start")
+        send_signal_recursive(qemu_pid, signal.SIGINT)
+        try:
+            os.waitpid(qemu_pid, 0)
+        except:
+            pass
+        return
+
+    print("[+] Web service READY!")
+    ready_flag = os.path.join(work_dir, "webserver_ready")
+    open(ready_flag, 'w').close()
+
+    if container_name:
+        update_progress(container_name, "analyzing", 0.7, "Web service ready, starting PCAP replay...")
+
+    results, request_count = replay_pcap_requests(pcap_path, target_ip, port=web_port, timeout=5, container_name=container_name)
+
+    if request_count == 0:
+        print("[!] No HTTP requests found in PCAP file")
+        if container_name:
+            update_progress(container_name, "error", 0.0, "No HTTP requests found in PCAP file")
+        return
+
+    successful_requests = sum(1 for r in results if r['success'])
+    print(f"[+] PCAP replay completed: {successful_requests}/{request_count} requests successful")
+
+    if container_name:
+        update_progress(container_name, "analyzing", 0.9, f"PCAP replay completed, starting analysis...")
+
+    try:
+        print("[*] Running post-replay analysis...")
+
+        combined = f"{brand}/{firmware_name}"
+        analysis_dir = os.path.join(TMP_DIR, "analysis", "results", combined, "dynamic_analysis")
+
+        def next_run_folder(base_dir: str) -> str:
+            if os.path.isdir(base_dir):
+                runs = [d for d in os.listdir(base_dir) if d.startswith("run_")]
+                if runs:
+                    nums = [int(r.split("_")[1]) for r in runs]
+                    return f"run_{max(nums) + 1}"
+            return "run_0"
+
+        out = os.path.join(analysis_dir, next_run_folder(analysis_dir))
+        os.makedirs(out, exist_ok=True)
+
+        script = os.path.join(BASE_DIR, "scripts", "analysis.py")
+
+        cmd = [
+            "python3", script, combined, out,
+            os.path.join(work_dir, "full_system_syscall.log"),
+            os.path.join(work_dir, "image_backup"),
+            os.path.join(FIRMWARE_DIR, combined),
+            FACT_IP, FACT_PORT, "None"
+        ]
+
+        pcap_dest = os.path.join(out, os.path.basename(pcap_path))
+        if container_name:
+            update_progress(container_name, "analyzing", 0.95, "Copying PCAP file to analysis directory...")
+        shutil.copy(pcap_path, pcap_dest)
+
+        pcap_dir_dest = os.path.join(PCAP_DIR, brand, firmware_name, os.path.basename(pcap_path))
+        os.makedirs(os.path.dirname(pcap_dir_dest), exist_ok=True)
+        if not os.path.exists(pcap_dir_dest):
+            if container_name:
+                update_progress(container_name, "analyzing", 0.97, "Copying PCAP file to pcap directory...")
+            shutil.copy(pcap_path, pcap_dir_dest)
+
+        cmd_str = " ".join(cmd) + f"; cp {pcap_path} {out}"
+        print(f"[*] Analysis command: {cmd_str}")
+
+        subprocess.run(cmd_str, shell=True)
+        print("[+] Analysis started")
+
+    except Exception as e:
+        print(f"[!] Error starting analysis: {e}")
+
+    if container_name:
+        update_progress(container_name, "completed", 1.0, f"PCAP replay and analysis completed: {successful_requests}/{request_count} requests successful")
+
+    send_signal_recursive(qemu_pid, signal.SIGINT)
+    try:
+        os.waitpid(qemu_pid, 0)
+    except:
+        pass
+    time.sleep(2)
+
 def run(firmware: str, capture: bool, container_name: str = None) -> None:
     iid = check(firmware, "run")
 
@@ -441,8 +706,18 @@ def run(firmware: str, capture: bool, container_name: str = None) -> None:
     shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
     os.environ["EXECUTION_MODE"] = "0"
 
-    if container_name:
-        update_progress(container_name, "booting", 0.2, "Starting firmware emulation...")
+    if capture:
+        brand = os.path.basename(os.path.dirname(firmware))
+        firmware_name = os.path.basename(firmware)
+        pcap_dir = os.path.join(BASE_DIR, "pcap", brand, firmware_name, "http")
+        os.environ["ENABLE_PCAP"] = "true"
+        os.environ["PCAP_OUTPUT_DIR"] = pcap_dir
+        if container_name:
+            update_progress(container_name, "booting", 0.2, "Starting firmware emulation with network capture...")
+    else:
+        os.environ["ENABLE_PCAP"] = "false"
+        if container_name:
+            update_progress(container_name, "booting", 0.2, "Starting firmware emulation...")
 
     cmd = ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), firmware, "run", "0.0.0.0"]
     proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -472,7 +747,11 @@ def run(firmware: str, capture: bool, container_name: str = None) -> None:
         interface = f"tap_run_{iid}_0"
         target_ip = open(os.path.join(work_dir, "ip")).read().strip()
         pcap_path = os.path.join(work_dir, "user_interaction.pcap")
-        cmd = ["sudo", "-E", "python3", os.path.join(SCRIPTS_DIR, "capture_packets.py"), interface, target_ip, pcap_path]
+        
+        blacklist_keywords = ".gif .jpg .png .css .js .ico .htm .html"  # Static resources to filter out
+        whitelist_keywords = "POST PUT .php .cgi .xml"  # Important request types and endpoints
+        cmd = ["sudo", "-E", "python3", os.path.join(SCRIPTS_DIR, "capture_packets.py"),
+               interface, target_ip, pcap_path, blacklist_keywords, whitelist_keywords]
         subprocess.run(cmd, check=True)
         if container_name:
             update_progress(container_name, "completed", 1.0, "Packet capture completed")
@@ -852,7 +1131,7 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
 
     return ret
 
-def start(mode, firmware, out_dir, container_name) -> None:
+def start(mode, firmware, out_dir, container_name, pcap_name=None) -> None:
     os.environ["NO_PSQL"] = "1"
     
     prev_dir = os.getcwd()
@@ -862,6 +1141,8 @@ def start(mode, firmware, out_dir, container_name) -> None:
         run(firmware, False, container_name)
     elif mode == "run_capture":
         run(firmware, True, container_name)
+    elif mode == "pcap_replay":
+        pcap_replay(firmware, container_name, pcap_name)
     elif mode == "select":
         select(container_name, firmware)
     elif mode == "check":
@@ -907,6 +1188,11 @@ if __name__ == "__main__":
         type=str,
         help="Name of the Docker container to spawn"
     )
+    parser.add_argument(
+        "--pcap_name",
+        type=str,
+        help="PCAP file name for replay analysis"
+    )
 
     args = parser.parse_args()
 
@@ -914,4 +1200,4 @@ if __name__ == "__main__":
     container_name = args.container_name if args.container_name else None
 
     start(args.mode, args.firmware, os.path.abspath(args.output) if args.output else None, 
-        args.container_name if args.container_name else None)
+        args.container_name if args.container_name else None, args.pcap_name if args.pcap_name else None)

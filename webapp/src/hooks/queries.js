@@ -324,3 +324,56 @@ export async function removeSelectBinary({ brandId, firmwareId, runId, binaryId 
     throw err.response?.data || err
   }
 }
+
+// PCAP Queries
+export function useGetPcaps(brandId, firmwareId) {
+  return useQuery({
+    queryKey: ['pcap', brandId, firmwareId],
+    queryFn: async () => {
+      const params = new URLSearchParams()
+      if (brandId) params.append('brandId', brandId)
+      if (firmwareId) params.append('firmwareId', firmwareId)
+
+      const res = await api.get(`/pcaps?${params.toString()}`)
+      return res.data.pcap || []
+    },
+    enabled: !!brandId && !!firmwareId,
+    staleTime: 30000,
+  })
+}
+
+
+export function useRemovePcap() {
+  return useMutation({
+    mutationFn: async ({ brandId, firmwareId, pcapName }) => {
+      const params = new URLSearchParams({ brandId, firmwareId, pcapName })
+      const res = await api.post(`/remove_pcap?${params.toString()}`)
+      return res.data
+    }
+  })
+}
+
+export function useAnalyzePcap() {
+  return useMutation({
+    mutationFn: async ({ brandId, firmwareId, pcapName }) => {
+      const params = new URLSearchParams({ brandId, firmwareId, pcapName })
+      const res = await api.post(`/analyze_pcap?${params.toString()}`)
+      return res.data
+    }
+  })
+}
+
+export function useGetAnalysisProgress(containerName) {
+  return useQuery({
+    queryKey: ['analysis_progress', containerName],
+    queryFn: async () => {
+      if (!containerName) return null
+      const res = await api.get(`/progress/${containerName}`)
+      return res.data
+    },
+    enabled: !!containerName,
+    refetchInterval: 1000, // Poll every second when analysis is running
+    retry: false
+  })
+}
+

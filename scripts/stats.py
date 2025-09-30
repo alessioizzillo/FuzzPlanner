@@ -43,6 +43,8 @@ def calculate_interactions_per_kind(out_file, data_channels, interactions):
 
     for interaction in interactions.values():
         channel = interaction["channel"]
+        if channel not in data_channels:
+            continue
         kind = data_channels[channel]["kind"]
         interactions_per_kind[kind] = interactions_per_kind.get(kind, 0) + 1
 
@@ -106,7 +108,10 @@ def calculate_proprietary_exe(out_file, executable_files):
 def calculate_interesting_border_executables(out_file, interactions, processes, executable_files, data_channels, lower_bound):
     border_executables = []
     for inter_id in interactions:
-        if not interactions[inter_id]['sources'] and float(data_channels[interactions[inter_id]['channel']]["score"]) > lower_bound:
+        channel = interactions[inter_id]['channel']
+        if channel not in data_channels:
+            continue
+        if not interactions[inter_id]['sources'] and float(data_channels[channel]["score"]) > lower_bound:
             for proc_pid in interactions[inter_id]['sinks']:
                 if processes[proc_pid['pid']]['executable'] not in border_executables:
                     exec_id = processes[proc_pid['pid']]['executable']

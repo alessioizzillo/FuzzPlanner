@@ -165,10 +165,10 @@ def assign_names(csv_file: str, idx: int, num_cores: int,
 def clean_param_name(p: str) -> str:
     return re.sub(r"\s*\(.*?\)", "", p).strip()
 
-def parse_schedule(csv_file: str) -> List[Tuple[str, str, str, str, str, str]]:
+def parse_schedule(csv_file: str) -> List[Tuple[str, str, str, str, str, str, str]]:
     lock = lock_file(SCHEDULE_LOCK)
-    experiments: List[Tuple[str, str, str, str, str, str]] = []
-    
+    experiments: List[Tuple[str, str, str, str, str, str, str]] = []
+
     with open(csv_file, newline='') as fp:
         reader = csv.reader(fp)
         headers = [clean_param_name(h) for h in next(reader, [])]
@@ -176,7 +176,7 @@ def parse_schedule(csv_file: str) -> List[Tuple[str, str, str, str, str, str]]:
             data = dict(zip(headers, row))
             experiments.append((
                 data.get('status',''), data.get('exp_name',''), data.get('container_name',''),
-                data.get('num_cores',''), data.get('mode',''), data.get('firmware','')
+                data.get('num_cores',''), data.get('mode',''), data.get('firmware',''), data.get('pcap_name','')
             ))
     
     lock.close()
@@ -185,7 +185,7 @@ def parse_schedule(csv_file: str) -> List[Tuple[str, str, str, str, str, str]]:
 
 def run_experiment(log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]],
                    mode: str, firmware: str, exp_path: str,
-                   cont_name: str, n_cores: int) -> None:
+                   cont_name: str, n_cores: int, pcap_name: str = "") -> None:
     lock = lock_file(AFFINITY_LOCK)
     aff = read_affinity()
     free = get_free_cpus(aff, n_cores)
@@ -206,10 +206,11 @@ def run_experiment(log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]],
     
     with open(cmd_file, 'w') as f:
         exp_str = f"--output {exp_path}" if exp_path else ""
+        pcap_str = f"--pcap_name {pcap_name}" if pcap_name else ""
         f.write(f"python3 engine.py --mode {mode} --firmware {firmware} "
-                f"--container_name {cont_name} {exp_str}\n")
+                f"--container_name {cont_name} {exp_str} {pcap_str}\n")
     
-    script = 'run_exp_host' if mode in ('run','run_capture') else 'run_exp_bridge'
+    script = 'run_exp_host' if mode in ('run','run_capture','pcap_replay') else 'run_exp_bridge'
     subprocess.check_call(
         f"./docker.sh {script} {cont_name} {','.join(map(str,cpu_ids))}",
         shell=True
@@ -291,7 +292,8 @@ def ensure_experiment_consistency(csv_file: str) -> None:
     for row in rows[1:]:
         if len(row) < len(headers): continue
 
-        status, exp_name, container_name, num_cores, mode, firmware = row
+        status, exp_name, container_name, num_cores, mode, firmware = row[:6]
+        pcap_name = row[6] if len(row) > 6 else ""
 
         if status == "" and exp_name == "" and container_name == "" and mode == "fuzz":
             keep = True
@@ -315,8 +317,11 @@ def run_container(schedule_csv: str, log_to_pair: Dict[int,int], pair_to_log: Di
     for idx, exp_tuple in enumerate(exps):
         print(f"Debug: Processing experiment {idx}: {exp_tuple}")
 
-        if len(exp_tuple) >= 6:
+        if len(exp_tuple) >= 7:
+            status, name, cont, cores, mode, fw, pcap_name = exp_tuple[:7]
+        elif len(exp_tuple) >= 6:
             status, name, cont, cores, mode, fw = exp_tuple[:6]
+            pcap_name = ""
         else:
             print(f"Warning: Unexpected tuple length {len(exp_tuple)} for experiment {idx}")
             continue
@@ -335,7 +340,7 @@ def run_container(schedule_csv: str, log_to_pair: Dict[int,int], pair_to_log: Di
                 print(f"Debug: Error parsing cores '{cores}': {e}. Using default cores=1")
 
             exp_name, cont_name = assign_names(schedule_csv, idx, num_cores, cont, exp_dir, mode)
-            run_experiment(log_to_pair, pair_to_log, mode, fw, os.path.join(exp_dir,exp_name) if exp_name else '', cont_name, num_cores)
+            run_experiment(log_to_pair, pair_to_log, mode, fw, os.path.join(exp_dir,exp_name) if exp_name else '', cont_name, num_cores, pcap_name)
 
     return True
 

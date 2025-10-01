@@ -165,6 +165,10 @@ export function useRunLogs (brandId, fwId, runId) {
 
 export function checkInteractionValidity (runData, interaction, dataChannel, log = { errors: [] }) {
   let val = true
+  if (!dataChannel) {
+    log.errors.push(`Error ${interaction.id}: dataChannel is undefined`)
+    return false
+  }
   if (!dataChannel.used && interaction.sources.length > 0) {
     log.errors.push(`Error ${interaction.id}: sources and not used`)
     val = false

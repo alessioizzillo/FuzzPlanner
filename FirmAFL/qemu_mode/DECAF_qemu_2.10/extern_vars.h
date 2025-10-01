@@ -8,6 +8,7 @@ extern char *target_pattern;
 extern int execution_mode;
 extern char *target_exec;
 extern char *target_channel;
+extern int ignore_addr;
 extern int init_syscalls[4];
 extern int target_syscalls[4];
 extern unsigned long cur_program_pc;

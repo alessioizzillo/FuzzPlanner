@@ -702,6 +702,7 @@ static bool runstate_valid_transitions[RUN_STATE__MAX][RUN_STATE__MAX];
 int execution_mode = 0;
 char *target_exec;
 char *target_channel;
+int ignore_addr = 0;
 int init_syscalls[4];
 int target_syscalls[4];
 
@@ -3181,9 +3182,17 @@ int main(int argc, char **argv, char **envp)
             target_exec = getenv("TARGET_EXECUTABLE");
             target_channel = getenv("TARGET_CHANNEL");
 
+            char *ignore_addr_env = getenv("IGNORE_ADDR");
+            if (ignore_addr_env != NULL && strcmp(ignore_addr_env, "0") != 0) {
+                ignore_addr = 1;
+            } else {
+                ignore_addr = 0;
+            }
+
             if (debug){
                 fprintf(fd_replay, "TARGET_EXECUTABLE: %s\n", target_exec);
                 fprintf(fd_replay, "TARGET_CHANNEL: %s\n", target_channel);
+                fprintf(fd_replay, "IGNORE_ADDR: %d\n", ignore_addr);
                 fprintf(fd_replay, "FUZZ: %d\n", fuzz);
                 fprintf(fd_replay, "EXECUTION_MODE: %d\n", execution_mode);
                 fclose(fd_replay);

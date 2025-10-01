@@ -142,6 +142,27 @@ def ensure_runtime_directories():
         except OSError as e:
             print(f"Warning: Could not create directory {directory}: {e}", file=sys.stderr)
 
+def update_fuzz_status(container_name: str, status: str):
+    status_dir = os.path.join(TMP_DIR, "fuzz_status")
+
+    try:
+        os.makedirs(status_dir, exist_ok=True)
+    except OSError as e:
+        print(f"Warning: Could not create fuzz_status directory {status_dir}: {e}", file=sys.stderr)
+        return
+
+    status_file = os.path.join(status_dir, f"{container_name}.json")
+    data = {
+        "status": status,
+        "timestamp": datetime.now().isoformat()
+    }
+
+    try:
+        with open(status_file, 'w') as f:
+            json.dump(data, f, indent=2)
+    except (OSError, IOError) as e:
+        print(f"Warning: Could not write fuzz_status file {status_file}: {e}", file=sys.stderr)
+
 def update_progress(container_name: str, phase: str, progress: float, message: str, details: dict = None):
     progress_dir = os.path.join(TMP_DIR, "progress")
 
@@ -166,6 +187,9 @@ def update_progress(container_name: str, phase: str, progress: float, message: s
             json.dump(data, f, indent=2)
     except (OSError, IOError) as e:
         print(f"Warning: Could not write progress file {progress_file}: {e}", file=sys.stderr)
+
+    if phase in ["booting", "fuzzing"]:
+        update_fuzz_status(container_name, phase)
 
 
 def give_all_permissions_recursively(path):
@@ -199,12 +223,14 @@ def export_env_vars(exp: dict):
     os.environ["TARGET_PC"]        = str(params.get("pc"))
     os.environ["TARGET_SYSCALL"]   = str(params.get("syscall"))
     os.environ["TARGET_PATTERN"]   = str(params.get("pattern", ""))
+    os.environ["IGNORE_ADDR"]      = "1" if exp.get("ignore_addr", False) else "0"
 
     print(f'export TARGET_EXECUTABLE="{exp.get("executableId")}"')
     print(f'export TARGET_CHANNEL="{exp.get("data_channel_id")}"')
     print(f'export TARGET_PC="{params.get("pc")}"')
     print(f'export TARGET_SYSCALL="{params.get("syscall")}"')
     print(f'export TARGET_PATTERN="{params.get("pattern", "")}"')
+    print(f'export IGNORE_ADDR="{1 if exp.get("ignore_addr", False) else 0}"')
 
     for feature in exp.get("set_engine_features", []):
         name  = feature.get("name")
@@ -520,11 +546,11 @@ def pcap_replay(firmware: str, container_name: str = None, pcap_name: str = None
         print("Error: No PCAP file specified for replay")
         return
 
-    iid = check(firmware, "run")
+    iid = check(firmware, container_name)
     if not iid:
         return
 
-    work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+    work_dir = os.path.join(FIRMAE_DIR, "scratch", container_name, iid)
     shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
     web_check = os.path.join(work_dir, "web_check")
     if not os.path.isfile(web_check) or "true" not in open(web_check).read():
@@ -552,22 +578,28 @@ def pcap_replay(firmware: str, container_name: str = None, pcap_name: str = None
     if container_name:
         update_progress(container_name, "booting", 0.2, f"Starting firmware emulation for PCAP replay...")
 
-    cmd = ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), firmware, "run", "0.0.0.0"]
+    cmd = ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), firmware, container_name, "0.0.0.0"]
     process = subprocess.Popen(cmd)
     time_to_wait = float(open(os.path.join(work_dir, "time_web")).read().strip())
 
     if container_name:
-        update_progress(container_name, "booting", 0.4, f"Booting firmware for PCAP replay ({int(time_to_wait)}s remaining)...")
+        update_progress(container_name, "booting", 0.4, f"Booting firmware ({int(time_to_wait)}s remaining)...")
+        for elapsed in range(int(time_to_wait)):
+            time.sleep(1)
+            progress = 0.4 + (0.6 * elapsed / time_to_wait)  # 0.4 to 1.0
+            remaining = int(time_to_wait - elapsed)
+            update_progress(container_name, "booting", progress, f"Booting firmware ({remaining}s remaining)...")
+    else:
+        time.sleep(time_to_wait)
 
     qemu_pid = process.pid
     print(f"[*] Booting firmware, wait {int(time_to_wait)} seconds...")
-    time.sleep(time_to_wait)
 
     target_ip = open(os.path.join(work_dir, "ip")).read().strip()
     print(f"[+] Target IP: {target_ip}")
 
     print("[*] Waiting for web service to be ready...")
-    max_retries = 30
+    max_retries = 100
     retry_count = 0
     service_ready = False
     web_port = 80
@@ -759,8 +791,8 @@ def run(firmware: str, capture: bool, container_name: str = None) -> None:
         update_progress(container_name, "completed", 1.0, "Emulation completed")
 
 def select(container_name: str, firmware: str) -> None:
-    run_id   = check(firmware, "run")
-    work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", run_id)
+    run_id   = check(firmware, container_name)
+    work_dir = os.path.join(FIRMAE_DIR, "scratch", container_name, run_id)
     shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
     json_path = os.path.join(TMP_DIR, 'exec_data_pairs.json')
 
@@ -784,6 +816,7 @@ def select(container_name: str, firmware: str) -> None:
     for i, pair in enumerate(pairs):
         os.environ["TARGET_EXECUTABLE"] = os.path.basename(pair["executable_id"])
         os.environ["TARGET_CHANNEL"]    = pair["data_channel_id"]
+        os.environ["IGNORE_ADDR"]       = "1" if pair.get("ignore_addr", False) else "0"
 
         container_name = f"select_{i}"
 
@@ -823,7 +856,7 @@ def select(container_name: str, firmware: str) -> None:
         cmd = [
             "sudo", "-E", "./run.sh",
             "-r", os.path.basename(os.path.dirname(firmware)),
-            firmware, "run", "0.0.0.0"
+            firmware, container_name, "0.0.0.0"
         ]
         proc = subprocess.Popen(cmd)
         qemu_pid = proc.pid

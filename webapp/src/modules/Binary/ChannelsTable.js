@@ -27,6 +27,11 @@ const channelsColumns = [
     cell: v => <ChannelsTableCell colId='channel' value={v.getValue()} />
   }),
   columnHelper.display({
+    id: 'no_addr',
+    header: 'No Addr',
+    cell: (props) => <ChannelsTableCell colId='no_addr' value={{ binary: props.table.options.meta.binary, channel: props.row.original }} />
+  }),
+  columnHelper.display({
     id: 'select',
     header: '',
     cell: (props) => <ChannelsTableCell colId='select' value={{ role: props.row.original.role, channel: props.row.original, binary: props.table.options.meta.binary }} />
@@ -46,7 +51,7 @@ export default function ChannelsTable ({ className, binary, channels, sorting, s
     meta: { binary }
   })
   return (
-    <table className={className}>
+    <table className={`w-full ${className || ''}`}>
       <TableHeadSort table={table} />
       <tbody>
         {table.getRowModel().rows.map(row => (

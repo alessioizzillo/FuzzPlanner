@@ -236,7 +236,7 @@ export function useExecuteExperiment() {
   })
 }
 
-async function postSelect(brandId, firmwareId, runId, binaryId, dataChannelId) {
+async function postSelect(brandId, firmwareId, runId, binaryId, dataChannelId, ignoreAddr = false) {
   const res = await api.post(
     '/select',
     null,
@@ -246,7 +246,8 @@ async function postSelect(brandId, firmwareId, runId, binaryId, dataChannelId) {
         firmwareId,
         runId,
         binaryId,
-        dataChannelId
+        dataChannelId,
+        ignoreAddr: ignoreAddr ? '1' : '0'
       }
     }
   )
@@ -255,7 +256,7 @@ async function postSelect(brandId, firmwareId, runId, binaryId, dataChannelId) {
 
 export function usePostSelect(brandId, firmwareId, runId, binaryId, dataChannelId, options = {}) {
   return useMutation(
-    () => postSelect(brandId, firmwareId, runId, binaryId, dataChannelId),
+    (ignoreAddr) => postSelect(brandId, firmwareId, runId, binaryId, dataChannelId, ignoreAddr),
     { ...options }
   )
 }
@@ -363,17 +364,12 @@ export function useAnalyzePcap() {
   })
 }
 
-export function useGetAnalysisProgress(containerName) {
-  return useQuery({
-    queryKey: ['analysis_progress', containerName],
-    queryFn: async () => {
-      if (!containerName) return null
-      const res = await api.get(`/progress/${containerName}`)
+export function useStopPcapReplay() {
+  return useMutation({
+    mutationFn: async ({ brandId, firmwareId, pcapName }) => {
+      const params = new URLSearchParams({ brandId, firmwareId, pcapName })
+      const res = await api.post(`/stop_pcap_replay?${params.toString()}`)
       return res.data
-    },
-    enabled: !!containerName,
-    refetchInterval: 1000, // Poll every second when analysis is running
-    retry: false
+    }
   })
 }
-

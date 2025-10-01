@@ -32,9 +32,10 @@ export default function Binary ({ className, binary }) {
   const handleOnChangeRead = (id) => { setReadChecked(!readChecked) }
   const handleOnChangeWrite = (id) => { setWriteChecked(!writeChecked) }
   return (
-    <div className='flex overflow-y-auto h-120'>
-      <div className='px-2'>
+    <div className='flex flex-col w-full overflow-y-auto h-120'>
+      <div className='px-2 w-full'>
         <div className='flex items-center h-12 text-sm'>
+          <span className='font-semibold text-gray-300 mr-4'>Channel Filters:</span>
           <input className='' type='checkbox' id='listen' name='listen' checked={listenChecked} onChange={handleOnChangeListen} />
           <label className='w-20 pl-2' htmlFor='listen'>Listen</label>
           <input className='' type='checkbox' id='border' name='border' checked={borderChecked} onChange={handleOnChangeBorder} />

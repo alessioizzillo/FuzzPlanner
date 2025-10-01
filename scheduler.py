@@ -209,7 +209,8 @@ def run_experiment(log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]],
         pcap_str = f"--pcap_name {pcap_name}" if pcap_name else ""
         f.write(f"python3 engine.py --mode {mode} --firmware {firmware} "
                 f"--container_name {cont_name} {exp_str} {pcap_str}\n")
-    
+    print(f"python3 engine.py --mode {mode} --firmware {firmware} "
+                f"--container_name {cont_name} {exp_str} {pcap_str}\n")
     script = 'run_exp_host' if mode in ('run','run_capture','pcap_replay') else 'run_exp_bridge'
     subprocess.check_call(
         f"./docker.sh {script} {cont_name} {','.join(map(str,cpu_ids))}",
@@ -300,7 +301,7 @@ def ensure_experiment_consistency(csv_file: str) -> None:
         else:
             keep = (
                     not (status and container_name not in running_containers.values()) and
-                    (mode in {'check', 'run', 'run_capture', 'select'} or
+                    (mode in {'check', 'run', 'run_capture', 'select', 'pcap_replay'} or
                     not ((status == "" or exp_name == "" or container_name == "") and not (status == "" and exp_name == "" and container_name == "")))
                 )
         if keep:
@@ -358,7 +359,7 @@ def get_container_info(firmware: str, schedule_csv: str) -> Tuple[Optional[str],
 
             for row in reader:
                 print(row.get('mode'), row.get('firmware'), firmware)
-                if row.get('mode') in ('run','run_capture') and row.get('firmware')==firmware:
+                if row.get('mode') in ('run','run_capture','pcap_replay') and row.get('firmware')==firmware:
                     return row.get('status'), row.get('container_name')
     except (OSError, csv.Error) as e:
         print(f"Error reading CSV file {schedule_csv}: {e}")

@@ -450,6 +450,94 @@ export function useOptimizedFuzzProgress(containerName) {
   }
 }
 
+export function useOptimizedPcapReplayProgress(brandId, firmwareId, pcapName) {
+  const [data, setData] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const unsubscribeRef = useRef(null)
+
+  const globalState = useGlobalState()
+
+  const effectiveBrandId = brandId || globalState.selectedBrand
+  const effectiveFirmwareId = firmwareId || globalState.selectedFirmware
+
+  useEffect(() => {
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current()
+      unsubscribeRef.current = null
+    }
+
+    if (!effectiveBrandId || !effectiveFirmwareId || !pcapName) {
+      setData(null)
+      setIsLoading(false)
+      return
+    }
+
+    const params = {
+      brandId: effectiveBrandId,
+      firmwareId: effectiveFirmwareId,
+      pcapName: pcapName
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    unsubscribeRef.current = pollManager.subscribe(
+      '/pcap_replay_progress',
+      params,
+      (newData, err) => {
+        if (err) {
+          setError(err)
+          setIsLoading(false)
+        } else if (newData) {
+          if (newData.status === 'not_running') {
+            setData(null)
+          } else {
+            setData(newData)
+          }
+          setIsLoading(false)
+          setError(null)
+        }
+      },
+      {
+        initialInterval: 2000,
+        minInterval: 1000,
+        maxInterval: 10000,
+        getInterval: (currentData) => {
+          if (!currentData ||
+              currentData.status === 'not_running' ||
+              currentData.phase === 'completed' ||
+              currentData.phase === 'error') {
+            return 10000
+          }
+          return 2000
+        }
+      }
+    )
+
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
+    }
+  }, [effectiveBrandId, effectiveFirmwareId, pcapName])
+
+  const refresh = useCallback(() => {
+    if (unsubscribeRef.current) {
+      pollManager.forceRefresh()
+    }
+  }, [])
+
+  return {
+    data,
+    isLoading,
+    error,
+    refresh,
+    progressData: data
+  }
+}
+
 /**
  * Hook to get polling statistics and control
  */

@@ -69,21 +69,16 @@ function Select({ cRef, dms, value }) {
   const { refresh: forceRefresh } = useOptimizedSelectAnalyses(brandId, firmwareId, runId, null, { includeBinaryFilter: false })
 
   const handleClick = useCallback(() => {
-    const payload = {
-      select: [{
-        run_id: runId,
-        executable_id: binary.id,
-        data_channel_id: channel.id,
-      }],
-    }
+    const checkbox = document.querySelector(`#no-addr-${binary.id}-${channel.id}`)
+    const ignoreAddr = checkbox ? checkbox.checked : false
 
     console.log(
       '%c[Selection] Sending to analysis:',
       'color: green; font-weight: bold;',
-      { brandId, firmwareId, runId, binaryId: binary.id, channelId: channel.id }
+      { brandId, firmwareId, runId, binaryId: binary.id, channelId: channel.id, ignoreAddr }
     )
 
-    postSelectMutation.mutate(payload, {
+    postSelectMutation.mutate(ignoreAddr, {
       onSuccess: () => {
         setSent(true)
         forceRefresh() // Use optimized polling force refresh
@@ -93,19 +88,38 @@ function Select({ cRef, dms, value }) {
   }, [brandId, firmwareId, runId, binary.id, channel.id, postSelectMutation, forceRefresh])
 
   return (
-    <div ref={cRef} className="w-6 h-6 flex items-center justify-center">
-      {['read', 'border', 'rw'].includes(role) && (
-        <>
-          {!sent ? (
-            <PaperAirplaneIcon
-              onClick={handleClick}
-              className="cursor-pointer text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-110 active:scale-95 transform hover:rotate-12"
-            />
-          ) : (
-            <CheckCircleIcon className="text-green-600 animate-bounce" />
-          )}
-        </>
-      )}
+    <div ref={cRef} className="flex items-center justify-center">
+      <div className="w-6 h-6 flex items-center justify-center">
+        {['read', 'border', 'rw'].includes(role) && (
+          <>
+            {!sent ? (
+              <PaperAirplaneIcon
+                onClick={handleClick}
+                className="cursor-pointer text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-110 active:scale-95 transform hover:rotate-12"
+              />
+            ) : (
+              <CheckCircleIcon className="text-green-600 animate-bounce" />
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function NoAddr({ cRef, value }) {
+  const [ignoreAddr, setIgnoreAddr] = useState(false)
+
+  return (
+    <div ref={cRef} className='h-6 flex items-center justify-center'>
+      <input
+        id={`no-addr-${value.binary?.id}-${value.channel?.id}`}
+        type="checkbox"
+        checked={ignoreAddr}
+        onChange={(e) => setIgnoreAddr(e.target.checked)}
+        className="w-4 h-4 accent-blue-500 cursor-pointer"
+        title="Ignore address in socket matching (match port only)"
+      />
     </div>
   )
 }
@@ -132,6 +146,6 @@ export default function ChannelsTableCell ({ colId, value }) {
   if (colId === 'kind') return <Kind cRef={ref} dms={dms} value={value} />
   if (colId === 'select') return <Select cRef={ref} dms={dms} value={value} />
   if (colId === 'role') return <Role cRef={ref} dms={dms} value={value} />
-  if (colId === 'kind') return <Kind cRef={ref} dms={dms} value={value} />
+  if (colId === 'no_addr') return <NoAddr cRef={ref} value={value} />
   return null
 }

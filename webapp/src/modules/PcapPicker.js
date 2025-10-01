@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { useGetPcaps, useRemovePcap, useAnalyzePcap } from '@/hooks/queries'
+import { useState, useEffect } from 'react'
+import { useGetPcaps, useRemovePcap, useAnalyzePcap, useStopPcapReplay } from '@/hooks/queries'
+import { useOptimizedPcapReplayProgress } from '@/hooks/useOptimizedPolling'
 import {
   useSelectedPcap,
   useSetSelectedPcap,
@@ -12,7 +13,6 @@ import Icon from '@/components/Icon'
 import Picker from '@/components/Picker'
 import Spinner from '@/components/Spinner'
 import Error from '@/components/Error'
-import AnalysisProgress from '@/components/AnalysisProgress'
 
 export default function PcapPicker () {
   const firmwareId = useSelectedFirmware()
@@ -20,12 +20,73 @@ export default function PcapPicker () {
   const selectedPcap = useSelectedPcap()
   const setSelectedPcap = useSetSelectedPcap()
   const resetSelectedPcap = useResetSelectedPcap()
-  const [analysisContainerName, setAnalysisContainerName] = useState(null)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [isAnalysisInitiated, setIsAnalysisInitiated] = useState(false)
+  const [isStopInitiated, setIsStopInitiated] = useState(false)
 
   const { isLoading, isError, error, data: pcaps, refetch } = useGetPcaps(brandId, firmwareId)
   const removePcapMutation = useRemovePcap()
   const analyzePcapMutation = useAnalyzePcap()
+  const stopPcapReplayMutation = useStopPcapReplay()
+
+  const { data: progressData, isLoading: isProgressLoading, refresh: refreshProgress } = useOptimizedPcapReplayProgress(
+    brandId,
+    firmwareId,
+    selectedPcap
+  )
+
+  const isAnalysisRunning = progressData &&
+    progressData.status !== 'not_running' &&
+    progressData.phase !== 'completed' &&
+    progressData.phase !== 'error'
+
+  const isButtonDisabled = analyzePcapMutation.isPending || isAnalysisRunning || isAnalysisInitiated || analyzePcapMutation.isLoading
+
+  useEffect(() => {
+    setShowSuccessMessage(false)
+    setIsAnalysisInitiated(false)
+    setIsStopInitiated(false)
+  }, [selectedPcap])
+
+  useEffect(() => {
+    if (progressData && (progressData.phase === 'completed' || progressData.phase === 'error')) {
+      const timer = setTimeout(() => {
+        setIsAnalysisInitiated(false)
+        setShowSuccessMessage(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    } else if (progressData === null && isAnalysisInitiated && !analyzePcapMutation.isPending) {
+      const timer = setTimeout(() => {
+        setIsAnalysisInitiated(false)
+        setShowSuccessMessage(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [progressData, isAnalysisInitiated, analyzePcapMutation.isPending])
+
+  useEffect(() => {
+    if (isAnalysisRunning && !analyzePcapMutation.isPending) {
+      setIsAnalysisInitiated(true)
+    }
+  }, [isAnalysisRunning, analyzePcapMutation.isPending])
+
+  useEffect(() => {
+    if (!isProgressLoading && !analyzePcapMutation.isPending && !isAnalysisRunning && isAnalysisInitiated) {
+      const timer = setTimeout(() => {
+        setIsAnalysisInitiated(false)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [isProgressLoading, analyzePcapMutation.isPending, isAnalysisRunning, isAnalysisInitiated])
+
+  useEffect(() => {
+    if (!isAnalysisRunning && isStopInitiated) {
+      const timer = setTimeout(() => {
+        setIsStopInitiated(false)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [isAnalysisRunning, isStopInitiated])
 
   if (isLoading) return <Spinner />
   if (isError) return <Error error={error} />
@@ -49,27 +110,48 @@ export default function PcapPicker () {
   }
 
   const handleAnalyze = async () => {
-    if (!selectedPcap) return
+    if (!selectedPcap || isButtonDisabled) return
+
+    setIsAnalysisInitiated(true)
+    setShowSuccessMessage(false)
 
     try {
-      // Show success message immediately
-      setShowSuccessMessage(true)
-      setTimeout(() => setShowSuccessMessage(false), 3000) // Hide after 3 seconds
-
       const response = await analyzePcapMutation.mutateAsync({
         brandId,
         firmwareId,
         pcapName: selectedPcap
       })
 
-      // Extract container name from response for progress tracking
-      if (response.container_name) {
-        setAnalysisContainerName(response.container_name)
+      if (response.status === 'success') {
+        setShowSuccessMessage(true)
+        refreshProgress()
+      } else {
+        setIsAnalysisInitiated(false)
+        setShowSuccessMessage(false)
       }
     } catch (error) {
       console.error('Failed to analyze PCAP:', error)
-      setAnalysisContainerName(null)
-      setShowSuccessMessage(false) // Hide success message on error
+      setShowSuccessMessage(false)
+      setIsAnalysisInitiated(false)
+    }
+  }
+
+  const handleStopAnalysis = async () => {
+    if (!selectedPcap || !isAnalysisRunning || isStopInitiated) return
+
+    setIsStopInitiated(true)
+
+    try {
+      await stopPcapReplayMutation.mutateAsync({
+        brandId,
+        firmwareId,
+        pcapName: selectedPcap
+      })
+      setIsAnalysisInitiated(false)
+      setShowSuccessMessage(false)
+    } catch (error) {
+      console.error('Failed to stop PCAP replay:', error)
+      setIsStopInitiated(false)
     }
   }
 
@@ -104,24 +186,46 @@ export default function PcapPicker () {
 
         {/* Analyze Button - separate from picker */}
         {selectedPcap && (
-          <button
-            onClick={handleAnalyze}
-            className={`px-5 py-1 text-sm rounded-lg transition-all duration-300 shadow-md flex items-center space-x-2 transform ${
-              analyzePcapMutation.isPending
-                ? 'bg-gradient-to-r from-blue-500 to-blue-600 scale-105 animate-pulse'
-                : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:scale-105'
-            } text-white disabled:cursor-not-allowed`}
-            disabled={analyzePcapMutation.isPending}
-            title={analyzePcapMutation.isPending ? 'Analysis in progress...' : 'Analyze selected PCAP with network replay'}
-          >
-            <Icon
-              name={analyzePcapMutation.isPending ? "loader" : "activity"}
-              className={`w-4 h-4 ${analyzePcapMutation.isPending ? 'animate-spin' : ''}`}
-            />
-            <span>
-              {analyzePcapMutation.isPending ? 'Analysis Started!' : 'Analyze PCAP'}
-            </span>
-          </button>
+          <div className="flex items-center">
+            <button
+              onClick={handleAnalyze}
+              onDoubleClick={(e) => e.preventDefault()} // Prevent double-click
+              className={`px-5 py-1 text-sm rounded-lg transition-all duration-300 shadow-md flex items-center space-x-2 transform ${
+                isButtonDisabled
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 scale-105 animate-pulse'
+                  : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:scale-105'
+              } text-white disabled:cursor-not-allowed disabled:opacity-70`}
+              disabled={isButtonDisabled}
+              title={
+                analyzePcapMutation.isPending ? 'Starting analysis...' :
+                isAnalysisRunning ? `Analysis running (${progressData?.phase})...` :
+                isAnalysisInitiated ? 'Analysis initiated...' :
+                'Analyze selected PCAP with network replay'
+              }
+            >
+              <Icon
+                name={isButtonDisabled ? "loader" : "activity"}
+                className={`w-4 h-4 ${isButtonDisabled ? 'animate-spin' : ''}`}
+              />
+              <span>
+                {analyzePcapMutation.isPending ? 'Starting Analysis...' :
+                 isAnalysisRunning ? `Analyzing (${progressData?.phase})...` :
+                 'Analyze PCAP'}
+              </span>
+            </button>
+
+            {/* Stop Button - separated from Analyze button - only show when actually running */}
+            {isAnalysisRunning && (
+              <button
+                onClick={handleStopAnalysis}
+                className="ml-6 rounded transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 group"
+                disabled={stopPcapReplayMutation.isPending || isStopInitiated || stopPcapReplayMutation.isLoading}
+                title={stopPcapReplayMutation.isPending || isStopInitiated ? "Stopping..." : "Stop PCAP replay analysis"}
+              >
+                <div className={`w-4 h-4 bg-red-500 rounded-sm transition-all duration-300 group-hover:bg-red-700 group-hover:scale-110 group-hover:shadow-lg ${stopPcapReplayMutation.isPending || isStopInitiated ? 'animate-spin' : 'animate-pulse'}`} />
+              </button>
+            )}
+          </div>
         )}
 
         {/* Loading States */}
@@ -129,19 +233,22 @@ export default function PcapPicker () {
           <span className="text-sm text-gray-500">Removing...</span>
         )}
 
-        {/* Success Message */}
-        {showSuccessMessage && (
+        {/* Success Message
+        {showSuccessMessage && !isAnalysisRunning && (
           <div className="flex items-center space-x-2 text-sm text-green-600 animate-fade-in">
             <Icon name="check-circle" className="w-4 h-4" />
             <span>Analysis request sent successfully!</span>
           </div>
+        )} */}
+
+        {/* Analysis Status */}
+        {isAnalysisRunning && progressData && (
+          <div className="flex items-center space-x-2 text-sm text-blue-600">
+            <Icon name="activity" className="w-4 h-4 animate-pulse" />
+            <span className="capitalize">{progressData.phase} - {Math.round(progressData.progress * 100)}%</span>
+          </div>
         )}
       </div>
-
-      {/* Progress Visualization */}
-      {analysisContainerName && (
-        <AnalysisProgress containerName={analysisContainerName} />
-      )}
     </div>
   )
 }

@@ -35,7 +35,7 @@ function Binary ({ cRef, dms, value }) {
     <div ref={cRef} className='w-40 h-10 overflow-hidden text-sm text-left text-ellipsis whitespace-nowrap' style={{ direction: 'ltr' }}>
       <div>{value.exec.id}</div>
       <div className='ml-2 text-xs text-gray-400 text-ellipsis whitespace-nowrap'>
-        {value.symt !== null && `-> ${value.symt.id}`}
+        {value.symt !== null && value.symt?.id && `-> ${value.symt.id}`}
         {value.symt === null && value.exec.type === 'binary' && 'bin'}
         {value.symt === null && value.exec.type === 'script' && 'script'}
       </div>

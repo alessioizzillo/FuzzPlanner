@@ -107,6 +107,7 @@ export default function ExperimentLauncher() {
 
   const [paramIdx, setParamIdx] = useState(null)
   const onParamSelect = idx => setParamIdx(idx === '' ? null : Number(idx))
+  const [ignoreAddr, setIgnoreAddr] = useState(false)
 
   const onExecute = () => {
     if (!selectedBinary)      { alert('Select a binary first'); return }
@@ -125,7 +126,8 @@ export default function ExperimentLauncher() {
         pc: p.pc || '0x0',
         pattern: p.pattern
       },
-      set_engine_features: engineFeatures.map(f => ({ name: f.name, type: f.type, value: f.value }))
+      set_engine_features: engineFeatures.map(f => ({ name: f.name, type: f.type, value: f.value })),
+      ignore_addr: ignoreAddr
     }
 
     executeMutation.mutate(
@@ -192,7 +194,23 @@ export default function ExperimentLauncher() {
               {analysisParams.map((p, i) => <option key={i} value={i}>{p.syscall} | {p.pattern || 'no pattern'}</option>)}
             </select>
         }
-      </div> 
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold mb-1 text-purple-400">⚙️ Socket Matching Options</h2>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="ignoreAddr"
+            checked={ignoreAddr}
+            onChange={(e) => setIgnoreAddr(e.target.checked)}
+            className="w-4 h-4 accent-purple-500 cursor-pointer"
+          />
+          <label htmlFor="ignoreAddr" className="text-sm text-gray-200 cursor-pointer">
+            Ignore address in socket matching (match port only)
+          </label>
+        </div>
+      </div>
 
       <div className="mt-6">
         <button onClick={onExecute} disabled={!canExecute || executeMutation.isLoading} className={`bg-blue-600 text-white font-bold px-6 py-3 rounded hover:bg-blue-700 ${(!canExecute || executeMutation.isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}>{executeMutation.isLoading ? 'Executing...' : 'Execute Experiment'}</button>

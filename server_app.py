@@ -227,6 +227,15 @@ def get_run_id(firmware: str) -> Optional[str]:
             return record.get("id") or record.get("run_id")
     return None
 
+def get_id(firmware:str, container_name: str) -> Optional[str]:
+    db_path = os.path.join(FIRMAE_DIR, f"firm_db_{container_name}.csv")
+    if not os.path.exists(db_path):
+        return None
+    for record in read_csv_rows(db_path):
+        if record.get("brand") == os.path.dirname(firmware) and record.get("firmware") == os.path.basename(firmware):
+            return record.get("id") or record.get("run_id")
+    return None
+
 # Route handlers
 
 @app.route("/")
@@ -537,6 +546,7 @@ def select() -> Response:
     runId      = request.args.get('runId')
     binaryId   = request.args.get('binaryId')
     dataChannelId = request.args.get('dataChannelId')
+    ignoreAddr = request.args.get('ignoreAddr', '0') == '1'
 
     try:
         exec_data_pairs = [
@@ -545,7 +555,8 @@ def select() -> Response:
                 "firmware_id": firmwareId,
                 "run_id": runId,
                 "executable_id": binaryId,
-                "data_channel_id": dataChannelId
+                "data_channel_id": dataChannelId,
+                "ignore_addr": ignoreAddr
             }
         ]
     except (TypeError, KeyError) as e:
@@ -1061,6 +1072,7 @@ def exp_info() -> Response:
     brand_id = request.args.get("brandId")
     firmware_id = request.args.get("firmwareId")
     exp_name = request.args.get("expName")
+    combined = os.path.join(brand_id, firmware_id)
 
     if not all([brand_id, firmware_id, exp_name]):
         return jsonify({
@@ -1074,38 +1086,38 @@ def exp_info() -> Response:
                 reader = csv.DictReader(csvfile)
                 if reader.fieldnames is None:
                     print(f"Warning: CSV file {SCHEDULE_CSV} has no headers or is empty", file=sys.stderr)
-                    return False, None
+                    return (False, None)
 
                 for row in reader:
                     if row.get("exp_name") == exp_name:
                         container_name = row.get("container_name")
                         if row.get("status", "").lower() == "running":
-                            return True, row.get("container_name")
+                            return (True, row.get("container_name"))
                         else:
-                            return False, None
-                return False, None
+                            return (False, None)
+                return (False, None)
         except Exception as e:
             print(f"Error reading schedule file: {e}")
-            return False, None
-
-    running, container_name = is_running_exp(exp_name)
+            return (False, None)
+    ret = is_running_exp(exp_name)
+    running = ret[0]
+    container_name = ret[1]
 
     if running:
-        combined = os.path.join(brand_id, firmware_id)
-        iid = get_run_id(combined)
-
-        exp_dir = os.path.join(
+        iid = get_id(combined, container_name)
+        work_dir = os.path.join(
             FIRMAE_DIR,
             "scratch",
             container_name,
-            iid,
-            "outputs"
+            iid
         )
+        exp_dir = os.path.join(work_dir, "outputs")
+        exp_info_path = os.path.join(work_dir, "outputs", "exp_info.json")
+        fuzzer_stats_path = os.path.join(work_dir, "outputs", "fuzzer_stats")
     else:
         exp_dir = os.path.join(FUZZ_EXP_DIR, brand_id, firmware_id, exp_name)
-
-    exp_info_path = os.path.join(exp_dir, "exp_info.json")
-    fuzzer_stats_path = os.path.join(exp_dir, "fuzzer_stats")
+        exp_info_path = os.path.join(exp_dir, "exp_info.json")
+        fuzzer_stats_path = os.path.join(exp_dir, "fuzzer_stats")
 
     if not os.path.isdir(exp_dir):
         return jsonify({
@@ -1378,6 +1390,53 @@ def analyze_pcap() -> Response:
     except Exception as e:
         return jsonify({"status": "error", "message": f"Failed to analyze PCAP file: {e}"}), 500
 
+@app.route("/stop_pcap_replay", methods=["POST"])
+def stop_pcap_replay() -> Response:
+    brand = request.args.get("brandId")
+    firmware = request.args.get("firmwareId")
+    pcap_name = request.args.get("pcapName")
+
+    if not brand or not firmware or not pcap_name:
+        return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+
+    try:
+        combined = os.path.join(brand, firmware)
+        rows = read_csv_rows(SCHEDULE_CSV)
+        updated_rows = []
+        container_to_remove = None
+
+        for r in rows:
+            if (
+                r.get("mode") == "pcap_replay"
+                and r.get("pcap_name") == pcap_name
+                and r.get("firmware") == combined
+            ):
+                container_to_remove = r.get("container_name")
+            else:
+                updated_rows.append(r)
+
+        if container_to_remove:
+            try:
+                subprocess.run(
+                    ["docker", "rm", "-f", container_to_remove],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+            except subprocess.CalledProcessError as docker_err:
+                print(f"WARNING: Failed to remove container {container_to_remove}: {docker_err}")
+
+        with open(SCHEDULE_CSV, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(SCHEDULE_HEADER)
+            for r in updated_rows:
+                writer.writerow([r[h] for h in SCHEDULE_HEADER])
+
+        return jsonify({"status": "success", "message": f"Stopped PCAP replay analysis for {pcap_name}"}), 200
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to stop PCAP replay: {e}"}), 500
+
 @app.route("/progress/<container_name>", methods=["GET"])
 def get_progress(container_name: str) -> Response:
     progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
@@ -1391,6 +1450,79 @@ def get_progress(container_name: str) -> Response:
         return jsonify(progress_data), 200
     except (OSError, json.JSONDecodeError) as e:
         return jsonify({"error": f"Failed to read progress: {e}"}), 500
+
+def compute_pcap_replay_progress(brand: str, firmware: str, pcap_name: str) -> dict:
+    combined = os.path.join(brand, firmware)
+
+    status, container_name = get_container_info(combined, SCHEDULE_CSV)
+
+    if status == "running":
+        rows = read_csv_rows(SCHEDULE_CSV)
+        for row in rows:
+            if (row.get("firmware") == combined and
+                row.get("mode") == "pcap_replay" and
+                row.get("pcap_name") == pcap_name and
+                row.get("status") == "running"):
+
+                progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
+                if os.path.exists(progress_file):
+                    try:
+                        with open(progress_file, 'r') as f:
+                            progress_data = json.load(f)
+                        progress_data["container_name"] = container_name
+                        return progress_data
+                    except (OSError, json.JSONDecodeError):
+                        pass
+
+                return {
+                    "phase": "starting",
+                    "progress": 0.0,
+                    "message": "Analysis is starting...",
+                    "container_name": container_name,
+                    "timestamp": datetime.now().isoformat()
+                }
+
+    return {"status": "not_running"}
+
+@app.route("/pcap_replay_progress", methods=["GET"])
+def get_pcap_replay_progress() -> Response:
+    brand = request.args.get("brandId")
+    firmware = request.args.get("firmwareId")
+    pcap_name = request.args.get("pcapName")
+
+    if not brand or not firmware or not pcap_name:
+        return jsonify({"status": "error", "message": "Missing brandId, firmwareId, or pcapName parameter"}), 400
+
+    cache_key = f"pcap_replay_progress:{brand}:{firmware}:{pcap_name}"
+
+    combined = os.path.join(brand, firmware)
+    files_to_check = [SCHEDULE_CSV]
+
+    status, container_name = get_container_info(combined, SCHEDULE_CSV)
+    if status == "running" and container_name:
+        progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
+        if os.path.exists(progress_file):
+            files_to_check.append(progress_file)
+
+    current_etag, last_modified = generate_etag_for_files(files_to_check)
+
+    client_etag = request.headers.get('If-None-Match')
+    if check_etag_match(client_etag, current_etag):
+        response = Response('', 304)
+        response.headers['ETag'] = current_etag
+        return response
+
+    data = get_cached_or_compute(
+        cache_key,
+        lambda: compute_pcap_replay_progress(brand, firmware, pcap_name)
+    )
+
+    response = jsonify(data)
+    response.headers['ETag'] = current_etag
+    if last_modified > 0:
+        response.headers['Last-Modified'] = datetime.fromtimestamp(last_modified).strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+    return response
 
 
 if __name__ == '__main__':

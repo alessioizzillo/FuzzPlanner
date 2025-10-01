@@ -656,19 +656,12 @@ def pcap_replay(firmware: str, container_name: str = None, pcap_name: str = None
             FACT_IP, FACT_PORT, "None"
         ]
 
-        pcap_dest = os.path.join(out, os.path.basename(pcap_path))
+        pcap_dest = os.path.join(out, "user_interaction.pcap")
         if container_name:
             update_progress(container_name, "analyzing", 0.95, "Copying PCAP file to analysis directory...")
         shutil.copy(pcap_path, pcap_dest)
 
-        pcap_dir_dest = os.path.join(PCAP_DIR, brand, firmware_name, os.path.basename(pcap_path))
-        os.makedirs(os.path.dirname(pcap_dir_dest), exist_ok=True)
-        if not os.path.exists(pcap_dir_dest):
-            if container_name:
-                update_progress(container_name, "analyzing", 0.97, "Copying PCAP file to pcap directory...")
-            shutil.copy(pcap_path, os.path.join(pcap_dir_dest, "user_interaction.pcap"))
-
-        cmd_str = " ".join(cmd) + f"; cp {pcap_path} {out}"
+        cmd_str = " ".join(cmd)
         print(f"[*] Analysis command: {cmd_str}")
 
         subprocess.run(cmd_str, shell=True)

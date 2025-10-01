@@ -1242,7 +1242,7 @@ static void callbacktests_loadmainmodule_callback(VMI_Callback_Params* params)
         fclose(fd);        
     }
 
-    if(execution_mode && strcmp(procname,target_exec) == 0)
+    if(execution_mode && target_exec && strcmp(procname,target_exec) == 0)
     {
         DECAF_printf("\nProcname:%s/%d,pid:%d:%d, cur pgd:%x\n",procname, index, pid, par_pid, params->cp.cr3);
 
@@ -2978,7 +2978,7 @@ int cpu_exec(CPUState *cpu)
 #endif
             {
 
-                if (execution_mode && !strcmp(procname, target_exec))
+                if (execution_mode && target_exec && !strcmp(procname, target_exec))
                 {
                     if (syscall_nr == target_syscalls[0] || syscall_nr == target_syscalls[1] || syscall_nr == target_syscalls[2] || syscall_nr == target_syscalls[3])
                     {
@@ -3573,7 +3573,7 @@ skip_to_pos:
                                 if (debug) {
                                     fd_replay = fopen("debug/full_debug_replay.log", "a+");
                                 }
-                                if (execution_mode && !strcmp(state->procname, target_exec) && !target_replay_fd)
+                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec) && !target_replay_fd)
                                 {
                                     if (state->into_syscall == init_syscalls[0] || state->into_syscall == init_syscalls[1] || state->into_syscall == init_syscalls[2])
                                     {
@@ -4047,7 +4047,7 @@ skip_to_pos:
                             }
                             else if (state->into_syscall == 4042) // pipe
                             {
-                                if (execution_mode && !strcmp(state->procname, target_exec) && !target_replay_fd)
+                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec) && !target_replay_fd)
                                 {
                                     if (state->into_syscall == init_syscalls[0] || state->into_syscall == init_syscalls[1] || state->into_syscall == init_syscalls[2])
                                     {
@@ -4063,7 +4063,7 @@ skip_to_pos:
                             }
                             else if (state->into_syscall == 4168) // accept
                             {
-                                if (execution_mode && !strcmp(state->procname, target_exec) && target_replay_fd)
+                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec) && target_replay_fd)
                                 {
                                     if (target_replay_fd == a0)
                                         target_replay_fd = ret_value_0;
@@ -4072,7 +4072,7 @@ skip_to_pos:
                             }
                             else if (state->into_syscall == 4006) // close
                             {
-                                if (execution_mode && !strcmp(state->procname, target_exec) && target_replay_fd)
+                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec) && target_replay_fd)
                                 {
                                     if (target_replay_fd == a0)
                                         target_replay_fd = 0;

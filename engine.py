@@ -573,7 +573,7 @@ def pcap_replay(firmware: str, container_name: str = None, pcap_name: str = None
         os.remove(os.path.join(work_dir, "webserver_ready"))
 
     shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
-    os.environ["EXECUTION_MODE"] = "0"
+    os.environ["EXECUTION_MODE"] = "1"
 
     if container_name:
         update_progress(container_name, "booting", 0.2, f"Starting firmware emulation for PCAP replay...")
@@ -732,7 +732,7 @@ def run(firmware: str, capture: bool, container_name: str = None) -> None:
         os.remove(os.path.join(work_dir, "webserver_ready"))
 
     shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
-    os.environ["EXECUTION_MODE"] = "0"
+    os.environ["EXECUTION_MODE"] = "1"
 
     if capture:
         brand = os.path.basename(os.path.dirname(firmware))

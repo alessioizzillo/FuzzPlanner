@@ -3040,29 +3040,31 @@ int cpu_exec(CPUState *cpu)
 
                                 int match = 0;
 
-                                if (ignore_addr && (family == 2 || family == 512 || family == 10 || family == 2560)) {
-                                    char *target_port_str = strstr(target_sock_params, "port:");
-                                    char *runtime_port_str = strstr(sock_params, "port:");
-                                    if (target_port_str && runtime_port_str) {
-                                        match = strcmp(target_port_str + 5, runtime_port_str + 5) == 0;
+                                if (target_channel) {
+                                    if (ignore_addr && (family == 2 || family == 512 || family == 10 || family == 2560)) {
+                                        char *target_port_str = strstr(target_sock_params, "port:");
+                                        char *runtime_port_str = strstr(sock_params, "port:");
+                                        if (target_port_str && runtime_port_str) {
+                                            match = strcmp(target_port_str + 5, runtime_port_str + 5) == 0;
+                                            if (debug && match) {
+                                                FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
+                                                fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (port-only match): target=%s, runtime=%s\n", state->into_syscall, target_sock_params, sock_params);
+                                                fclose(fd_replay);
+                                            }
+                                        }
+                                    } else {
+                                        match = strcmp(target_sock_params, sock_params) == 0;
                                         if (debug && match) {
                                             FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                            fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (port-only match): target=%s, runtime=%s\n", state->into_syscall, target_sock_params, sock_params);
+                                            fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (full match): %s\n", state->into_syscall, target_sock_params);
                                             fclose(fd_replay);
                                         }
                                     }
-                                } else {
-                                    match = strcmp(target_sock_params, sock_params) == 0;
-                                    if (debug && match) {
-                                        FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                        fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (full match): %s\n", state->into_syscall, target_sock_params);
-                                        fclose(fd_replay);
-                                    }
-                                }
 
-                                if (execution_mode && match)
-                                {
-                                    target_replay_syscall = syscall_nr;
+                                    if (execution_mode && match)
+                                    {
+                                        target_replay_syscall = syscall_nr;
+                                    }
                                 }
                             }
                         }
@@ -3549,7 +3551,7 @@ skip_to_pos:
                         target_ulong ret_value_0 = env->regs[0]; //???
                         target_ulong ret_value_1 = env->regs[0]; //???
 #endif
-                        if (1)
+                        if (execution_mode)
                         {   
                             FILE *fd;
                             fd = fopen("full_system_syscall.log", "a+");
@@ -3647,29 +3649,31 @@ skip_to_pos:
 
                                 int match = 0;
 
-                                if (ignore_addr && (family == 2 || family == 512 || family == 10 || family == 2560)) {
-                                    char *target_port_str = strstr(target_sock_params, "port:");
-                                    char *runtime_port_str = strstr(sock_params, "port:");
-                                    if (target_port_str && runtime_port_str) {
-                                        match = strcmp(target_port_str + 5, runtime_port_str + 5) == 0;
+                                if (target_channel) {
+                                    if (ignore_addr && (family == 2 || family == 512 || family == 10 || family == 2560)) {
+                                        char *target_port_str = strstr(target_sock_params, "port:");
+                                        char *runtime_port_str = strstr(sock_params, "port:");
+                                        if (target_port_str && runtime_port_str) {
+                                            match = strcmp(target_port_str + 5, runtime_port_str + 5) == 0;
+                                            if (debug) {
+                                                FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
+                                                fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (port-only match): target=%s, runtime=%s, match: %d\n", state->into_syscall, target_sock_params, sock_params, match);
+                                                fclose(fd_replay);
+                                            }
+                                        }
+                                    } else {
+                                        match = strcmp(target_sock_params, sock_params) == 0;
                                         if (debug) {
                                             FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                            fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (port-only match): target=%s, runtime=%s, match: %d\n", state->into_syscall, target_sock_params, sock_params, match);
+                                            fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (full match): %s, match: %d\n", state->into_syscall, target_sock_params, match);
                                             fclose(fd_replay);
                                         }
                                     }
-                                } else {
-                                    match = strcmp(target_sock_params, sock_params) == 0;
-                                    if (debug) {
-                                        FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                        fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (full match): %s, match: %d\n", state->into_syscall, target_sock_params, match);
-                                        fclose(fd_replay);
-                                    }
-                                }
 
-                                if (execution_mode && match)
-                                {
-                                    target_replay_fd = a0;
+                                    if (execution_mode && match)
+                                    {
+                                        target_replay_fd = a0;
+                                    }
                                 }
                             }
                             else if (state->into_syscall == 4180 || state->into_syscall == 4176) // sendto & recvfrom

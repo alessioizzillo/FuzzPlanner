@@ -121,7 +121,9 @@ def assign_names(csv_file: str, idx: int, num_cores: int,
     i = 0
     while i in existing or i in used:
         i += 1
-    container_name = f"{mode}_{i}"
+    
+    mode_prefix = mode if mode else "fuzz"
+    container_name = f"{mode_prefix}_{i}"
 
     exp_name: Optional[str] = None
     if exp_dir:

@@ -3670,7 +3670,7 @@ skip_to_pos:
                                         }
                                     }
 
-                                    if (execution_mode && match)
+                                    if (execution_mode && !target_replay_fd && match)
                                     {
                                         target_replay_fd = a0;
                                     }
@@ -3771,7 +3771,8 @@ skip_to_pos:
                                                     target_hex = bytes_to_hex(decoded_pattern, decoded_len);
                                                     char *forkpoint_hex = bytes_to_hex(pattern, sizeof(pattern));
 
-                                                    fprintf(fd_pattern_debug, "Pattern matching - target_pattern: %s, decoded_len: %zu, current_len: %d, ret_value_0: %d, sizeof_pattern: %zu, match_found: %d, process: %s\n",
+                                                    fprintf(fd_pattern_debug, "Pattern %s matching - target_pattern: %s, decoded_len: %zu, current_len: %d, ret_value_0: %d, sizeof_pattern: %zu, match_found: %d, process: %s\n",
+                                                            pattern,
                                                             target_pattern ? target_pattern : "NULL",
                                                             decoded_len,
                                                             len,
@@ -3911,7 +3912,8 @@ skip_to_pos:
                                                     target_hex = bytes_to_hex(decoded_pattern, decoded_len);
                                                     char *forkpoint_hex = bytes_to_hex(pattern, sizeof(pattern));
 
-                                                    fprintf(fd_pattern_debug, "Pattern matching - target_pattern: %s, decoded_len: %zu, current_len: %d, ret_value_0: %d, sizeof_pattern: %zu, match_found: %d, process: %s\n",
+                                                    fprintf(fd_pattern_debug, "Pattern %s matching - target_pattern: %s, decoded_len: %zu, current_len: %d, ret_value_0: %d, sizeof_pattern: %zu, match_found: %d, process: %s\n",
+                                                            pattern,
                                                             target_pattern ? target_pattern : "NULL",
                                                             decoded_len,
                                                             len,
@@ -4006,7 +4008,8 @@ skip_to_pos:
                                                     target_hex = bytes_to_hex(decoded_pattern, decoded_len);
                                                     char *forkpoint_hex = bytes_to_hex(pattern, sizeof(pattern));
 
-                                                    fprintf(fd_pattern_debug, "Pattern matching - target_pattern: %s, decoded_len: %zu, current_len: %d, ret_value_0: %d, sizeof_pattern: %zu, match_found: %d, process: %s\n",
+                                                    fprintf(fd_pattern_debug, "Pattern %s matching - target_pattern: %s, decoded_len: %zu, current_len: %d, ret_value_0: %d, sizeof_pattern: %zu, match_found: %d, process: %s\n",
+                                                            pattern,
                                                             target_pattern ? target_pattern : "NULL",
                                                             decoded_len,
                                                             len,

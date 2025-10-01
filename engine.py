@@ -1007,7 +1007,7 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
 
     os.environ["EXECUTION_MODE"] = "2"
     os.environ["FUZZ"] = "1"
-    os.environ["DEBUG_PC"] = "1"
+    # os.environ["DEBUG_PC"] = "1"
     setup_mounts(work_dir)
 
     status = open("/proc/self/status").read()
@@ -1121,6 +1121,43 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
         results = json.load(f)
         data = results.get("entries", results) if isinstance(results, dict) else results
 
+    executable_name = os.path.basename(exp['executableId'])
+    executable_path = None
+
+    try:
+        result = subprocess.run(
+            ["chroot", ".", "which", executable_name],
+            cwd=work_dir,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            executable_path = result.stdout.strip()
+    except Exception as e:
+        print(f"Warning: 'which' command failed: {e}")
+
+    if not executable_path:
+        try:
+            result = subprocess.run(
+                ["find", ".", "-type", "f", "-name", executable_name, "-executable"],
+                cwd=work_dir,
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                found = result.stdout.strip().split('\n')[0]
+                executable_path = found[1:] if found.startswith('./') else ('/' + found if not found.startswith('/') else found)
+        except Exception as e:
+            print(f"Warning: 'find' command failed: {e}")
+
+    if not executable_path:
+        print(f"Warning: Could not locate executable '{executable_name}', using original path")
+        executable_path = exp['executableId']
+
+    print(f"Using executable path: {executable_path}")
+
     command = []
     # command += ["gdb", "--batch", "--ex", "set follow-fork-mode child", "--ex", "run", "--ex", "bt", "--args"]
     command += ["chroot", "."]
@@ -1132,7 +1169,7 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
     command += ["-o", "outputs"]
     command += ["-x", "keywords"]
     command += ["-b", cpu_to_bind]
-    command += [exp["executableId"]]
+    command += [executable_path]
     command += ["@@"]
 
     ret = 1

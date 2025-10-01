@@ -54,9 +54,11 @@ function Kind ({ cRef, dms, value }) {
   )
 }
 
+const checkboxStates = new Map()
+
 function Select({ cRef, dms, value }) {
   const { binary, channel, role } = value
-  const id = `${binary.id}-${channel.id}`
+  const checkboxKey = `${binary.id}:::${channel.id}`
 
   const brandId = useSelectedBrand()
   const firmwareId = useSelectedFirmware()
@@ -69,8 +71,7 @@ function Select({ cRef, dms, value }) {
   const { refresh: forceRefresh } = useOptimizedSelectAnalyses(brandId, firmwareId, runId, null, { includeBinaryFilter: false })
 
   const handleClick = useCallback(() => {
-    const checkbox = document.querySelector(`#no-addr-${binary.id}-${channel.id}`)
-    const ignoreAddr = checkbox ? checkbox.checked : false
+    const ignoreAddr = checkboxStates.get(checkboxKey) || false
 
     console.log(
       '%c[Selection] Sending to analysis:',
@@ -85,7 +86,7 @@ function Select({ cRef, dms, value }) {
         setTimeout(() => setSent(false), 3000)
       },
     })
-  }, [brandId, firmwareId, runId, binary.id, channel.id, postSelectMutation, forceRefresh])
+  }, [brandId, firmwareId, runId, binary.id, channel.id, checkboxKey, postSelectMutation, forceRefresh])
 
   return (
     <div ref={cRef} className="flex items-center justify-center">
@@ -108,15 +109,21 @@ function Select({ cRef, dms, value }) {
 }
 
 function NoAddr({ cRef, value }) {
-  const [ignoreAddr, setIgnoreAddr] = useState(false)
+  const checkboxKey = `${value.binary?.id}:::${value.channel?.id}`
+  const [ignoreAddr, setIgnoreAddr] = useState(checkboxStates.get(checkboxKey) || false)
+
+  const handleChange = (e) => {
+    const checked = e.target.checked
+    setIgnoreAddr(checked)
+    checkboxStates.set(checkboxKey, checked)
+  }
 
   return (
     <div ref={cRef} className='h-6 flex items-center justify-center'>
       <input
-        id={`no-addr-${value.binary?.id}-${value.channel?.id}`}
         type="checkbox"
         checked={ignoreAddr}
-        onChange={(e) => setIgnoreAddr(e.target.checked)}
+        onChange={handleChange}
         className="w-4 h-4 accent-blue-500 cursor-pointer"
         title="Ignore address in socket matching (match port only)"
       />

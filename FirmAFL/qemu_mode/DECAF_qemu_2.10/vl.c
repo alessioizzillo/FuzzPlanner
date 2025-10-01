@@ -3198,63 +3198,65 @@ int main(int argc, char **argv, char **envp)
                 fclose(fd_replay);
             }
 
-            if (strstr(target_channel, "virtual_file"))
-            {
-                init_syscalls[0] = 4005;    //open
-                init_syscalls[1] = 0;
-                init_syscalls[2] = 0;
-                init_syscalls[3] = 0;
-                target_syscalls[0] = 4003;   //read
-                target_syscalls[1] = 0;
-                target_syscalls[2] = 0;
-                target_syscalls[3] = 0;
+            if (target_channel) {
+                if (strstr(target_channel, "virtual_file"))
+                {
+                    init_syscalls[0] = 4005;    //open
+                    init_syscalls[1] = 0;
+                    init_syscalls[2] = 0;
+                    init_syscalls[3] = 0;
+                    target_syscalls[0] = 4003;   //read
+                    target_syscalls[1] = 0;
+                    target_syscalls[2] = 0;
+                    target_syscalls[3] = 0;
+                }
+                else if (strstr(target_channel, "file"))
+                {
+                    init_syscalls[0] = 4005;    //open
+                    init_syscalls[1] = 0;
+                    init_syscalls[2] = 0;
+                    init_syscalls[3] = 0;
+                    target_syscalls[0] = 4003;   //read
+                    target_syscalls[1] = 0;
+                    target_syscalls[2] = 0;
+                    target_syscalls[3] = 0;
+                }
+                else if (strstr(target_channel, "socket"))
+                {
+                    init_syscalls[0] = 4169;    //bind
+                    init_syscalls[1] = 4170;    //connect
+                    init_syscalls[2] = 4176;    //recvfrom
+                    init_syscalls[3] = 4177;    //recvmsg
+                    target_syscalls[0] = 4003;  //read
+                    target_syscalls[1] = 4175;  //recv
+                    target_syscalls[2] = 4176;  //recvfrom
+                    target_syscalls[3] = 4177;  //recvmsg
+                }
+                else if (strstr(target_channel, "device"))
+                {
+                    init_syscalls[0] = 4005;    //open
+                    init_syscalls[1] = 0;
+                    init_syscalls[2] = 0;
+                    init_syscalls[3] = 0;
+                    target_syscalls[0] = 4003;   //read
+                    target_syscalls[1] = 0;
+                    target_syscalls[2] = 0;
+                    target_syscalls[3] = 0;
+                }
+                else if (strstr(target_channel, "pipe"))
+                {
+                    init_syscalls[0] = 4042;    //pipe
+                    init_syscalls[1] = 0;
+                    init_syscalls[2] = 0;
+                    init_syscalls[3] = 0;
+                    target_syscalls[0] = 4003;   //read
+                    target_syscalls[1] = 0;
+                    target_syscalls[2] = 0;
+                    target_syscalls[3] = 0;
+                }
+                else
+                    assert(1);
             }
-            else if (strstr(target_channel, "file"))
-            {
-                init_syscalls[0] = 4005;    //open
-                init_syscalls[1] = 0;
-                init_syscalls[2] = 0;
-                init_syscalls[3] = 0;
-                target_syscalls[0] = 4003;   //read
-                target_syscalls[1] = 0;
-                target_syscalls[2] = 0;
-                target_syscalls[3] = 0;
-            }
-            else if (strstr(target_channel, "socket"))
-            {
-                init_syscalls[0] = 4169;    //bind
-                init_syscalls[1] = 4170;    //connect
-                init_syscalls[2] = 4176;    //recvfrom
-                init_syscalls[3] = 4177;    //recvmsg
-                target_syscalls[0] = 4003;  //read
-                target_syscalls[1] = 4175;  //recv
-                target_syscalls[2] = 4176;  //recvfrom
-                target_syscalls[3] = 4177;  //recvmsg
-            }
-            else if (strstr(target_channel, "device"))
-            {
-                init_syscalls[0] = 4005;    //open
-                init_syscalls[1] = 0;
-                init_syscalls[2] = 0;
-                init_syscalls[3] = 0;
-                target_syscalls[0] = 4003;   //read
-                target_syscalls[1] = 0;
-                target_syscalls[2] = 0;
-                target_syscalls[3] = 0;
-            }
-            else if (strstr(target_channel, "pipe"))
-            {
-                init_syscalls[0] = 4042;    //pipe
-                init_syscalls[1] = 0;
-                init_syscalls[2] = 0;
-                init_syscalls[3] = 0;
-                target_syscalls[0] = 4003;   //read
-                target_syscalls[1] = 0;
-                target_syscalls[2] = 0;
-                target_syscalls[3] = 0;
-            }
-            else
-                assert(1);
         }
     }
     

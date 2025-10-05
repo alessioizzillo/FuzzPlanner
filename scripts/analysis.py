@@ -446,26 +446,32 @@ def dynamic_analysis():
                         kind = "unknown_socket"
                     data_channels_dict[proc_fds[proc_pid][1][a0]] = {"kind" : kind, "used": False, "listening_pids" : [], "score": 0.0}
 
-                if data_channels_dict[proc_fds[proc_pid][1][a0]]["kind"] == "inet_socket" or data_channels_dict[proc_fds[proc_pid][1][a0]]["kind"] == "inet6_socket":
-                    data_channels_dict[proc_fds[proc_pid][1][a0]]["listening_pids"].append({"time" : ts, "pid" : proc_pid})
-
             obj = proc_fds[proc_pid][1][a0]
             read_bytes = int(ret)
+
+            actual_pid = proc_pid
+            actual_name = proc_name
+            if obj in data_channels_dict and data_channels_dict[obj]["listening_pids"]:
+                listening_info = data_channels_dict[obj]["listening_pids"][0]
+                actual_pid = listening_info["pid"]
+                if actual_pid in processes_dict:
+                    actual_name = processes_dict[actual_pid]["procname"]
+
             if obj in open_interactions_dict:
                 if read_bytes > 0:
                     if "sinks" not in open_interactions_dict[obj]:
-                        open_interactions_dict[obj]["sinks"] = [(ts, proc_pid)]
+                        open_interactions_dict[obj]["sinks"] = [(ts, actual_pid, actual_name)]
                     else:
-                        if any(proc_pid in t[1] for t in open_interactions_dict[obj]["sinks"]):
-                            open_interactions_dict[obj]["sinks"].append((ts, proc_pid))
+                        if any(actual_pid in t[1] for t in open_interactions_dict[obj]["sinks"]):
+                            open_interactions_dict[obj]["sinks"].append((ts, actual_pid, actual_name))
 
             else:
                 if read_bytes > 0:
                     if obj not in sinks_without_sources_dict:
-                        sinks_without_sources_dict[obj] = {"sinks" : [(ts, proc_pid)], "sources" : [], "first_ts" : ts, "remaining_bytes" : read_bytes}
+                        sinks_without_sources_dict[obj] = {"sinks" : [(ts, actual_pid, actual_name)], "sources" : [], "first_ts" : ts, "remaining_bytes" : read_bytes}
                     else:
-                        if any(proc_pid in t[1] for t in sinks_without_sources_dict[obj]["sinks"]):
-                            sinks_without_sources_dict[obj]["sinks"].append((ts, proc_pid))
+                        if any(actual_pid in t[1] for t in sinks_without_sources_dict[obj]["sinks"]):
+                            sinks_without_sources_dict[obj]["sinks"].append((ts, actual_pid, actual_name))
                         sinks_without_sources_dict[obj]["remaining_bytes"]+=read_bytes
 
         elif(syscall in output_syscalls.values()):
@@ -508,7 +514,7 @@ def dynamic_analysis():
             cont = False
             for sink_obj in sinks_without_sources_dict:
                 if sink_obj == obj and sinks_without_sources_dict[sink_obj]["remaining_bytes"] > 0:
-                    sinks_without_sources_dict[obj]["sources"].append((ts, proc_pid))
+                    sinks_without_sources_dict[obj]["sources"].append((ts, proc_pid, proc_name))
                     sinks_without_sources_dict[sink_obj]["remaining_bytes"]-=written_bytes
                     cont = True
                     break
@@ -523,13 +529,13 @@ def dynamic_analysis():
                         interactions_dict[str(interactions_count)] = {"channel" : obj, "sources" : open_interactions_dict[obj]["sources"], "sinks" : open_interactions_dict[obj]["sinks"]}
                         interactions_count += 1
                         open_interactions_dict.pop(obj)
-                        open_interactions_dict[obj] = {"sources" : [(ts, proc_pid)]}
+                        open_interactions_dict[obj] = {"sources" : [(ts, proc_pid, proc_name)]}
                     else:
                         if any(proc_pid in t[1] for t in open_interactions_dict[obj]["sources"]):
-                            open_interactions_dict[obj]["sources"].append((ts, proc_pid))
+                            open_interactions_dict[obj]["sources"].append((ts, proc_pid, proc_name))
             else:
                 if written_bytes > 0:
-                    open_interactions_dict[obj] = {"sources" : [(ts, proc_pid)]}
+                    open_interactions_dict[obj] = {"sources" : [(ts, proc_pid, proc_name)]}
 
     for obj in sinks_without_sources_dict:
         if "sinks" in sinks_without_sources_dict[obj]:
@@ -580,11 +586,15 @@ def post_analysis_checks(out_dir):
                 if len(interactions_dict[int_id]["sinks"]) == 0:
                     log_file.write("WARNING: interaction %s (%s) has no sink!\n" % (int_id, interactions_dict[int_id]))
             elif interactions_dict[int_id]["channel"] in data_channels_dict and data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "inet_socket":
-                if any((ts, proc_pid) in interactions_dict[int_id]["sources"] for (ts, proc_pid) in interactions_dict[int_id]["sinks"]):
+                source_pids = set([t[1] for t in interactions_dict[int_id]["sources"]])
+                sink_pids = set([t[1] for t in interactions_dict[int_id]["sinks"]])
+                if source_pids & sink_pids:
                     log_file.write("ERROR: some source process of the interaction %s (%s) is a sink process too!\n" % (int_id, interactions_dict[int_id]))
-                    err = True                    
+                    err = True
             elif interactions_dict[int_id]["channel"] in data_channels_dict and data_channels_dict[interactions_dict[int_id]["channel"]]["kind"] == "inet6_socket":
-                if any((ts, proc_pid) in interactions_dict[int_id]["sources"] for (ts, proc_pid) in interactions_dict[int_id]["sinks"]):
+                source_pids = set([t[1] for t in interactions_dict[int_id]["sources"]])
+                sink_pids = set([t[1] for t in interactions_dict[int_id]["sinks"]])
+                if source_pids & sink_pids:
                     log_file.write("ERROR: some source process of the interaction %s (%s) is a sink process too!\n" % (int_id, interactions_dict[int_id]))
                     err = True
 
@@ -716,11 +726,21 @@ def save_dynamic_analysis_results(out_dir):
 
     for interaction in interactions_dict:
         sources = []
-        for (ts, source) in interactions_dict[interaction]["sources"]:
-            sources.append({"time" : ts, "pid" : source})
+        for source_tuple in interactions_dict[interaction]["sources"]:
+            if len(source_tuple) == 3:
+                ts, source, procname = source_tuple
+                sources.append({"time" : ts, "pid" : source, "procname" : procname})
+            else:
+                ts, source = source_tuple
+                sources.append({"time" : ts, "pid" : source})
         sinks = []
-        for (ts, sink) in interactions_dict[interaction]["sinks"]:
-            sinks.append({"time" : ts, "pid" : sink})
+        for sink_tuple in interactions_dict[interaction]["sinks"]:
+            if len(sink_tuple) == 3:
+                ts, sink, procname = sink_tuple
+                sinks.append({"time" : ts, "pid" : sink, "procname" : procname})
+            else:
+                ts, sink = sink_tuple
+                sinks.append({"time" : ts, "pid" : sink})
         interactions_list.append({"id" : interaction, "channel" : interactions_dict[interaction]["channel"], "sources" : sources, "sinks" : sinks})
 
     if not os.path.exists(out_dir+"/data"):

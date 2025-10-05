@@ -276,7 +276,10 @@ def cleanup_stale_running_select_analyses(csv_file: str):
                 container_name = metadata.get("container_name")
                 if not container_name or container_name not in valid_containers:
                     print(f"[-] Removing stale metadata file: {filename}")
-                    os.remove(filepath)
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+        except FileNotFoundError:
+            pass
         except (json.JSONDecodeError, OSError) as e:
             print(f"[!] Error reading/removing {filename}: {e}")
 
@@ -293,19 +296,24 @@ def ensure_experiment_consistency(csv_file: str) -> None:
     running_containers = get_running_containers()
 
     for row in rows[1:]:
-        if len(row) < len(headers): continue
+        if len(row) < len(headers):
+            row = row + [''] * (len(headers) - len(row))
 
         status, exp_name, container_name, num_cores, mode, firmware = row[:6]
         pcap_name = row[6] if len(row) > 6 else ""
 
-        if status == "" and exp_name == "" and container_name == "" and mode == "fuzz":
+        if status == "":
+            keep = True
+        elif mode in {'check', 'run', 'run_capture', 'select', 'pcap_replay', 'fuzz'}:
+            if status and container_name:
+                keep = True
+            else:
+                keep = True
+        elif status == "" and exp_name == "" and container_name == "" and mode == "fuzz":
             keep = True
         else:
-            keep = (
-                    not (status and container_name not in running_containers.values()) and
-                    (mode in {'check', 'run', 'run_capture', 'select', 'pcap_replay'} or
-                    not ((status == "" or exp_name == "" or container_name == "") and not (status == "" and exp_name == "" and container_name == "")))
-                )
+            keep = False
+
         if keep:
             valid_rows.append(row)
 
@@ -361,7 +369,7 @@ def get_container_info(firmware: str, schedule_csv: str) -> Tuple[Optional[str],
 
             for row in reader:
                 print(row.get('mode'), row.get('firmware'), firmware)
-                if row.get('mode') in ('run','run_capture','pcap_replay') and row.get('firmware')==firmware:
+                if row.get('mode') in ('run','run_capture') and row.get('firmware')==firmware:
                     return row.get('status'), row.get('container_name')
     except (OSError, csv.Error) as e:
         print(f"Error reading CSV file {schedule_csv}: {e}")

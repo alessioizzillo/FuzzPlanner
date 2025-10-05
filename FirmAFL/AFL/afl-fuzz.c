@@ -2453,6 +2453,10 @@ static u8 run_target(char** argv, u32 timeout) {
         exit(2);
       }
       else if (ret == 0) {
+        if (child_pid > 0) {
+          kill(child_pid, SIGKILL);
+          waitpid(child_pid, &status, 0);
+        }
         exit(2);
       }
       else {
@@ -3399,10 +3403,6 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0777);
     if (fd < 0) PFATAL("Unable to create '%s'", fn);
     ck_write(fd, mem, len, fn);
-    for (i = 0; i < 4096-len; i++){
-      byte = 0;
-      write(fd, &byte, 1);
-    }
     close(fd);
 
     keeping = 1;
@@ -3531,10 +3531,6 @@ keep_as_crash:
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0777);
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
   ck_write(fd, mem, len, fn);
-  for (i = 0; i < 4096-len; i++){
-    byte = 0;
-    write(fd, &byte, 1);
-  }
   close(fd);
 
   ck_free(fn);

@@ -968,10 +968,11 @@ def select(container_name: str, firmware: str) -> None:
 
             update_progress(container_name, "completed", 1.0, f"Analysis completed: {len(entries)} execution points found")
 
-        try:
-            os.remove(running_info_path)
-        except OSError as e:
-            print(f"Warning: could not delete {running_info_path}: {e}", file=sys.stderr)
+        if os.path.exists(running_info_path):
+            try:
+                os.remove(running_info_path)
+            except OSError as e:
+                print(f"Warning: could not delete {running_info_path}: {e}", file=sys.stderr)
 
         try:
             progress_file = f"tmp/progress/{container_name}.json"

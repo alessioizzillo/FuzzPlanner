@@ -27,6 +27,7 @@
  */
 #include "zyw_config.h"
 #include "extern_vars.h"
+#include <signal.h>
 
 int run_time = 0;
 
@@ -98,6 +99,13 @@ void cross_shamem_disconn(void);
 //zyw fix the all the pipe read error: no data, data is wrong;
 int read_content(int pipe_fd, char *buf, int total_len)
 {
+    if (debug) {
+      FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+      if(trace_fp) {
+          fprintf(trace_fp, "[USER_MODE] READ_CONTENT: attempting to read %d bytes from fd=%d\n", total_len, pipe_fd);
+          fclose(trace_fp);
+      }
+    }
     int rest_len = total_len;
     int read_len = 0;
     int read_len_once = 0;
@@ -113,6 +121,15 @@ int read_content(int pipe_fd, char *buf, int total_len)
         read_len += read_len_once;
     }
     while(rest_len!=0);
+
+    if (debug) {
+      FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+      if(trace_fp) {
+          fprintf(trace_fp, "[USER_MODE] READ_CONTENT: successfully read %d bytes\n", read_len);
+          fclose(trace_fp);
+      }
+    }
+
     return read_len;
 
 }
@@ -120,22 +137,29 @@ int read_content(int pipe_fd, char *buf, int total_len)
 int read_aflcmd(void)
 {
   int res = 0;
-  if(pipe_read_fd != -1)  
-  {    
+  if(pipe_read_fd != -1)
+  {
       int is_loop_over;
       res = read_content(pipe_read_fd, &is_loop_over, sizeof(int));
-      if(res == -1)  
-      {  
+      if(res == -1)
+      {
           fprintf(stderr, "read_aflcmd error on pipe\n");  sleep(1000);
-          exit(EXIT_FAILURE);  
+          exit(EXIT_FAILURE);
       }
-      printf("write aflcmd %d\n", is_loop_over); 
+      printf("write aflcmd %d\n", is_loop_over);
+      if (debug) {
+        FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+        if(trace_fp) {
+            fprintf(trace_fp, "[USER_MODE] READ response: is_loop_over=%d\n", is_loop_over);
+            fclose(trace_fp);
+        }
+      }
       return is_loop_over;
-  }  
+  }
   else {
       printf("read pipe not open\n");
       sleep(1000);
-      exit(EXIT_FAILURE);  
+      exit(EXIT_FAILURE);
   }
 }
 
@@ -194,42 +218,49 @@ int write_aflcmd(int cmd, USER_MODE_TIME *user_mode_time)
 }  
 */
 
-void write_aflcmd(int cmd, USER_MODE_TIME *user_mode_time)  
-{  
-    int res = 0;  
-  
-    if(pipe_write_fd != -1)  
-    { 
-      int type = 2; 
-      res = write(pipe_write_fd, &type, sizeof(int));  
-      if(res == -1)  
-      {  
-        fprintf(stderr, "Write type on pipe\n");  
-        exit(EXIT_FAILURE);  
+void write_aflcmd(int cmd, USER_MODE_TIME *user_mode_time)
+{
+    int res = 0;
+
+    if(pipe_write_fd != -1)
+    {
+      int type = 2;
+      if (debug) {
+        FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+        if(trace_fp) {
+            fprintf(trace_fp, "[USER_MODE] WRITE cmd: type=%d, cmd=0x%x\n", type, cmd);
+            fclose(trace_fp);
+        }
       }
-      res = write(pipe_write_fd, &cmd, sizeof(int));  
-      if(res == -1)  
-      {  
-        fprintf(stderr, "Write error on pipe\n");  
-        exit(EXIT_FAILURE);  
+      res = write(pipe_write_fd, &type, sizeof(int));
+      if(res == -1)
+      {
+        fprintf(stderr, "Write type on pipe\n");
+        exit(EXIT_FAILURE);
       }
-      res = write(pipe_write_fd, user_mode_time, sizeof(USER_MODE_TIME));  
-      if(res == -1)  
-      {  
-        fprintf(stderr, "Write error on pipe\n");  
-        exit(EXIT_FAILURE);  
+      res = write(pipe_write_fd, &cmd, sizeof(int));
+      if(res == -1)
+      {
+        fprintf(stderr, "Write error on pipe\n");
+        exit(EXIT_FAILURE);
+      }
+      res = write(pipe_write_fd, user_mode_time, sizeof(USER_MODE_TIME));
+      if(res == -1)
+      {
+        fprintf(stderr, "Write error on pipe\n");
+        exit(EXIT_FAILURE);
       }
       if(print_debug)
       {
-        printf("write cmd ok:%x\n", cmd);  
+        printf("write cmd ok:%x\n", cmd);
       }
       printf("write cmd ok:%x\n", cmd);
-    }  
+    }
     else
     {
       printf("write aflcmd pipe_write_fd -1\n");
       sleep(1000);
-      exit(EXIT_FAILURE);  
+      exit(EXIT_FAILURE);
     }
 } 
 
@@ -255,9 +286,11 @@ void write_aflcmd_complete(int cmd, USER_MODE_TIME *user_mode_time)
       count++;
       not_ready = 1;
       printf("not ready:%d,%d\n", cmd, is_loop_over);
-      if(count == 5)
+      if(count >= 5)
       {
-        sleep(100000);
+        fprintf(stderr, "ERROR: write_aflcmd_complete handshake failed after 5 retries (cmd=0x%x, is_loop_over=%d)\n", cmd, is_loop_over);
+        /* Exit instead of sleeping forever to allow fuzzer to continue */
+        exit(1);
       }
     }
   }

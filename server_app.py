@@ -1367,16 +1367,30 @@ def analyze_pcap() -> Response:
 
         combined = os.path.join(brand, firmware)
 
-        status, cname = get_container_info(combined, SCHEDULE_CSV)
-        if status == "running":
-            return jsonify({"status": "error", "message": "Analysis already running for this firmware"}), 400
+        if os.path.isfile(SCHEDULE_CSV):
+            with open(SCHEDULE_CSV, newline='') as fp:
+                reader = csv.DictReader(fp)
+                for row in reader:
+                    if (row.get('mode') == 'pcap_replay' and
+                        row.get('firmware') == combined and
+                        row.get('status') == 'running'):
+                        return jsonify({"status": "error", "message": "PCAP replay already running for this firmware"}), 400
 
         append_csv_row(SCHEDULE_CSV, SCHEDULE_HEADER, ["", "", "", "1", "pcap_replay", combined, pcap_name])
         success = run_container(SCHEDULE_CSV, LOGICAL_TO_PAIR, PAIR_TO_LOGICAL, None)
 
         if success:
-            # Get the container name that was assigned after starting the container
-            status, container_name = get_container_info(combined, SCHEDULE_CSV)
+            container_name = None
+            if os.path.isfile(SCHEDULE_CSV):
+                with open(SCHEDULE_CSV, newline='') as fp:
+                    reader = csv.DictReader(fp)
+                    for row in reader:
+                        if (row.get('mode') == 'pcap_replay' and
+                            row.get('firmware') == combined and
+                            row.get('status') == 'running'):
+                            container_name = row.get('container_name')
+                            break
+
             return jsonify({
                 "status": "success",
                 "message": f"Started PCAP replay analysis for {pcap_name}",
@@ -1454,33 +1468,31 @@ def get_progress(container_name: str) -> Response:
 def compute_pcap_replay_progress(brand: str, firmware: str, pcap_name: str) -> dict:
     combined = os.path.join(brand, firmware)
 
-    status, container_name = get_container_info(combined, SCHEDULE_CSV)
+    rows = read_csv_rows(SCHEDULE_CSV)
+    for row in rows:
+        if (row.get("firmware") == combined and
+            row.get("mode") == "pcap_replay" and
+            row.get("pcap_name") == pcap_name and
+            row.get("status") == "running"):
 
-    if status == "running":
-        rows = read_csv_rows(SCHEDULE_CSV)
-        for row in rows:
-            if (row.get("firmware") == combined and
-                row.get("mode") == "pcap_replay" and
-                row.get("pcap_name") == pcap_name and
-                row.get("status") == "running"):
+            container_name = row.get("container_name")
+            progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
+            if os.path.exists(progress_file):
+                try:
+                    with open(progress_file, 'r') as f:
+                        progress_data = json.load(f)
+                    progress_data["container_name"] = container_name
+                    return progress_data
+                except (OSError, json.JSONDecodeError):
+                    pass
 
-                progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
-                if os.path.exists(progress_file):
-                    try:
-                        with open(progress_file, 'r') as f:
-                            progress_data = json.load(f)
-                        progress_data["container_name"] = container_name
-                        return progress_data
-                    except (OSError, json.JSONDecodeError):
-                        pass
-
-                return {
-                    "phase": "starting",
-                    "progress": 0.0,
-                    "message": "Analysis is starting...",
-                    "container_name": container_name,
-                    "timestamp": datetime.now().isoformat()
-                }
+            return {
+                "phase": "starting",
+                "progress": 0.0,
+                "message": "Analysis is starting...",
+                "container_name": container_name,
+                "timestamp": datetime.now().isoformat()
+            }
 
     return {"status": "not_running"}
 
@@ -1498,11 +1510,18 @@ def get_pcap_replay_progress() -> Response:
     combined = os.path.join(brand, firmware)
     files_to_check = [SCHEDULE_CSV]
 
-    status, container_name = get_container_info(combined, SCHEDULE_CSV)
-    if status == "running" and container_name:
-        progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
-        if os.path.exists(progress_file):
-            files_to_check.append(progress_file)
+    rows = read_csv_rows(SCHEDULE_CSV)
+    for row in rows:
+        if (row.get("firmware") == combined and
+            row.get("mode") == "pcap_replay" and
+            row.get("pcap_name") == pcap_name and
+            row.get("status") == "running"):
+            container_name = row.get("container_name")
+            if container_name:
+                progress_file = os.path.join(TMP_DIR, "progress", f"{container_name}.json")
+                if os.path.exists(progress_file):
+                    files_to_check.append(progress_file)
+            break
 
     current_etag, last_modified = generate_etag_for_files(files_to_check)
 

@@ -939,7 +939,8 @@ void bug_exit(target_ulong addr)
         close(pipe_write_fd);
     }
     */
-    if(addr == 0)
+    // if(addr == 0)
+    if (0)
     {
         printf("page addr 0\n");
         exit(0);
@@ -1008,9 +1009,26 @@ int count_3 = 0;
 int monitor_fd = 0;
 
 int state = 2;
-void exit_func(int syscall_num, int program_id)
+void exit_func(CPUArchState *env, int syscall_num, int program_id)
 {
 #ifdef MEM_MAPPING
+#ifdef TARGET_MIPS
+    target_ulong pc = env->active_tc.PC;
+    target_ulong a0 = env->active_tc.gpr[4];
+    target_ulong a1 = env->active_tc.gpr[5];
+    target_ulong a2 = env->active_tc.gpr[6];
+    target_ulong a3 = env->active_tc.gpr[7];
+    target_ulong ra = env->active_tc.gpr[31];
+
+#elif defined(TARGET_ARM)
+    target_ulong pc = env->regs[15];
+    target_ulong a0 = env->regs[0];
+    target_ulong a1 = env->regs[1];
+    target_ulong a2 = env->regs[2];
+    target_ulong a3 = env->regs[3];
+    target_ulong ra = env->regs[14];
+#endif
+
 #ifdef TARGET_MIPS
         if (syscall_num == 1 || syscall_num == 246)
 #elif defined(TARGET_ARM)
@@ -1019,78 +1037,10 @@ void exit_func(int syscall_num, int program_id)
         {          
             normal_exit(syscall_num);
         }
-        else if(syscall_num == 142)
+        else if(accept_fd == a0 && (syscall_num == 4 || syscall_num == 246 || syscall_num == 178))
         {
-            if (extern_struct->buf_read_index >= total_len){
-                //add for 161161 firmware
-                if(program_id == 161161)
-                {
-                    if(last_syscall == 142)
-                    {
-                        last_syscall = 0;
-                        normal_exit(syscall_num); 
-                    }
-                }
-                else if(state == 2 && ( program_id == 12979 || program_id == 13112 || program_id == 18627))
-                {
-                    state++;
-                }   
-                else
-                {
-                    state = 2;
-                    normal_exit(syscall_num);
-                }
-            }
+            normal_exit(syscall_num);
         }
-        else if(syscall_num == 188)
-        {
-            if(state == 2 && (program_id == 106030 || program_id == 106036 || program_id == 106037 || program_id == 19545 || program_id == 20023))
-            {
-                state++;
-            }
-            else if(state == 2)
-            {
-                normal_exit(syscall_num);
-            }
-            else
-                state++;
-        }
-        else if(syscall_num == 45)
-        {
-            if(program_id == 10853)
-            {
-                normal_exit(syscall_num);
-            }
-            ////add for 161161 firmware
-            if(program_id == 161161)
-            {
-                 normal_exit(syscall_num);
-            }
-        }
-        //add for 161161 firmware
-        else if(syscall_num == 3)
-        {
-            if (extern_struct->buf_read_index >= total_len){
-                normal_exit(syscall_num);
-            }
-            else{
-                if(program_id == 161161)
-                {
-                    count_3++;
-                    if(count_3 == 3)
-                    {
-                        count_3 = 0;
-                        last_syscall = 0;
-                        normal_exit(syscall_num);
-                    }
-                }
-            }
-        }
-        if(syscall_num != 3)
-        {
-            count_3 = 0;
-        }
-        //end
         
 #endif
 }
@@ -1951,7 +1901,7 @@ void cpu_loop(CPUARMState *env)
                     } else {
                         printf("syscall:%d\n", n);
                         printf("syscall start pc:%x\n", env->regs[15]);
-                        exit_func(n, program_id);
+                        exit_func(env, n, program_id);
 #ifdef MEM_MAPPING
                         int file_opti = 0;        
                         int local_or_not = determine_local_or_not(n, program_id, env, &file_opti);
@@ -3524,7 +3474,7 @@ void cpu_loop(CPUMIPSState *env)
 # ifdef TARGET_ABI_MIPSO32
             syscall_num = env->active_tc.gpr[2] - 4000;
             printf("syscall num:%d\n", syscall_num);
-            exit_func(syscall_num, program_id);//zyw
+            exit_func(env, syscall_num, program_id);//zyw
 
             if (syscall_num >= sizeof(mips_syscall_args)) {
                 ret = -TARGET_ENOSYS;
@@ -6977,8 +6927,22 @@ static void handler(int sig_num, siginfo_t *si, void *ptr)
         }
         uintptr_t phys_addr;
         read_addr(error_addr, &phys_addr);
+        if (debug) {
+            FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+            if(trace_fp) {
+                fprintf(trace_fp, "[USER_MODE] phys_addr=0x%x\n", phys_addr);
+                fclose(trace_fp);
+            }
+        }
         if(phys_addr == 0xffffffff)
         {
+            if (debug) {
+                FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+                if(trace_fp) {
+                    fprintf(trace_fp, "[USER_MODE] phys_addr=0x%x (entered)\n", phys_addr);
+                    fclose(trace_fp);
+                }
+            }
             pthread_mutex_unlock(p_mutex_shared);
             cross_shamem_disconn(); //ZYW 
             //printf("bug exit\n");
@@ -7310,48 +7274,64 @@ void open_read_pipe()
 
 
 
-int write_state(CPUArchState *env, target_ulong address, int prot)  
-{  
-    CPUSHSTATE cpustate;  
+int write_state(CPUArchState *env, target_ulong address, int prot)
+{
+    CPUSHSTATE cpustate;
     storeCPUShState(&cpustate, env);
     int res = 0;
-    int type = 1;  
-    if(pipe_write_fd != -1)  
-    {  
-        int type = 1;
-        res = write(pipe_write_fd, &type, sizeof(int));  
-        if(res == -1)  
-        {  
-            fprintf(stderr, "Write type on pipe\n"); 
-            printf("write type on pipe error\n"); sleep(1000);
-            exit(EXIT_FAILURE);  
-        } 
-        res = write(pipe_write_fd, &cpustate, sizeof(CPUSHSTATE));  
-        if(res == -1)  
-        {  
-            printf("Write error on pipe\n");sleep(1000);
-            exit(EXIT_FAILURE);  
+    int type = 1;
+    if(pipe_write_fd != -1)
+    {
+        if (debug) {
+            FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+            if(trace_fp) {
+                fprintf(trace_fp, "[USER_MODE] WRITE_STATE: type=1, address=0x%x, prot=%d\n", address, prot);
+                fclose(trace_fp);
+            }
         }
-        res = write(pipe_write_fd, &address, sizeof(target_ulong)); 
-        if(res == -1)  
-        {  
+
+        int type = 1;
+        res = write(pipe_write_fd, &type, sizeof(int));
+        if(res == -1)
+        {
+            fprintf(stderr, "Write type on pipe\n");
+            printf("write type on pipe error\n"); sleep(1000);
+            exit(EXIT_FAILURE);
+        }
+        res = write(pipe_write_fd, &cpustate, sizeof(CPUSHSTATE));
+        if(res == -1)
+        {
             printf("Write error on pipe\n");sleep(1000);
-            exit(EXIT_FAILURE);  
-        } 
-        res = write(pipe_write_fd, &prot, sizeof(int)); 
-        if(res == -1)  
-        {  
+            exit(EXIT_FAILURE);
+        }
+        res = write(pipe_write_fd, &address, sizeof(target_ulong));
+        if(res == -1)
+        {
             printf("Write error on pipe\n");sleep(1000);
-            exit(EXIT_FAILURE);  
-        }   
+            exit(EXIT_FAILURE);
+        }
+        res = write(pipe_write_fd, &prot, sizeof(int));
+        if(res == -1)
+        {
+            printf("Write error on pipe\n");sleep(1000);
+            exit(EXIT_FAILURE);
+        }
         //printf("write state ok %x,addr:%x\n",  cpustate.PC, address);
-    }  
+
+        if (debug) {
+            FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+            if(trace_fp) {
+                fprintf(trace_fp, "[USER_MODE] WRITE_STATE: completed successfully\n");
+                fclose(trace_fp);
+            }
+        }
+    }
     else{
         printf("write error\n");
         sleep(1000);
-        exit(EXIT_FAILURE);  
+        exit(EXIT_FAILURE);
     }
-  
+
     return 1;  
 } 
 
@@ -7430,15 +7410,23 @@ int read_state(target_ulong pc, CPUArchState *env)
 
 
 //zyw return 0 failed, 1 success
-int read_addr(target_ulong ori_addr, uintptr_t *addr)  
-{      
-    int res = 0;  
+int read_addr(target_ulong ori_addr, uintptr_t *addr)
+{
+    if (debug) {
+        FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+        if(trace_fp) {
+            fprintf(trace_fp, "[USER_MODE] READ_ADDR: requesting address for ori_addr=0x%x\n", ori_addr);
+            fclose(trace_fp);
+        }
+    }
+
+    int res = 0;
     target_ulong low_three= 0;
     target_ulong low_bits = 0;
     target_ulong high_bits = 0;
     target_ulong ori_low_three = ori_addr & 0xfff;
-    if(pipe_read_fd != -1)  
-    {    
+    if(pipe_read_fd != -1)
+    {
         *addr = 0;
         /*
         do
@@ -7452,18 +7440,25 @@ int read_addr(target_ulong ori_addr, uintptr_t *addr)
         while(low_three != ori_low_three || low_bits == 0 || high_bits!=0);
         */
         res = read_content(pipe_read_fd, addr, sizeof(uintptr_t));
-        if(res == -1)  
-        {  
+        if(res == -1)
+        {
             fprintf(stderr, "read addr error on pipe\n");  sleep(1000);
-            exit(EXIT_FAILURE);  
+            exit(EXIT_FAILURE);
         }
-        //printf("read addr:%lx, %x\n", *addr, res); 
+        //printf("read addr:%lx, %x\n", *addr, res);
 
-    }  
+        if (debug) {
+            FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+            if(trace_fp) {
+                fprintf(trace_fp, "[USER_MODE] READ_ADDR: received phys_addr=0x%lx for ori_addr=0x%x\n", *addr, ori_addr);
+                fclose(trace_fp);
+            }
+        }
+    }
     else {
         printf("read pipe not open\n");
         sleep(1000);
-        exit(EXIT_FAILURE);  
+        exit(EXIT_FAILURE);
     }
     return 1;
 } 

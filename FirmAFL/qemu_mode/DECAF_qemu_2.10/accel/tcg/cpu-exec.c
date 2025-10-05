@@ -876,6 +876,20 @@ static void do_block_begin(DECAF_Callback_Params* param)
     if(afl_user_fork && (pc == do_coredump_addr))
     {
         target_ulong pgd = DECAF_getPGD(cpu);
+        uint32_t pid;
+        uint32_t par_pid;
+        char procname[MAX_PROCESS_NAME_LENGTH] = {0};
+        int status = -1;
+
+        if (pgd)
+            status = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
+
+        if (debug){
+            FILE *fd= fopen("debug/afl_msg_trace.log","a+");
+            fprintf(fd, "1) %s (0x%lx, 0x%lx)\n", procname, pgd, target_pgd);
+            fclose(fd);
+        }
+
         if(pgd == target_pgd)
         {
             DECAF_printf("print_fatal_signal:%x\n",pc);
@@ -2163,92 +2177,28 @@ int cpu_exec_tail(CPUState * cpu)
 }
 
 int after_read = 0;
-int determine_if_end(int program_id)
+int determine_if_end(int program_id, CPUState *cpu)
 {
+    CPUArchState *env = cpu->env_ptr;
+#ifdef TARGET_MIPS
+    int a0 = env->active_tc.gpr[4];
+    int a1 = env->active_tc.gpr[5]; 
+    int a2 = env->active_tc.gpr[6];
+    int a3 = env->active_tc.gpr[7];
+#elif defined(TARGET_ARM)
+    target_ulong a0 = env->regs[0];
+    target_ulong a1 = env->regs[1];
+    target_ulong a2 = env->regs[2];
+    target_ulong a3 = env->regs[3];
+#endif
+
 #ifdef TARGET_MIPS
     if(into_syscall == 4001 || into_syscall == 4246){  //mips, arm32
         return 1;
     }
-    else if(into_syscall == 4142)
+    else if(accept_fd == a0 && (into_syscall == 4006 || into_syscall == 4004 || into_syscall == 4178))
     {
-        if(program_id == 161161)
-        {
-            if(last_syscall == 4142)
-            {
-                last_syscall = 0;
-                return 1;
-            }
-        }
-        else
-        {
-        	return 1;
-        }
-        
-    }
-    else if(into_syscall == 4188 || into_syscall == 4168) 
-    {
-
-        return 1;
-    }
-    else if(into_syscall == 4003)
-    {
-        if(program_id == 161161)
-        {
-            count_3++;
-            if(count_3 == 3)
-            {
-                count_3 = 0;
-                last_syscall = 0;
-                return 2;//if_exit = 1; goto exit;
-            }
-        }
-    }
-
-    else if(into_syscall == 4045)
-    {
-        if(program_id == 10853)
-        {
-            return 1;
-        }
-        
-        if(program_id == 161161)
-        {
-            return 1;
-        }
-    }
-
-
-    //161161
-    if(into_syscall != 4003)
-    {
-        count_3 = 0;
-    }
-    last_syscall = into_syscall;
-    return 0;
-
-#elif defined(TARGET_ARM)
-    if(into_syscall == 1 || into_syscall == 246){  //arm32
-        return 1;
-    }
-    else if(into_syscall == 82 || into_syscall == 168) // select poll
-    {
-        return 1;
-    }
-    else if(into_syscall == 252) //__NR_epoll_wait
-    {
-        if(after_read == 1)
-        {
-            printf("*********252 end\n");
-            after_read = 0;
-            return 1;
-        }
-        
-    }
-    else if(into_syscall == 3)
-    {
-        printf("************after read\n");
-        after_read = 1;
-        return 0;
+        return 1;        
     }
     return 0;
 #endif
@@ -3121,7 +3071,7 @@ int cpu_exec(CPUState *cpu)
             record_current_state(cpu);
             int if_exit = 0;
 #ifdef FUZZ
-            if_exit = determine_if_end(program_id);
+            if_exit = determine_if_end(program_id, cpu);
 
             if(if_exit)
             {
@@ -3212,6 +3162,19 @@ skip_to_pos:
                 if (pc == do_coredump_addr)
                 {
                     target_ulong pgd = DECAF_getPGD(cpu);
+                    uint32_t pid;
+                    uint32_t par_pid;
+                    char procname[MAX_PROCESS_NAME_LENGTH] = {0};
+                    int status = -1;
+
+                    if (pgd)
+                        status = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
+
+                    if (debug){
+                        FILE *fd= fopen("debug/afl_msg_trace.log","a+");
+                        fprintf(fd, "2) %s (0x%lx, 0x%lx)\n", procname, pgd, target_pgd);
+                        fclose(fd);
+                    }
 
                     DECAF_printf("fatal_signal full:%x,%x,%x\n", pc, pgd, target_pgd);
                     if (pgd == target_pgd)
@@ -3280,6 +3243,21 @@ skip_to_pos:
 
                     if(pc == do_coredump_addr)
                     {
+                        target_ulong pgd = DECAF_getPGD(cpu);
+                        uint32_t pid;
+                        uint32_t par_pid;
+                        char procname[MAX_PROCESS_NAME_LENGTH] = {0};
+                        int status = -1;
+
+                        if (pgd)
+                            status = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
+
+                        if (debug){
+                            FILE *fd= fopen("debug/afl_msg_trace.log","a+");
+                            fprintf(fd, "3) %s\n", procname);
+                            fclose(fd);
+                        }
+
                         printf("into kernel error addr:%x\n", handle_addr);
                         into_normal_execution = 0;
                         tcg_handle_addr = 1;
@@ -3483,14 +3461,38 @@ skip_to_pos:
                 if(afl_user_fork && pc == do_coredump_addr)
                 {
                     target_ulong pgd = DECAF_getPGD(cpu);
+                    uint32_t pid;
+                    uint32_t par_pid;
+                    char procname[MAX_PROCESS_NAME_LENGTH] = {0};
+                    int status = -1;
+
+                    if (pgd)
+                        status = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
+
+                    if (debug){
+                        FILE *fd= fopen("debug/afl_msg_trace.log","a+");
+                        fprintf(fd, "4) %s (0x%lx, 0x%lx)\n", procname, pgd, target_pgd);
+                        fclose(fd);
+                    }
+
                     if(pgd == target_pgd)
                     {
                         DECAF_printf("print_fatal_signal:%x\n",pc);
+
+                        printf("into kernel error addr:%x\n", handle_addr);
+                        into_normal_execution = 0;
+                        tcg_handle_addr = 1;
+                        ask_addr = handle_addr;
+                        res_addr = 0xffffffff;
+                        exit_status = 0;
+                        afl_wants_cpu_to_stop = 1;
+                        handle_addr = 0;
+                        ret = 0; 
 #ifdef FORK_OR_NOT
                         int ret_value = 32;
                         doneWork(ret_value);
-                        //goto end;
 #endif
+                        goto end;
                     }
                 }
 
@@ -3518,11 +3520,19 @@ skip_to_pos:
                     if (pc == do_coredump_addr)
                     {
                         target_ulong pgd = DECAF_getPGD(cpu);
-                        char procname[64];
                         uint32_t pid;
                         uint32_t par_pid;
+                        char procname[MAX_PROCESS_NAME_LENGTH] = {0};
+                        int status = -1;
 
-                        VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
+                        if (pgd)
+                            status = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
+
+                        if (debug){
+                            FILE *fd= fopen("debug/afl_msg_trace.log","a+");
+                            fprintf(fd, "5) %s (0x%lx, 0x%lx)\n", procname, pgd, target_pgd);
+                            fclose(fd);
+                        }
 
                         if (debug)
                         {
@@ -4077,8 +4087,8 @@ skip_to_pos:
                             {
                                 if (execution_mode && target_exec && !strcmp(state->procname, target_exec) && target_replay_fd)
                                 {
-                                    if (target_replay_fd == a0)
-                                        target_replay_fd = 0;
+                                    // if (target_replay_fd == a0)
+                                    //     target_replay_fd = 0;
                                 }
                                 fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             }                            
@@ -4355,6 +4365,14 @@ int open_read_pipe()
 
 int read_content(int pipe_fd, char *buf, int total_len)
 {
+    if (debug) {
+        FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+        if(trace_fp) {
+            fprintf(trace_fp, "[QEMU_MODE] READ_CONTENT: attempting to read %d bytes from fd=%d\n", total_len, pipe_fd);
+            fclose(trace_fp);
+        }
+    }
+
     int rest_len = total_len;
     int read_len = 0;
     int read_len_once = 0;
@@ -4370,6 +4388,15 @@ int read_content(int pipe_fd, char *buf, int total_len)
         read_len += read_len_once;
     }
     while(rest_len!=0);
+
+    if (debug) {
+        FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+        if(trace_fp) {
+            fprintf(trace_fp, "[QEMU_MODE] READ_CONTENT: successfully read %d bytes\n", read_len);
+            fclose(trace_fp);
+        }
+    }
+
     return read_len;
 
 }
@@ -4414,7 +4441,15 @@ int read_state(CPUArchState * env, MISSING_PAGE *page, target_ulong *addr, int *
                 return 0;
             }
             case 1:
-            {   
+            {
+                if (debug) {
+                    FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+                    if(trace_fp) {
+                        fprintf(trace_fp, "[QEMU_MODE] READ cmd: type=1 (read_state), processing CPU state\n");
+                        fclose(trace_fp);
+                    }
+                }
+
                 CPUSHSTATE cpustate;
                 res = read_content(pipe_read_fd, &cpustate, sizeof(CPUSHSTATE));
                 loadCPUShState(&cpustate, env, addr);
@@ -4422,7 +4457,16 @@ int read_state(CPUArchState * env, MISSING_PAGE *page, target_ulong *addr, int *
                 res = read_content(pipe_read_fd, addr_prot, sizeof(int));
                 //printf("read state ok:%x\n", env->active_tc.PC);
                 //printf("read state addr:%x\n", *addr);
-                read_type = -1; 
+
+                if (debug) {
+                    FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+                    if(trace_fp) {
+                        fprintf(trace_fp, "[QEMU_MODE] READ cmd: type=1 completed, addr=0x%lx, prot=%d\n", *addr, *addr_prot);
+                        fclose(trace_fp);
+                    }
+                }
+
+                read_type = -1;
                 return 1;
             }
             case 2:
@@ -4431,6 +4475,14 @@ int read_state(CPUArchState * env, MISSING_PAGE *page, target_ulong *addr, int *
                 USER_MODE_TIME user_mode_time;
                 res = read_content(pipe_read_fd, &cmd, sizeof(target_ulong));
                 res = read_content(pipe_read_fd, &user_mode_time, sizeof(USER_MODE_TIME));
+
+                if (debug) {
+                    FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+                    if(trace_fp) {
+                        fprintf(trace_fp, "[QEMU_MODE] READ cmd: type=2, cmd=0x%lx, is_loop_over=%d\n", cmd, is_loop_over);
+                        fclose(trace_fp);
+                    }
+                }
                 write_cmd_resp(is_loop_over);
                 if(cmd == 0x10 && is_loop_over) {
                     afl_user_fork = 1;
@@ -4545,7 +4597,14 @@ int read_state(CPUArchState * env, MISSING_PAGE *page, target_ulong *addr, int *
 
 int write_cmd_resp(int loop_is_over)
 {
-    int res = 0; 
+    int res = 0;
+    if (debug) {
+        FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+        if(trace_fp) {
+            fprintf(trace_fp, "[QEMU_MODE] WRITE response: is_loop_over=%d\n", loop_is_over);
+            fclose(trace_fp);
+        }
+    }
     if(pipe_write_fd == -1){
         const char *fifo_name_full[256];
         getconfig("write_pipename", fifo_name_full);  ;
@@ -4583,40 +4642,56 @@ int write_cmd_resp(int loop_is_over)
 }
 
 
-int write_addr(uintptr_t ori_addr, uintptr_t addr)  
-{  
-    int res = 0;  
+int write_addr(uintptr_t ori_addr, uintptr_t addr)
+{
+    if (debug) {
+        FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+        if(trace_fp) {
+            fprintf(trace_fp, "[QEMU_MODE] WRITE_ADDR: sending phys_addr=0x%lx for ori_addr=0x%lx\n", addr, ori_addr);
+            fclose(trace_fp);
+        }
+    }
+
+    int res = 0;
     if(pipe_write_fd == -1){
         const char *fifo_name_full[256];
         getconfig("write_pipename", fifo_name_full);  ;
         assert(strlen(fifo_name_full)>0);
-        const int open_mode_full = O_WRONLY; 
-        if(access(fifo_name_full, F_OK) == -1)  
-        {  
+        const int open_mode_full = O_WRONLY;
+        if(access(fifo_name_full, F_OK) == -1)
+        {
             printf("write addr mkfifo\n");
-            res = mkfifo(fifo_name_full, 0777);  
-            if(res != 0)  
-            {  
-                printf("Could not create fifo %s\n", fifo_name_full);  
-                exit(EXIT_FAILURE);  
-            }  
-        } 
-        pipe_write_fd = open(fifo_name_full, open_mode_full);  
+            res = mkfifo(fifo_name_full, 0777);
+            if(res != 0)
+            {
+                printf("Could not create fifo %s\n", fifo_name_full);
+                exit(EXIT_FAILURE);
+            }
+        }
+        pipe_write_fd = open(fifo_name_full, open_mode_full);
     }
-    if(pipe_write_fd != -1)  
-    {  
-        int bytes_read = 0;  
-        res = write(pipe_write_fd, &addr, sizeof(uintptr_t));  
-        if(res == -1)  
-        {  
-            printf("Write addr error on pipe\n");  
-            exit(EXIT_FAILURE);  
-        }  
+    if(pipe_write_fd != -1)
+    {
+        int bytes_read = 0;
+        res = write(pipe_write_fd, &addr, sizeof(uintptr_t));
+        if(res == -1)
+        {
+            printf("Write addr error on pipe\n");
+            exit(EXIT_FAILURE);
+        }
         printf("write addr ok:%lx, %lx\n",ori_addr, addr);
-    }  
+
+        if (debug) {
+            FILE *trace_fp = fopen("debug/afl_msg_trace.log", "a");
+            if(trace_fp) {
+                fprintf(trace_fp, "[QEMU_MODE] WRITE_ADDR: completed successfully\n");
+                fclose(trace_fp);
+            }
+        }
+    }
     else{
-        printf("write addr failure\n");  
-        exit(EXIT_FAILURE);  
+        printf("write addr failure\n");
+        exit(EXIT_FAILURE);
     }
     return 1;
 }  
@@ -4724,7 +4799,21 @@ void *qemu_handle_addr_thread_fn(void *arg)
                     }
                     if(cur_pc == do_coredump_addr)
 	                {
-	                	target_ulong pgd = DECAF_getPGD(cpu);
+                        target_ulong pgd = DECAF_getPGD(cpu);
+                        uint32_t pid;
+                        uint32_t par_pid;
+                        char procname[MAX_PROCESS_NAME_LENGTH] = {0};
+                        int status = -1;
+
+                        if (pgd)
+                            status = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
+
+                        if (debug){
+                            FILE *fd= fopen("debug/afl_msg_trace.log","a+");
+                            fprintf(fd, "6) %s (0x%lx, 0x%lx)\n", procname, pgd, target_pgd);
+                            fclose(fd);
+                        }
+
                         if(pgd == target_pgd)
                         {
 		                    printf("into kernel error addr:%x\n", handle_addr);

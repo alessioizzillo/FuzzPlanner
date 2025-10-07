@@ -1,9 +1,36 @@
 from scapy.all import sniff, IP, TCP, Raw, wrpcap
+import signal
 import sys
+import os
 
 sniffed_packets = []
-blacklist_keywords = []
-whitelist_keywords = []
+outfile = None
+target = None
+
+def dump_intermediate_pcap():
+    global outfile, sniffed_packets
+    if not sniffed_packets:
+        print("[+] No packets captured yet.")
+        return
+    try:
+        wrpcap(outfile, sniffed_packets)
+        print(f"[+] Intermediate packet dump saved to {outfile}")
+    except Exception as e:
+        print(f"[!] Error saving intermediate pcap: {e}")
+
+def handle_dump_signal(signum, frame):
+    sig_name = signal.Signals(signum).name
+    print(f"\n[!] {sig_name} received: dumping intermediate pcap…")
+    dump_intermediate_pcap()
+
+    if signum == signal.SIGTSTP:
+        os.kill(os.getpid(), signal.SIGCONT)
+
+def handle_exit_signal(signum, frame):
+    sig_name = signal.Signals(signum).name
+    print(f"\n[!] {sig_name} received: dumping final pcap before exit…")
+    dump_intermediate_pcap()
+    sys.exit(0)
 
 def packet_callback(packet):
     global blacklist_keywords, whitelist_keywords
@@ -43,6 +70,12 @@ if __name__ == "__main__":
         print("Usage: python script.py <interface> <target> <outfile> <blacklist_keywords> <whitelist_keywords>")
         print("Example: python script.py eth0 192.168.1.1 out.pcap \".htm .jpg\" \"login password\"")
         sys.exit(1)
+
+    signal.signal(signal.SIGUSR1, handle_dump_signal)
+    signal.signal(signal.SIGTSTP, handle_dump_signal)
+
+    signal.signal(signal.SIGTERM, handle_exit_signal)
+    signal.signal(signal.SIGINT, handle_exit_signal)
 
     interface = sys.argv[1] if sys.argv[2] != "127.0.0.1" else "lo"
     target = sys.argv[2]

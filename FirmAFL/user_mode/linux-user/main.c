@@ -44,6 +44,9 @@ int debug = 0;
 int debug_pc = 0;
 SharedVariables *extern_struct;
 
+// Global flag for graceful termination on SIGTERM
+static volatile sig_atomic_t should_terminate = 0;
+
 //g2h(x) ((void *)((unsigned long)(target_ulong)(x) + guest_base))
 
 void* g2h_helper(target_ulong x)
@@ -56,6 +59,19 @@ static void handler_s_ill(int sig_num, siginfo_t *si, void *ptr)
     printf("meet illegal instruction\n");
     normal_exit(0);
 
+}
+
+static void handler_sigterm(int sig_num, siginfo_t *si, void *ptr)
+{
+    should_terminate = 1;
+
+    if (debug) {
+        FILE *fp = fopen("debug/post_fork_syscalls.log", "a+");
+        if (fp) {
+            fprintf(fp, "SIGTERM received, initiating graceful shutdown\n");
+            fclose(fp);
+        }
+    }
 }
 
 
@@ -1406,6 +1422,18 @@ void cpu_loop(CPUX86State *env)
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
 
+        // Check for graceful termination request
+        if (should_terminate) {
+            if (debug) {
+                FILE *fp = fopen("debug/post_fork_syscalls.log", "a+");
+                if (fp) {
+                    fprintf(fp, "Termination flag detected in x86 cpu_loop, calling normal_exit\n");
+                    fclose(fp);
+                }
+            }
+            normal_exit(0);
+        }
+
         switch(trapnr) {
         case 0x80:
             /* linux syscall from int $0x80 */
@@ -1764,6 +1792,18 @@ void cpu_loop(CPUARMState *env)
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
 
+        // Check for graceful termination request
+        if (should_terminate) {
+            if (debug) {
+                FILE *fp = fopen("debug/post_fork_syscalls.log", "a+");
+                if (fp) {
+                    fprintf(fp, "Termination flag detected in ARM cpu_loop (32-bit), calling normal_exit\n");
+                    fclose(fp);
+                }
+            }
+            normal_exit(0);
+        }
+
         switch(trapnr) {
         case EXCP_UDEF:
         case EXCP_NOCP:
@@ -2016,6 +2056,18 @@ void cpu_loop(CPUARMState *env)
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
 
+        // Check for graceful termination request
+        if (should_terminate) {
+            if (debug) {
+                FILE *fp = fopen("debug/post_fork_syscalls.log", "a+");
+                if (fp) {
+                    fprintf(fp, "Termination flag detected in ARM cpu_loop (64-bit), calling normal_exit\n");
+                    fclose(fp);
+                }
+            }
+            normal_exit(0);
+        }
+
         switch (trapnr) {
         case EXCP_SWI:
             ret = do_syscall(env,
@@ -2100,6 +2152,18 @@ void cpu_loop(CPUUniCore32State *env)
         trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
+
+        // Check for graceful termination request
+        if (should_terminate) {
+            if (debug) {
+                FILE *fp = fopen("debug/post_fork_syscalls.log", "a+");
+                if (fp) {
+                    fprintf(fp, "Termination flag detected in UniCore32 cpu_loop, calling normal_exit\n");
+                    fclose(fp);
+                }
+            }
+            normal_exit(0);
+        }
 
         switch (trapnr) {
         case UC32_EXCP_PRIV:
@@ -2586,6 +2650,18 @@ void cpu_loop(CPUPPCState *env)
         trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
+
+        // Check for graceful termination request
+        if (should_terminate) {
+            if (debug) {
+                FILE *fp = fopen("debug/post_fork_syscalls.log", "a+");
+                if (fp) {
+                    fprintf(fp, "Termination flag detected in PPC cpu_loop, calling normal_exit\n");
+                    fclose(fp);
+                }
+            }
+            normal_exit(0);
+        }
 
         switch(trapnr) {
         case POWERPC_EXCP_NONE:
@@ -3468,6 +3544,18 @@ void cpu_loop(CPUMIPSState *env)
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
 
+        // Check for graceful termination request
+        if (should_terminate) {
+            if (debug) {
+                FILE *fp = fopen("debug/post_fork_syscalls.log", "a+");
+                if (fp) {
+                    fprintf(fp, "Termination flag detected in MIPS cpu_loop, calling normal_exit\n");
+                    fclose(fp);
+                }
+            }
+            normal_exit(0);
+        }
+
         switch(trapnr) {
         case EXCP_SYSCALL:
             env->active_tc.PC += 4;
@@ -4146,6 +4234,18 @@ void cpu_loop(CPUSH4State *env)
         trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
+
+        // Check for graceful termination request
+        if (should_terminate) {
+            if (debug) {
+                FILE *fp = fopen("debug/post_fork_syscalls.log", "a+");
+                if (fp) {
+                    fprintf(fp, "Termination flag detected in SH4 cpu_loop, calling normal_exit\n");
+                    fclose(fp);
+                }
+            }
+            normal_exit(0);
+        }
 
         switch (trapnr) {
         case 0x160:
@@ -6443,6 +6543,13 @@ int main(int argc, char **argv, char **envp)
     sigemptyset(&s.sa_mask);
     sigaddset(&s.sa_mask, SIGSEGV);
     sigaction(SIGSEGV, &s, 0);
+
+    struct sigaction s_term;
+    s_term.sa_flags = SA_SIGINFO;
+    s_term.sa_sigaction = handler_sigterm;
+    sigemptyset(&s_term.sa_mask);
+    sigaddset(&s_term.sa_mask, SIGTERM);
+    sigaction(SIGTERM, &s_term, 0);
 
 
     open_write_pipe();

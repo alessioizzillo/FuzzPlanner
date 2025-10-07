@@ -218,6 +218,8 @@ def run_experiment(log_to_pair: Dict[int,int], pair_to_log: Dict[int,List[int]],
         f"./docker.sh {script} {cont_name} {','.join(map(str,cpu_ids))}",
         shell=True
     )
+
+    print(f"./docker.sh {script} {cont_name} {','.join(map(str,cpu_ids))}")
     
     while os.path.exists(cmd_file):
         sleep(1)

@@ -56,6 +56,7 @@
 #include <termios.h>
 #include <dlfcn.h>
 #include <sched.h>
+#include <assert.h>
 
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -93,7 +94,7 @@
 /* Lots of globals, but mostly for the status UI and other things where it
    really makes no sense to haul them around as function parameters. */
 
-
+int stage_max_par = 0;
 EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
           *out_file,                  /* File to fuzz, if any             */
           *out_dir,                   /* Working & output directory       */
@@ -131,16 +132,21 @@ EXP_ST u8  skip_deterministic,        /* Skip deterministic stages?       */
            in_place_resume,           /* Attempt in-place resume?         */
            auto_changed,              /* Auto-generated tokens changed?   */
            no_cpu_meter_red,          /* Feng shui on the status screen   */
-           no_arith,                  /* Skip most arithmetic ops         */
+           no_arith,                  /* Skip arithmetic ops              */
+           no_bitflip,                /* Skip bitflip ops                 */
+           no_interest,               /* Skip interest ops                */
+           no_user_extras,            /* Skip user_extras ops             */
+           no_extras,                 /* Skip extras ops                  */
            shuffle_queue,             /* Shuffle input queue?             */
            bitmap_changed = 1,        /* Time to update bitmap?           */
            qemu_mode,                 /* Running in QEMU mode?            */
-           replay_mode = 0,           /* Running in QEMU mode?            */
            skip_requested,            /* Skip request, via SIGUSR1        */
            run_over10m,               /* Run time over 10 minutes?        */
            persistent_mode,           /* Running in persistent mode?      */
            deferred_mode,             /* Deferred forkserver mode?        */
            fast_cal;                  /* Try to calibrate faster?         */
+
+static int calibration = 0;               /* Try to calibrate faster?         */
 
 static s32 out_fd,                    /* Persistent fd for out_file       */
            dev_urandom_fd = -1,       /* Persistent fd for /dev/urandom   */
@@ -183,6 +189,7 @@ EXP_ST u32 queued_paths,              /* Total number of queued testcases */
            current_entry,             /* Current queue entry ID           */
            havoc_div = 1;             /* Cycle count divisor for havoc    */
 
+EXP_ST u64 global_exec_us = 0;
 EXP_ST u64 fuzzing_timeout,           /* Fuzzing timeout                  */
            child_timeout,             /* Child timeout                    */
            total_crashes,             /* Total number of crashes          */
@@ -912,18 +919,18 @@ EXP_ST void read_bitmap(u8* fname) {
    This function is called after every exec() on a fairly large buffer, so
    it needs to be fast. We do this in 32-bit and 64-bit flavors. */
 
-static inline u8 has_new_bits(u8* virgin_map) {
+static inline u8 has_new_bits(u8* virgin_map, u8* trace_map) {
 
 #ifdef WORD_SIZE_64
 
-  u64* current = (u64*)trace_bits;
+  u64* current = (u64*)trace_map;
   u64* virgin  = (u64*)virgin_map;
 
   u32  i = (MAP_SIZE >> 3);
 
 #else
 
-  u32* current = (u32*)trace_bits;
+  u32* current = (u32*)trace_map;
   u32* virgin  = (u32*)virgin_map;
 
   u32  i = (MAP_SIZE >> 2);
@@ -2300,6 +2307,7 @@ static u8 run_target(char** argv, u32 timeout) {
   static struct itimerval it;
   static u32 prev_timed_out = 0;
   static u64 exec_ms = 0;
+  u64 start_us, stop_us;
 
   int status = 0;
   u32 tb4;
@@ -2426,6 +2434,7 @@ static u8 run_target(char** argv, u32 timeout) {
   it.it_value.tv_usec = (timeout % 1000) * 1000;
 
   setitimer(ITIMER_REAL, &it, NULL);
+  start_us = get_cur_time_us();
 
   /* The SIGALRM handler simply kills the child_pid and sets child_timed_out. */
 
@@ -2436,50 +2445,48 @@ static u8 run_target(char** argv, u32 timeout) {
   } else {
     s32 res;
 
-    if (replay_mode){
-      fd_set readfds;
-      struct timeval timeout;
-      int ret;
+    fd_set readfds;
+    struct timeval timeout;
+    int ret;
 
-      FD_ZERO(&readfds);
-      FD_SET(fsrv_st_fd, &readfds);
+    FD_ZERO(&readfds);
+    FD_SET(fsrv_st_fd, &readfds);
 
-      timeout.tv_sec = child_timeout;
-      timeout.tv_usec = 0;
+    timeout.tv_sec = child_timeout;
+    timeout.tv_usec = 0;
 
+    /* Retry select() if interrupted by a signal (EINTR) */
+    do {
       ret = select(fsrv_st_fd + 1, &readfds, NULL, NULL, &timeout);
+    } while (ret == -1 && errno == EINTR);
 
-      if (ret == -1) {
-        exit(2);
-      }
-      else if (ret == 0) {
-        if (child_pid > 0) {
-          kill(child_pid, SIGKILL);
-          waitpid(child_pid, &status, 0);
+    if (ret == -1) {
+      OKF("select() failed with errno: %d", errno);
+      exit(2);
+    }
+    else if (ret == 0) {
+      if (child_pid > 0) {
+        kill(child_pid, SIGTERM);
+        res = read(fsrv_st_fd, &status, 4);
+        if (res != 4) {
+
+          if (stop_soon) return 0;
+          RPFATAL(res, "Unable to communicate with fork server (OOM?)");
+
         }
-        exit(2);
-      }
-      else {
-        if (FD_ISSET(fsrv_st_fd, &readfds)) {
-          res = read(fsrv_st_fd, &status, 4);
-          if (res != 4) {
-
-            if (stop_soon) return 0;
-            RPFATAL(res, "Unable to communicate with fork server (OOM?)");
-
-          }
-        }
-        remove(in_bitmap);
       }
     }
-    else{
-      res = read(fsrv_st_fd, &status, 4);
-      if (res != 4) {
+    else {
+      if (FD_ISSET(fsrv_st_fd, &readfds)) {
+        res = read(fsrv_st_fd, &status, 4);
+        if (res != 4) {
 
-        if (stop_soon) return 0;
-        RPFATAL(res, "Unable to communicate with fork server (OOM?)");
+          if (stop_soon) return 0;
+          RPFATAL(res, "Unable to communicate with fork server (OOM?)");
 
+        }
       }
+      remove(in_bitmap);
     }
   }
 
@@ -2493,6 +2500,8 @@ static u8 run_target(char** argv, u32 timeout) {
   it.it_value.tv_usec = 0;
 
   setitimer(ITIMER_REAL, &it, NULL);
+  stop_us = get_cur_time_us();
+  global_exec_us = stop_us - start_us;
 
   total_execs++;
 
@@ -2719,12 +2728,12 @@ void handle_parent_exit(int sig) {
    to warn about flaky or otherwise problematic test cases early on; and when
    new paths are discovered to detect variable behavior and so on. */
 
-static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
-                         u32 handicap, u8 from_queue) {
+u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
+                         u32 handicap, u8 dry_run, u8 *new_bits) {
 
   static u8 first_trace[MAP_SIZE];
 
-  u8  fault = 0, new_bits = 0, var_detected = 0, hnb = 0,
+  u8  fault = 0, var_detected = 0,
       first_run = (q->exec_cksum == 0);
 
   u64 start_us, stop_us;
@@ -2737,17 +2746,34 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
      trying to calibrate already-added finds. This helps avoid trouble due
      to intermittent latency. */
 
-  if (!from_queue || resuming_fuzz)
+  // WARNF("Calibrating input: len=%u, first_run=%u", q->len, first_run);
+
+  if (!dry_run || resuming_fuzz)
     use_tmout = MAX(exec_tmout + CAL_TMOUT_ADD,
                     exec_tmout * CAL_TMOUT_PERC / 100);
 
   q->cal_failed++;
 
+  *new_bits = has_new_bits(virgin_bits, trace_bits);
+
+  if (!calibration) {
+    if (dry_run)
+      stage_max = 1;
+    else {
+      stage_max = 0;
+      goto after_calibration;
+    }
+  }
+  else {
+    if (fast_cal)
+      stage_max = CAL_CYCLES;
+    else
+      stage_max = 3;
+  }
+
+  // WARNF("Calibration cycles set to: %d", stage_max);
+
   stage_name = "calibration";
-  if (replay_mode)
-    stage_max  = 1;
-  else
-    stage_max  = fast_cal ? 3 : CAL_CYCLES;
 
   /* Make sure the forkserver is up before we do anything, and let's not
      count its spin-up time toward binary calibration. */
@@ -2756,11 +2782,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
     init_forkserver(argv);
 
   if (q->exec_cksum) {
-
     memcpy(first_trace, trace_bits, MAP_SIZE);
-    hnb = has_new_bits(virgin_bits);
-    if (hnb > new_bits) new_bits = hnb;
-
   }
 
   start_us = get_cur_time_us();
@@ -2768,36 +2790,26 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
   for (stage_cur = 0; stage_cur < stage_max; stage_cur++) {
 
     u32 cksum;
+    u8 new_var_bytes = 0;
 
-    if (!first_run && !(stage_cur % stats_update_freq)) show_stats();
+    if (!first_run) show_stats();
+
+    WARNF("Calibration round %d/%d", stage_cur + 1, stage_max);
 
     write_to_testcase(use_mem, q->len);
-
-    if (replay_mode){
-      int client_pid = fork();
-      if (!client_pid){
-        prctl(PR_SET_PDEATHSIG, SIGHUP);
-
-        // Install a signal handler for SIGHUP
-        struct sigaction sa;
-        sa.sa_handler = handle_parent_exit;
-        sigemptyset(&sa.sa_mask);
-        sa.sa_flags = 0;
-        sigaction(SIGHUP, &sa, NULL);
-
-        send_testcase(q->fname);
-        exit(0);
-      }
-    }
 
     fault = run_target(argv, use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
 
-    if (stop_soon || fault != crash_mode) goto abort_calibration;
+    if (!dry_run && (stop_soon)) {
+      WARNF("Aborting calibration: stop_soon=%d, fault=%d", stop_soon, fault);
+      goto abort_calibration;
+    }
 
-    if (!dumb_mode && !stage_cur && !count_bytes(trace_bits)) {
+    if (!dry_run && !dumb_mode && !stage_cur && (!count_bytes(trace_bits))) {
+      WARNF("No instrumentation detected during calibration");
       fault = FAULT_NOINST;
       goto abort_calibration;
     }
@@ -2806,25 +2818,28 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
     if (q->exec_cksum != cksum) {
 
-      hnb = has_new_bits(virgin_bits);
-      if (hnb > new_bits) new_bits = hnb;
-
       if (q->exec_cksum) {
-
         u32 i;
 
         for (i = 0; i < MAP_SIZE; i++) {
 
-          if (!var_bytes[i] && first_trace[i] != trace_bits[i]) {
-
+          if (first_trace[i] != trace_bits[i]) {
+            
+            first_trace[i] = first_trace[i] < trace_bits[i] ? first_trace[i] : trace_bits[i];
             var_bytes[i] = 1;
-            stage_max    = CAL_CYCLES_LONG;
+            new_var_bytes++;
+            // stage_max    = CAL_CYCLES_LONG;
 
           }
 
         }
 
         var_detected = 1;
+
+        if (!new_var_bytes) {
+          stage_cur++;
+          break;
+        }    
 
       } else {
 
@@ -2837,6 +2852,12 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
   }
 
+  u8 hnb = has_new_bits(virgin_bits, first_trace);
+  if (hnb > *new_bits) {
+    *new_bits = hnb;
+  }
+
+after_calibration:
   stop_us = get_cur_time_us();
 
   total_cal_us     += stop_us - start_us;
@@ -2845,7 +2866,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
   /* OK, let's collect some stats about the performance of this test case.
      This is used for fuzzing air time calculations in calculate_score(). */
 
-  q->exec_us     = (stop_us - start_us) / stage_max;
+  q->exec_us     = stage_max ? (stop_us - start_us) / stage_max : global_exec_us;
   q->bitmap_size = count_bytes(trace_bits);
   q->handicap    = handicap;
   q->cal_failed  = 0;
@@ -2859,13 +2880,17 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
      parent. This is a non-critical problem, but something to warn the user
      about. */
 
-  if (!dumb_mode && first_run && !fault && !new_bits) fault = FAULT_NOBITS;
+  if (!dumb_mode && first_run && !fault && !(*new_bits)) {
+    WARNF("No new bits found on first calibration run");
+    fault = FAULT_NOBITS;
+  }
 
 abort_calibration:
 
-  if (new_bits == 2 && !q->has_new_cov) {
+  if (*new_bits == 2 && !q->has_new_cov) {
     q->has_new_cov = 1;
     queued_with_cov++;
+    WARNF("Input has new coverage");
   }
 
   /* Mark variable paths. */
@@ -2875,6 +2900,7 @@ abort_calibration:
     var_byte_count = count_bytes(var_bytes);
 
     if (!q->var_behavior) {
+      WARNF("Input marked as variable");
       mark_as_variable(q);
       queued_variable++;
     }
@@ -2887,6 +2913,7 @@ abort_calibration:
 
   if (!first_run) show_stats();
 
+  // WARNF("Calibration done, fault=%d", fault);
   return fault;
 
 }
@@ -2937,7 +2964,8 @@ static void perform_dry_run(char** argv) {
 
     close(fd);
 
-    res = calibrate_case(argv, q, use_mem, 0, 1);
+    u8 new_bits;
+    res = calibrate_case(argv, q, use_mem, 0, 1, &new_bits);
     ck_free(use_mem);
 
     if (stop_soon) return;
@@ -2998,12 +3026,6 @@ static void perform_dry_run(char** argv) {
       case FAULT_CRASH:  
 
         if (crash_mode) break;
-
-        if (replay_mode){
-          total_crashes++;
-          unique_crashes++;
-          break;
-        }
 
         if (skip_crashes) {
           WARNF("Test case results in a crash (skipping)");
@@ -3079,12 +3101,7 @@ static void perform_dry_run(char** argv) {
         FATAL("Unable to execute target application ('%s')", argv[0]);
 
       case FAULT_NOINST:
-        if (replay_mode){
-          break;
-        }
-        else {
-          FATAL("No instrumentation detected");
-        }
+        FATAL("No instrumentation detected");
 
       case FAULT_NOBITS: 
 
@@ -3099,20 +3116,7 @@ static void perform_dry_run(char** argv) {
 
     if (q->var_behavior) WARNF("Instrumentation output varies across runs.");
 
-    if (replay_mode) {
-      u8* tmp_fn = alloc_printf("%s/%s", in_dir, basename(q->fname));
-      remove(tmp_fn);
-      ck_free(tmp_fn);
-    }
-
     q = q->next;
-
-    if (replay_mode) {
-      u32 t_bytes = count_non_255_bytes(virgin_bits);
-      double t_byte_ratio = ((double)t_bytes * 100) / MAP_SIZE;
-      write_bitmap();
-      write_stats_file(t_byte_ratio, 0, 0);
-    }
   }
 
   if (cal_failures) {
@@ -3367,7 +3371,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    if (!(hnb = has_new_bits(virgin_bits))) {
+    if (!(hnb = has_new_bits(virgin_bits, trace_bits))) {
       if (crash_mode) total_crashes++;
       return 0;
     }    
@@ -3395,7 +3399,8 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     /* Try to calibrate inline; this also calls update_bitmap_score() when
        successful. */
 
-    res = calibrate_case(argv, queue_top, mem, queue_cycle - 1, 0);
+    u8 new_bits;
+    res = calibrate_case(argv, queue_top, mem, queue_cycle - 1, 0, &new_bits);
 
     if (res == FAULT_ERROR)
       FATAL("Unable to execute target application");
@@ -3430,7 +3435,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
         simplify_trace((u32*)trace_bits);
 #endif /* ^WORD_SIZE_64 */
 
-        if (!has_new_bits(virgin_tmout)) return keeping;
+        if (!has_new_bits(virgin_tmout, trace_bits)) return keeping;
 
       }
 
@@ -3494,7 +3499,7 @@ keep_as_crash:
         simplify_trace((u32*)trace_bits);
 #endif /* ^WORD_SIZE_64 */
 
-        if (!has_new_bits(virgin_crash)) return keeping;
+        if (!has_new_bits(virgin_crash, trace_bits)) return keeping;
 
       }
 
@@ -3630,43 +3635,6 @@ void write_stats_file(double bitmap_cvg, double stability, double eps) {
   s32 fd;
   FILE* f;
 
-  if (replay_mode) {
-    u8* tmp_fn = alloc_printf("tmp_outputs/fuzzer_stats", out_dir);
-    
-    f = fopen(tmp_fn, "r");
-    
-    ck_free(tmp_fn);
-    
-    if (!f)
-      PFATAL("fopen() failed");
-
-    char buf[100];
-    int i = 0;
-    while(fgets(buf, 100, f) != NULL)
-    {
-      if (i == 0)
-        tmp_start_time = atoi(strchr(buf, ':')+2);
-      else if (i == 1)
-        tmp_last_update = atoi(strchr(buf, ':')+2);
-      else if (i == 4)
-        tmp_execs_done = atoi(strchr(buf, ':')+2);
-      else if (i == 6)
-        tmp_paths_total = atoi(strchr(buf, ':')+2);
-      else if (i == 7)
-        tmp_paths_favored = atoi(strchr(buf, ':')+2);
-      else if (i == 24){
-        tmp_last_phase = atoi(strchr(buf, ':')+2);
-        break;
-      }
-      i++;
-    }
-
-    tmp_start_time *= 1000;
-    tmp_last_update *= 1000;
-    /* ignore errors */
-    fclose(f);
-  }
-
   fd = open(fn, O_WRONLY | O_CREAT | O_TRUNC, 0777);
 
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
@@ -3714,22 +3682,21 @@ void write_stats_file(double bitmap_cvg, double stability, double eps) {
              "last_hang         : %llu\n"
              "execs_since_crash : %llu\n"
              "exec_timeout      : %u\n" /* Must match find_timeout() */
-             "last_phase        : %llu\n"
              "afl_banner        : %s\n"
              "afl_version       : " VERSION "\n"
              "target_mode       : %s%s%s%s%s%s%s\n"
              "command_line      : %s\n"
              "slowest_exec_ms   : %llu\n",
-             (replay_mode ? tmp_start_time : start_time) / 1000,
-             (replay_mode ? tmp_last_update : get_cur_time()) / 1000, getpid(),
-             queue_cycle ? (queue_cycle - 1) : 0, (replay_mode ? tmp_execs_done : total_execs), (replay_mode ? 0 : eps),
-             (replay_mode ? tmp_paths_total : queued_paths),
-             (replay_mode ? tmp_paths_favored : queued_favored), queued_discovered, queued_imported,
+             start_time / 1000,
+             get_cur_time() / 1000, getpid(),
+             queue_cycle ? (queue_cycle - 1) : 0, total_execs, eps,
+             queued_paths,
+             queued_favored, queued_discovered, queued_imported,
              max_depth, current_entry, pending_favored, pending_not_fuzzed,
-             queued_variable, (replay_mode ? 0 : stability), bitmap_cvg, unique_crashes,
+             queued_variable, stability, bitmap_cvg, unique_crashes,
              unique_hangs, last_path_time / 1000, last_crash_time / 1000,
              last_hang_time / 1000, total_execs - last_crash_execs,
-             exec_tmout, (replay_mode ? tmp_last_phase : 0), use_banner,
+             exec_tmout, use_banner,
              qemu_mode ? "qemu " : "", dumb_mode ? " dumb " : "",
              no_forkserver ? "no_forksrv " : "", crash_mode ? "crash " : "",
              persistent_mode ? "persistent " : "", deferred_mode ? "deferred " : "",
@@ -5326,59 +5293,59 @@ static u8 fuzz_one(char** argv) {
 
   cur_depth = queue_cur->depth;
 
-  /*******************************************
-   * CALIBRATION (only if failed earlier on) *
-   *******************************************/
+  // /*******************************************
+  //  * CALIBRATION (only if failed earlier on) *
+  //  *******************************************/
 
-  if (queue_cur->cal_failed) {
+  // if (queue_cur->cal_failed) {
 
-    u8 res = FAULT_TMOUT;
+  //   u8 res = FAULT_TMOUT;
 
-    if (queue_cur->cal_failed < CAL_CHANCES) {
+  //   if (queue_cur->cal_failed < CAL_CHANCES) {
 
-      /* Reset exec_cksum to tell calibrate_case to re-execute the testcase
-         avoiding the usage of an invalid trace_bits.
-         For more info: https://github.com/AFLplusplus/AFLplusplus/pull/425 */
+  //     /* Reset exec_cksum to tell calibrate_case to re-execute the testcase
+  //        avoiding the usage of an invalid trace_bits.
+  //        For more info: https://github.com/AFLplusplus/AFLplusplus/pull/425 */
 
-      queue_cur->exec_cksum = 0;
+  //     queue_cur->exec_cksum = 0;
 
-      res = calibrate_case(argv, queue_cur, in_buf, queue_cycle - 1, 0);
+  //     res = calibrate_case(argv, queue_cur, in_buf, queue_cycle - 1, 0);
 
-      if (res == FAULT_ERROR)
-        FATAL("Unable to execute target application");
+  //     if (res == FAULT_ERROR)
+  //       FATAL("Unable to execute target application");
 
-    }
+  //   }
 
-    if (stop_soon || res != crash_mode) {
-      cur_skipped_paths++;
-      goto abandon_entry;
-    }
+  //   if (stop_soon || res != crash_mode) {
+  //     cur_skipped_paths++;
+  //     goto abandon_entry;
+  //   }
 
-  }
+  // }
 
-  /************
-   * TRIMMING *
-   ************/
+  // /************
+  //  * TRIMMING *
+  //  ************/
 
-  if (!dumb_mode && !queue_cur->trim_done) {
+  // if (!dumb_mode && !queue_cur->trim_done) {
 
-    u8 res = trim_case(argv, queue_cur, in_buf);
+  //   u8 res = trim_case(argv, queue_cur, in_buf);
 
-    if (res == FAULT_ERROR)
-      FATAL("Unable to execute target application");
+  //   if (res == FAULT_ERROR)
+  //     FATAL("Unable to execute target application");
 
-    if (stop_soon) {
-      cur_skipped_paths++;
-      goto abandon_entry;
-    }
+  //   if (stop_soon) {
+  //     cur_skipped_paths++;
+  //     goto abandon_entry;
+  //   }
 
-    /* Don't retry trimming, even if it failed. */
+  //   /* Don't retry trimming, even if it failed. */
 
-    queue_cur->trim_done = 1;
+  //   queue_cur->trim_done = 1;
 
-    if (len != queue_cur->len) len = queue_cur->len;
+  //   if (len != queue_cur->len) len = queue_cur->len;
 
-  }
+  // }
 
   memcpy(out_buf, in_buf, len);
 
@@ -5425,7 +5392,7 @@ static u8 fuzz_one(char** argv) {
 
   prev_cksum = queue_cur->exec_cksum;
 
-  for (stage_cur = 0; stage_cur < stage_max; stage_cur++) {
+  for (stage_cur = 0; stage_cur < stage_max && stage_cur < (!stage_max_par ? stage_max : stage_max_par); stage_cur++) {
 
     stage_cur_byte = stage_cur >> 3;
 
@@ -5517,7 +5484,7 @@ static u8 fuzz_one(char** argv) {
 
   orig_hit_cnt = new_hit_cnt;
 
-  for (stage_cur = 0; stage_cur < stage_max; stage_cur++) {
+  for (stage_cur = 0; stage_cur < stage_max && stage_cur < (!stage_max_par ? stage_max : stage_max_par); stage_cur++) {
 
     stage_cur_byte = stage_cur >> 3;
 
@@ -5544,7 +5511,7 @@ static u8 fuzz_one(char** argv) {
 
   orig_hit_cnt = new_hit_cnt;
 
-  for (stage_cur = 0; stage_cur < stage_max; stage_cur++) {
+  for (stage_cur = 0; stage_cur < stage_max && stage_cur < (!stage_max_par ? stage_max : stage_max_par); stage_cur++) {
 
     stage_cur_byte = stage_cur >> 3;
 
@@ -5599,7 +5566,7 @@ static u8 fuzz_one(char** argv) {
 
   orig_hit_cnt = new_hit_cnt;
 
-  for (stage_cur = 0; stage_cur < stage_max; stage_cur++) {
+  for (stage_cur = 0; stage_cur < stage_max && stage_cur < (!stage_max_par ? stage_max : stage_max_par); stage_cur++) {
 
     stage_cur_byte = stage_cur;
 
@@ -5661,7 +5628,7 @@ static u8 fuzz_one(char** argv) {
 
   /* Two walking bytes. */
 
-  if (len < 2) goto skip_bitflip;
+  if (no_bitflip && len < 2) goto skip_bitflip;
 
   stage_name  = "bitflip 16/8";
   stage_short = "flip16";
@@ -5696,7 +5663,7 @@ static u8 fuzz_one(char** argv) {
   stage_finds[STAGE_FLIP16]  += new_hit_cnt - orig_hit_cnt;
   stage_cycles[STAGE_FLIP16] += stage_max;
 
-  if (len < 4) goto skip_bitflip;
+  if (no_bitflip && len < 4) goto skip_bitflip;
 
   /* Four walking bytes. */
 
@@ -5806,7 +5773,7 @@ skip_bitflip:
 
   /* 16-bit arithmetics, both endians. */
 
-  if (len < 2) goto skip_arith;
+  if (no_arith && len < 2) goto skip_arith;
 
   stage_name  = "arith 16/8";
   stage_short = "arith16";
@@ -5900,7 +5867,7 @@ skip_bitflip:
 
   /* 32-bit arithmetics, both endians. */
 
-  if (len < 4) goto skip_arith;
+  if (no_arith && len < 4) goto skip_arith;
 
   stage_name  = "arith 32/8";
   stage_short = "arith32";
@@ -6049,7 +6016,7 @@ skip_arith:
 
   /* Setting 16-bit integers, both endians. */
 
-  if (no_arith || len < 2) goto skip_interest;
+  if (no_interest || len < 2) goto skip_interest;
 
   stage_name  = "interest 16/8";
   stage_short = "int16";
@@ -6115,7 +6082,7 @@ skip_arith:
   stage_finds[STAGE_INTEREST16]  += new_hit_cnt - orig_hit_cnt;
   stage_cycles[STAGE_INTEREST16] += stage_max;
 
-  if (len < 4) goto skip_interest;
+  if (no_interest && len < 4) goto skip_interest;
 
   /* Setting 32-bit integers, both endians. */
 
@@ -6190,7 +6157,7 @@ skip_interest:
    * DICTIONARY STUFF *
    ********************/
 
-  if (!extras_cnt) goto skip_user_extras;
+  if (no_user_extras && !extras_cnt) goto skip_user_extras;
 
   /* Overwrite with user-supplied extras. */
 
@@ -6301,7 +6268,7 @@ skip_interest:
 
 skip_user_extras:
 
-  if (!a_extras_cnt) goto skip_extras;
+  if (no_extras && !a_extras_cnt) goto skip_extras;
 
   stage_name  = "auto extras (over)";
   stage_short = "ext_AO";
@@ -6400,7 +6367,7 @@ havoc_stage:
   /* We essentially just do several thousand runs (depending on perf_score)
      where we take the input file and make random stacked tweaks. */
 
-  for (stage_cur = 0; stage_cur < stage_max; stage_cur++) {
+  for (stage_cur = 0; stage_cur < stage_max && stage_cur < (!stage_max_par ? stage_max : stage_max_par); stage_cur++) {
 
     u32 use_stacking = 1 << (1 + UR(HAVOC_STACK_POW2));
 
@@ -8046,6 +8013,11 @@ int main(int argc, char** argv) {
   struct timeval tv;
   struct timezone tz;
 
+  char *env_var = getenv("STAGE_MAX");
+  if (env_var) {
+    stage_max_par = atoi(env_var);
+  }
+
   SAYF(cCYA "afl-fuzz " cBRI VERSION cRST " by <lcamtuf@google.com>\n");
 
   doc_path = access(DOC_PATH, F_OK) ? "docs" : DOC_PATH;
@@ -8069,7 +8041,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:b:t:T:dnCB:S:M:x:QVR")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:b:t:T:dnCB:S:M:x:QV")) > 0)
 
     switch (opt) {
 
@@ -8250,11 +8222,6 @@ int main(int argc, char** argv) {
 
         break;
 
-      case 'R': /* Replay mode */
-        replay_mode = 1;
-
-        break;
-
       case 'V': /* Show version number */
 
         /* Version number has been printed already, just quit. */
@@ -8267,16 +8234,6 @@ int main(int argc, char** argv) {
     }
 
   if (optind == argc || !in_dir || !out_dir) usage(argv[0]);
-
-  if(replay_mode){
-    tmp = getenv("SERVER_IP");
-    if(tmp == NULL){
-      perror("Error: no env \"SERVER_IP\" found!");
-      exit(1);
-    }
-    else
-      strcpy(server_ip, tmp);
-  }
 
   setup_signal_handlers();
   check_asan_opts();
@@ -8293,10 +8250,16 @@ int main(int argc, char** argv) {
 
   }
 
-  if (getenv("AFL_NO_FORKSRV"))    no_forkserver    = 1;
-  if (getenv("AFL_NO_CPU_RED"))    no_cpu_meter_red = 1;
-  if (getenv("AFL_NO_ARITH"))      no_arith         = 1;
-  if (getenv("AFL_SHUFFLE_QUEUE")) shuffle_queue    = 1;
+  if (getenv("AFL_NO_FORKSRV"))     no_forkserver    = 1;
+  if (getenv("AFL_NO_CPU_RED"))     no_cpu_meter_red = 1;
+  if (getenv("AFL_NO_ARITH"))       no_arith         = 1;
+  if (getenv("AFL_SHUFFLE_QUEUE")) shuffle_queue     = 1;
+  if (getenv("AFL_NO_BITFLIP"))     no_bitflip       = 1;
+  if (getenv("AFL_NO_INTEREST"))    no_interest      = 1;
+  if (getenv("AFL_NO_USER_EXTRAS")) no_user_extras   = 1;
+  if (getenv("AFL_NO_EXTRAS"))      no_extras        = 1;
+  if (getenv("AFL_CALIBRATION"))    calibration      = 1;
+
   if (getenv("AFL_FAST_CAL"))      fast_cal         = 1;
 
   if (getenv("AFL_HANG_TMOUT")) {
@@ -8338,17 +8301,7 @@ int main(int argc, char** argv) {
   read_testcases();
   load_auto();
 
-  if (!replay_mode)
-    pivot_inputs();
-  else{
-    FILE *fp;
-
-    fp = fopen("tmp_crashes", "r");
-    if (fp != NULL) {
-        fscanf(fp, "%d", &unique_crashes);
-        fclose(fp);
-    } 
-  }
+  pivot_inputs();
 
   if (extras_dir) load_extras(extras_dir);
 
@@ -8368,9 +8321,6 @@ int main(int argc, char** argv) {
     use_argv = argv + optind;
 
   perform_dry_run(use_argv);
-
-  if (replay_mode)
-    exit(0);
 
   cull_queue();
 

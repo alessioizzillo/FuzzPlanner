@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import csv
 import json
@@ -218,6 +219,16 @@ def next_run_folder(base_dir: str) -> str:
             return f"run_{max(nums) + 1}"
     return "run_0"
 
+def get_next_name(dir_path: str, prefix: str) -> str:
+    os.makedirs(dir_path, exist_ok=True)
+    max_i = -1
+
+    for fname in os.listdir(dir_path):
+        m = re.match(rf"{prefix}_(\d+)", fname)
+        if m:
+            max_i = max(max_i, int(m.group(1)))
+    
+    return f"{prefix}_{max_i + 1}"
 
 def get_run_id(firmware: str) -> Optional[str]:
     if not os.path.exists(FIRM_RUN_DB_CSV):
@@ -524,7 +535,20 @@ def stop_emulation() -> Response:
 
     subprocess.run(["docker", "exec", cname, "pkill", "-SIGTERM", "-f", "capture_packets.py"])
     subprocess.run(["docker", "rm", "-f", cname])
-    ensure_experiment_consistency(SCHEDULE_CSV)
+
+    # Remove the row from schedule.csv
+    rows = read_csv_rows(SCHEDULE_CSV)
+    updated_rows = []
+    for r in rows:
+        if r.get('container_name') == cname:
+            continue
+        updated_rows.append(r)
+
+    with open(SCHEDULE_CSV, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(SCHEDULE_HEADER)
+        for r in updated_rows:
+            writer.writerow([r[h] for h in SCHEDULE_HEADER])
 
     if status != "paused":
         work = os.path.join(SCRATCH_DIR, 'run', run_id)
@@ -533,7 +557,7 @@ def stop_emulation() -> Response:
         if os.path.exists(pcap_source):
             pcap_dir = os.path.join(BASE_DIR, "pcap", brand, firmware, "http")
             os.makedirs(pcap_dir, exist_ok=True)
-            pcap_dest = os.path.join(pcap_dir, "user_interaction.pcap")
+            pcap_dest = os.path.join(pcap_dir, get_next_name(pcap_dir, "user_interaction")+".pcap")
             shutil.copy(pcap_source, pcap_dest)
             print(f"[INFO] PCAP copied to {pcap_dest} - use Analysis button to analyze")
 

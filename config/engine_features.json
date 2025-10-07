@@ -32,7 +32,37 @@
   {
     "name": "AFL_NO_ARITH",
     "type": "boolean",
+    "default": "true"
+  },
+  {
+    "name": "AFL_NO_BITFLIP",
+    "type": "boolean",
     "default": "false"
+  },
+  {
+    "name": "AFL_NO_INTEREST",
+    "type": "boolean",
+    "default": "true"
+  },
+  {
+    "name": "AFL_NO_USER_EXTRAS",
+    "type": "boolean",
+    "default": "true"
+  },
+  {
+    "name": "AFL_NO_EXTRAS",
+    "type": "boolean",
+    "default": "true"
+  },
+  {
+    "name": "AFL_CALIBRATION",
+    "type": "boolean",
+    "default": "false"
+  },
+  {
+    "name": "STAGE_MAX",
+    "type": "integer",
+    "default": 3
   },
   {
     "name": "AFL_SHUFFLE_QUEUE",
@@ -58,11 +88,6 @@
     "name": "AFL_POST_LIBRARY",
     "type": "string",
     "default": ""
-  },
-  {
-    "name": "AFL_FAST_CAL",
-    "type": "boolean",
-    "default": "false"
   },
   {
     "name": "AFL_NO_CPU_RED",
@@ -100,11 +125,6 @@
     "default": "false"
   },
   {
-    "name": "AFL_INST_RATIO",
-    "type": "integer",
-    "default": 100
-  },
-  {
     "name": "AFL_FUZZING_TIMEOUT",
     "type": "integer",
     "default": 60
@@ -116,11 +136,6 @@
   },
   {
     "name": "AFL_INST_LIBS",
-    "type": "boolean",
-    "default": "false"
-  },
-  {
-    "name": "AFL_INST_RATIO",
     "type": "boolean",
     "default": "false"
   },

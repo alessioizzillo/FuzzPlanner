@@ -778,16 +778,19 @@ def run(firmware: str, capture: bool, container_name: str = None) -> None:
         
         blacklist_keywords = ".gif .jpg .png .css .js .ico .htm .html"  # Static resources to filter out
         whitelist_keywords = "POST PUT .php .cgi .xml"  # Important request types and endpoints
-        cmd = ["sudo", "-E", "python3", os.path.join(SCRIPTS_DIR, "capture_packets.py"),
-               interface, target_ip, pcap_path, blacklist_keywords, whitelist_keywords]
-        subprocess.run(cmd, check=True)
+        try:
+            cmd = ["sudo", "-E", "python3", os.path.join(SCRIPTS_DIR, "capture_packets.py"),
+                interface, target_ip, pcap_path, blacklist_keywords, whitelist_keywords]
+            subprocess.run(cmd, check=True)
+        except:
+            pass
         if container_name:
             update_progress(container_name, "completed", 1.0, "Packet capture completed")
         os.kill(proc.pid, signal.SIGINT)
 
     os.waitpid(proc.pid, 0)
 
-    if container_name and not capture:
+    if container_name:
         update_progress(container_name, "completed", 1.0, "Emulation completed")
 
 def select(container_name: str, firmware: str) -> None:
@@ -806,12 +809,13 @@ def select(container_name: str, firmware: str) -> None:
         print(f"Failed to load/parse {json_path}: {e}", file=sys.stderr)
         sys.exit(1)
 
-    try:
-        os.remove(json_path)
-    except OSError as e:
-        print(f"Warning: could not delete {json_path}: {e}", file=sys.stderr)
+    # try:
+    #     os.remove(json_path)
+    # except OSError as e:
+    #     print(f"Warning: could not delete {json_path}: {e}", file=sys.stderr)
 
     os.environ["EXECUTION_MODE"] = "1"
+    os.environ["DEBUG"] = "1"
 
     for i, pair in enumerate(pairs):
         os.environ["TARGET_EXECUTABLE"] = os.path.basename(pair["executable_id"])
@@ -986,10 +990,11 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
     json_path = os.path.join(TMP_DIR, 'fuzz_pars.json')
     exp = load_experiment(json_path)
 
-    try:
-        os.remove(json_path)
-    except OSError as e:
-        print(f"Warning: could not delete {json_path}: {e}", file=sys.stderr)
+    # if os.path.exists(json_path):
+    #     try:
+    #         os.remove(json_path)
+    #     except OSError as e:
+    #         print(f"Warning: could not delete {json_path}: {e}", file=sys.stderr)
 
     export_env_vars(exp)
 
@@ -1008,7 +1013,7 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
 
     os.environ["EXECUTION_MODE"] = "2"
     os.environ["FUZZ"] = "1"
-    # os.environ["DEBUG_PC"] = "1"
+    os.environ["DEBUG"] = "1"
     setup_mounts(work_dir)
 
     status = open("/proc/self/status").read()
@@ -1048,8 +1053,7 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
         ["sudo","-E","./run.sh",
          "-r", os.path.basename(os.path.dirname(firmware)),
          os.path.join(FIRMWARE_DIR, firmware),
-         container_name,"0.0.0.0"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+         container_name,"0.0.0.0"]
     )
     for elapsed in range(int(sleep_duration)):
         time.sleep(1)

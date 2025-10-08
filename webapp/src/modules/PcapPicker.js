@@ -40,7 +40,10 @@ export default function PcapPicker () {
     progressData.phase !== 'completed' &&
     progressData.phase !== 'error'
 
-  const isButtonDisabled = analyzePcapMutation.isPending || isAnalysisRunning || isAnalysisInitiated || analyzePcapMutation.isLoading
+  const isButtonDisabled = analyzePcapMutation.isPending ||
+                          isAnalysisRunning ||
+                          (isAnalysisInitiated && !progressData) ||
+                          analyzePcapMutation.isLoading
 
   useEffect(() => {
     setShowSuccessMessage(false)
@@ -55,14 +58,8 @@ export default function PcapPicker () {
         setShowSuccessMessage(false)
       }, 3000)
       return () => clearTimeout(timer)
-    } else if (progressData === null && isAnalysisInitiated && !analyzePcapMutation.isPending) {
-      const timer = setTimeout(() => {
-        setIsAnalysisInitiated(false)
-        setShowSuccessMessage(false)
-      }, 2000)
-      return () => clearTimeout(timer)
     }
-  }, [progressData, isAnalysisInitiated, analyzePcapMutation.isPending])
+  }, [progressData])
 
   useEffect(() => {
     if (isAnalysisRunning && !analyzePcapMutation.isPending) {
@@ -71,13 +68,18 @@ export default function PcapPicker () {
   }, [isAnalysisRunning, analyzePcapMutation.isPending])
 
   useEffect(() => {
-    if (!isProgressLoading && !analyzePcapMutation.isPending && !isAnalysisRunning && isAnalysisInitiated) {
+    if (!isProgressLoading &&
+        !analyzePcapMutation.isPending &&
+        !isAnalysisRunning &&
+        isAnalysisInitiated &&
+        progressData &&
+        progressData.status === 'not_running') {
       const timer = setTimeout(() => {
         setIsAnalysisInitiated(false)
       }, 1000)
       return () => clearTimeout(timer)
     }
-  }, [isProgressLoading, analyzePcapMutation.isPending, isAnalysisRunning, isAnalysisInitiated])
+  }, [isProgressLoading, analyzePcapMutation.isPending, isAnalysisRunning, isAnalysisInitiated, progressData])
 
   useEffect(() => {
     if (!isAnalysisRunning && isStopInitiated) {

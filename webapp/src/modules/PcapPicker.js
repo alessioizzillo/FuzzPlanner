@@ -51,35 +51,32 @@ export default function PcapPicker () {
     setIsStopInitiated(false)
   }, [selectedPcap])
 
+  // Reset isAnalysisInitiated when analysis completes, errors, or returns not_running
   useEffect(() => {
-    if (progressData && (progressData.phase === 'completed' || progressData.phase === 'error')) {
-      const timer = setTimeout(() => {
-        setIsAnalysisInitiated(false)
-        setShowSuccessMessage(false)
-      }, 3000)
-      return () => clearTimeout(timer)
+    if (progressData) {
+      // Analysis completed or errored
+      if (progressData.phase === 'completed' || progressData.phase === 'error') {
+        const timer = setTimeout(() => {
+          setIsAnalysisInitiated(false)
+          setShowSuccessMessage(false)
+        }, 3000)
+        return () => clearTimeout(timer)
+      }
+      // Analysis not running (no phase means it hasn't started or already stopped)
+      else if (progressData.status === 'not_running' && isAnalysisInitiated) {
+        const timer = setTimeout(() => {
+          setIsAnalysisInitiated(false)
+        }, 1000)
+        return () => clearTimeout(timer)
+      }
     }
-  }, [progressData])
+  }, [progressData, isAnalysisInitiated])
 
   useEffect(() => {
     if (isAnalysisRunning && !analyzePcapMutation.isPending) {
       setIsAnalysisInitiated(true)
     }
   }, [isAnalysisRunning, analyzePcapMutation.isPending])
-
-  useEffect(() => {
-    if (!isProgressLoading &&
-        !analyzePcapMutation.isPending &&
-        !isAnalysisRunning &&
-        isAnalysisInitiated &&
-        progressData &&
-        progressData.status === 'not_running') {
-      const timer = setTimeout(() => {
-        setIsAnalysisInitiated(false)
-      }, 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [isProgressLoading, analyzePcapMutation.isPending, isAnalysisRunning, isAnalysisInitiated, progressData])
 
   useEffect(() => {
     if (!isAnalysisRunning && isStopInitiated) {

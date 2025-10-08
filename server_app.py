@@ -1129,6 +1129,13 @@ def exp_info() -> Response:
 
     if running:
         iid = get_id(combined, container_name)
+        if not iid:
+            print(f"Warning: Could not get IID for firmware {combined} with container {container_name}", file=sys.stderr)
+            return jsonify({
+                "error": "Server error",
+                "message": f"Could not find experiment ID for running container {container_name}"
+            }), 500
+
         work_dir = os.path.join(
             FIRMAE_DIR,
             "scratch",

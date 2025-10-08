@@ -297,12 +297,18 @@ def ensure_experiment_consistency(csv_file: str) -> None:
     mode_map, used = parse_affinity()
     running_containers = get_running_containers()
 
+    running_container_names = set(running_containers.values())
+
     for row in rows[1:]:
         if len(row) < len(headers):
             row = row + [''] * (len(headers) - len(row))
 
         status, exp_name, container_name, num_cores, mode, firmware = row[:6]
         pcap_name = row[6] if len(row) > 6 else ""
+
+        if status == "running" and container_name and container_name not in running_container_names:
+            print(f"Removing stale row: container '{container_name}' not running (mode={mode}, firmware={firmware})")
+            continue
 
         if status == "":
             keep = True
@@ -381,18 +387,34 @@ def get_container_info(firmware: str, schedule_csv: str) -> Tuple[Optional[str],
 
 def clear_non_running(schedule_csv: str) -> None:
     if not os.path.isfile(schedule_csv): return
-    
+
     ensure_experiment_consistency(schedule_csv)
     lock = lock_file(SCHEDULE_LOCK)
+
+    running_containers = get_running_containers()
+    running_container_names = set(running_containers.values())
+
     kept = []
-    
-    for row in csv.reader(open(schedule_csv, newline='')):
-        if row and row[0] in ('running','paused') or row and row[0]=='status':
-            kept.append(row)
-    
+
+    with open(schedule_csv, newline='') as fp:
+        reader = csv.reader(fp)
+        for row in reader:
+            if row and row[0] == 'status':
+                kept.append(row)
+                continue
+
+            if row and len(row) >= 3:
+                status = row[0]
+                container_name = row[2]
+
+                if status in ('running', 'paused') and container_name in running_container_names:
+                    kept.append(row)
+                elif status in ('running', 'paused'):
+                    print(f"Removing stale row at startup: container '{container_name}' not running (status={status})")
+
     with open(schedule_csv,'w',newline='') as fp:
         csv.writer(fp).writerows(kept)
-    
+
     lock.close()
 
 def update_schedule_status(schedule_csv: str, status: str,

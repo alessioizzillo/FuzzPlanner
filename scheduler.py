@@ -7,6 +7,7 @@ import csv
 import re
 import docker
 import json
+import time
 from time import sleep
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -299,6 +300,10 @@ def ensure_experiment_consistency(csv_file: str) -> None:
 
     running_container_names = set(running_containers.values())
 
+    csv_mtime = os.path.getmtime(csv_file)
+    current_time = time.time()
+    grace_period = 10
+
     for row in rows[1:]:
         if len(row) < len(headers):
             row = row + [''] * (len(headers) - len(row))
@@ -307,8 +312,12 @@ def ensure_experiment_consistency(csv_file: str) -> None:
         pcap_name = row[6] if len(row) > 6 else ""
 
         if status == "running" and container_name and container_name not in running_container_names:
-            print(f"Removing stale row: container '{container_name}' not running (mode={mode}, firmware={firmware})")
-            continue
+            time_since_modification = current_time - csv_mtime
+            if time_since_modification > grace_period:
+                print(f"Removing stale row: container '{container_name}' not running (mode={mode}, firmware={firmware})")
+                continue
+            else:
+                print(f"Keeping recently scheduled container '{container_name}' (will start soon, {grace_period - time_since_modification:.0f}s grace remaining)")
 
         if status == "":
             keep = True

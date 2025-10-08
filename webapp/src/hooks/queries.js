@@ -373,3 +373,9 @@ export function useStopPcapReplay() {
     }
   })
 }
+
+export function useRemoveSelect() {
+  return useMutation({
+    mutationFn: removeSelect
+  })
+}

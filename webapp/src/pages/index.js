@@ -62,7 +62,7 @@ export default function Home () {
                   }`}
                   onClick={() => setActiveTab('config')}
                 >
-                  🚀 Fuzzing
+                  🐞 Fuzzing
                 </button>
                 <button
                   className={`px-4 py-2 flex-1 text-center transition-colors ${
@@ -76,7 +76,7 @@ export default function Home () {
                   }}
                   title={!selectedRun ? 'Select a run first to access Run Manager' : undefined}
                 >
-                  ⚙️ Analysis
+                  🔍 Analysis
                 </button>
               </div>
 

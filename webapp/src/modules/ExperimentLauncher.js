@@ -152,8 +152,7 @@ export default function ExperimentLauncher() {
     <div className="w-full h-full overflow-auto p-4 space-y-6">
       <div>
         <h2 className="text-lg font-bold mb-1 text-blue-400 flex items-center gap-2">
-          <Icon name="power" className="w-5 h-5" />
-          Settings
+        ⚙️ Settings
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-3">
           {efLoading
@@ -173,7 +172,7 @@ export default function ExperimentLauncher() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-          <h2 className="text-lg font-bold mb-1 text-green-400">📦 Dictionary</h2>
+          <h2 className="text-lg font-bold mb-1 text-green-400">📚 Dictionary</h2>
           {dtLoading
             ? <p>Loading dictionaries…</p>
             : <select className="border px-2 py-1 bg-gray-800 text-gray-100 rounded" value={selected_dict_type} onChange={e => setDictType(e.target.value)}>
@@ -184,7 +183,7 @@ export default function ExperimentLauncher() {
         </div>
 
         <div>
-          <h2 className="text-lg font-bold mb-1 text-purple-400">⚙️ Socket Matching</h2>
+          <h2 className="text-lg font-bold mb-1 text-purple-400">🔌 Socket Matching</h2>
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -202,8 +201,7 @@ export default function ExperimentLauncher() {
 
       <div>
         <h2 className="text-lg font-bold mb-1 text-red-400 flex items-center gap-2">
-          <Icon name="analyze" className="w-5 h-5" />
-          Fork points
+        🔀 Fork points
         </h2>
         {paramLoading
           ? <p>Loading fork points…</p>

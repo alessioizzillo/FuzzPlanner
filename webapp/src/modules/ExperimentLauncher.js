@@ -153,7 +153,7 @@ export default function ExperimentLauncher() {
       <div>
         <h2 className="text-lg font-bold mb-1 text-blue-400 flex items-center gap-2">
           <Icon name="power" className="w-5 h-5" />
-          Engine Features
+          Settings
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-3">
           {efLoading
@@ -171,15 +171,33 @@ export default function ExperimentLauncher() {
         </div>
       </div>
 
-      <div>
-        <h2 className="text-lg font-bold mb-1 text-green-400">📦 Dictionary Type</h2>
-        {dtLoading
-          ? <p>Loading dictionaries…</p>
-          : <select className="border px-2 py-1 bg-gray-800 text-gray-100 rounded" value={selected_dict_type} onChange={e => setDictType(e.target.value)}>
-              <option value="" disabled>Select a dictionary…</option>
-              {dict_types.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-        }
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <h2 className="text-lg font-bold mb-1 text-green-400">📦 Dictionary</h2>
+          {dtLoading
+            ? <p>Loading dictionaries…</p>
+            : <select className="border px-2 py-1 bg-gray-800 text-gray-100 rounded" value={selected_dict_type} onChange={e => setDictType(e.target.value)}>
+                <option value="" disabled>Select a dictionary…</option>
+                {dict_types.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+          }
+        </div>
+
+        <div>
+          <h2 className="text-lg font-bold mb-1 text-purple-400">⚙️ Socket Matching</h2>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="ignoreAddr"
+              checked={ignoreAddr}
+              onChange={(e) => setIgnoreAddr(e.target.checked)}
+              className="w-4 h-4 accent-purple-500 cursor-pointer"
+            />
+            <label htmlFor="ignoreAddr" className="text-sm text-gray-200 cursor-pointer">
+              Ignore address in socket matching (match port only)
+            </label>
+          </div>
+        </div>
       </div>
 
       <div>
@@ -193,27 +211,11 @@ export default function ExperimentLauncher() {
               <option value="">Select a parameter…</option>
               {analysisParams.map((p, i) => {
                 const syscallShort = p.syscall?.length > 20 ? p.syscall.substring(0, 20) + '…' : p.syscall
-                const patternShort = p.pattern ? (p.pattern.length > 50 ? p.pattern.substring(0, 50) + '…' : p.pattern) : 'no fork points'
+                const patternShort = p.pattern ? (p.pattern.length > 120 ? p.pattern.substring(0, 120) + '…' : p.pattern) : 'no fork points'
                 return <option key={i} value={i}>{syscallShort} | {patternShort}</option>
               })}
             </select>
         }
-      </div>
-
-      <div>
-        <h2 className="text-lg font-bold mb-1 text-purple-400">⚙️ Socket Matching Options</h2>
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="ignoreAddr"
-            checked={ignoreAddr}
-            onChange={(e) => setIgnoreAddr(e.target.checked)}
-            className="w-4 h-4 accent-purple-500 cursor-pointer"
-          />
-          <label htmlFor="ignoreAddr" className="text-sm text-gray-200 cursor-pointer">
-            Ignore address in socket matching (match port only)
-          </label>
-        </div>
       </div>
 
       <div className="mt-6">

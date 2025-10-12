@@ -39,11 +39,11 @@ const binariesColumns = [
     header: 'Parents',
     cell: v => v.getValue()
   }), */
-  columnHelper.accessor(accessorCve, {
+  /* columnHelper.accessor(accessorCve, {
     id: 'cve',
     header: () => <div className='m-auto text-xs'>CVE</div>,
     cell: v => <BinariesTableCell colId='cve' value={v.getValue()} />
-  }),
+  }), */
   /* columnHelper.accessor(accessorCwe, {
     id: 'cwe',
     header: () => <div className='m-auto text-xs'>CWE</div>,

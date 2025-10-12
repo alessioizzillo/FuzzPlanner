@@ -159,7 +159,7 @@ export default function TargetPicker() {
       <div className="flex-1 min-w-0">
         <h2 className="text-lg font-bold mb-2 text-yellow-400 flex items-center gap-2">
           <Icon name="target" className="w-5 h-5" />
-          Target Binary
+          Binary
         </h2>
         <div className="flex items-center">
           <Picker

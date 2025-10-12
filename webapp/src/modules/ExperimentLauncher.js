@@ -149,7 +149,7 @@ export default function ExperimentLauncher() {
   )
 
   return (
-    <div className="w-full h-full overflow-auto p-4 space-y-6">
+    <div className="w-full h-full overflow-auto p-4 space-y-5">
       <div>
         <h2 className="text-lg font-bold mb-1 text-blue-400 flex items-center gap-2">
         ⚙️ Settings

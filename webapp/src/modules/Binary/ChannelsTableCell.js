@@ -111,6 +111,11 @@ function Select({ cRef, dms, value }) {
 function NoAddr({ cRef, value }) {
   const checkboxKey = `${value.binary?.id}:::${value.channel?.id}`
   const [ignoreAddr, setIgnoreAddr] = useState(checkboxStates.get(checkboxKey) || false)
+  const role = value.channel?.role
+
+  if (!['border', 'read'].includes(role)) {
+    return <div ref={cRef} className='h-6 flex items-center justify-center' />
+  }
 
   const handleChange = (e) => {
     const checked = e.target.checked

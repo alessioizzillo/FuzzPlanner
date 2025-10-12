@@ -28,7 +28,7 @@ const channelsColumns = [
   }),
   columnHelper.display({
     id: 'no_addr',
-    header: 'No Addr',
+    header: 'Port Only',
     cell: (props) => <ChannelsTableCell colId='no_addr' value={{ binary: props.table.options.meta.binary, channel: props.row.original }} />
   }),
   columnHelper.display({

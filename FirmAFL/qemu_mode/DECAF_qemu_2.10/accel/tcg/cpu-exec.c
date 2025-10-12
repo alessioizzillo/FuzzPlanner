@@ -63,6 +63,7 @@ int CP0_UserLocal = 0;
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <signal.h>
 
 static int decode_escape_sequences(const char* input, char** output, size_t* output_len) {
     if (!input || !output || !output_len) return -1;
@@ -260,6 +261,7 @@ int pipe_read_fd = -1;
 int pipe_write_fd = -1; 
 int read_type = -1;
 int is_loop_over = 1;
+int terminate_loop = 0;
 int first_time = 0; //tlb store
 int syscall_request = 0;
 
@@ -1252,7 +1254,7 @@ static void callbacktests_loadmainmodule_callback(VMI_Callback_Params* params)
 
     if (debug){
         FILE *fd= fopen("debug/processes.log","a+");
-        fprintf(fd, "%s, 0x%lx\n", procname, params->cp.cr3);
+        fprintf(fd, "%s, 0x%lx, %d\n", procname, params->cp.cr3, pid);
         fclose(fd);        
     }
 
@@ -1303,7 +1305,7 @@ int callbacktests_init(void)
     DECAF_printf("Hello World\n");
     processbegin_handle = VMI_register_callback(VMI_CREATEPROC_CB, &callbacktests_loadmainmodule_callback, NULL);
     removeproc_handle = VMI_register_callback(VMI_REMOVEPROC_CB, &callbacktests_removeproc_callback, NULL);
-    if (debug_pc && execution_mode && fuzz) modulebegin_handle = VMI_register_callback(VMI_LOADMODULE_CB, &callbacktests_loadmodule_callback, NULL);
+    if ((debug_pc || debug) && execution_mode && fuzz) modulebegin_handle = VMI_register_callback(VMI_LOADMODULE_CB, &callbacktests_loadmodule_callback, NULL);
     block_begin_handle = DECAF_registerOptimizedBlockBeginCallback(&do_block_begin, NULL, INV_ADDR, OCB_ALL);
 #ifdef STORE_PAGE_FUNC
     //block_end_handle = DECAF_registerOptimizedBlockEndCallback(&do_block_end, NULL, INV_ADDR, INV_ADDR);
@@ -1480,9 +1482,9 @@ static inline tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
                 if (pgd)
                     status = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
                 
-                if (pgd && !status && !strcmp(procname, target_exec)) {
+                if (pgd && !status && !strcmp(procname, target_exec) && itb->pc < 0x70000000) {
                     FILE *module_file = fopen("debug/pc.log","a+");
-                    fprintf(module_file, "0x%lx\n", itb->pc);
+                    fprintf(module_file, "(S) 0x%lx\n", itb->pc);
                     fclose(module_file);
                 }
             }
@@ -2144,6 +2146,25 @@ void prepare_exit()
 #endif //FUZZ
 }
 
+void handler_sigterm(int signum)
+{
+    static int debug_sigterm = -1;
+    if (debug_sigterm == -1) {
+        debug_sigterm = getenv("DEBUG_SIGTERM") ? 1 : 0;
+    }
+
+    if(!is_loop_over){
+        terminate_loop = 1;
+    }
+
+    if (debug) {
+        FILE *fd_replay = fopen("debug/pc.log", "a+");
+        fprintf(fd_replay, "[DEBUG] SIGTERM received, is_loop_over=%d, terminate_loop=%d\n",
+                is_loop_over, terminate_loop);
+        fclose(fd_replay);
+    }
+}
+
 int cpu_exec_head(CPUState *cpu)
 {
     CPUClass *cc = CPU_GET_CLASS(cpu);
@@ -2288,6 +2309,10 @@ int determine_if_skip(int program_id, CPUState *cpu)
     {
         skip_syscall(cpu, 0, 0);
         return 1;//goto skip_to_pos;
+    }
+    else if(into_syscall == 4142) //select
+    {
+        return 2;//goto exit;
     }
     /*
     else if(into_syscall == 4178) //send
@@ -2721,7 +2746,10 @@ char* visualizeUTF8(const char *data, size_t length) {
     size_t outputIndex = 0;
     for (size_t i = 0; i < length; i++) {
         unsigned char byte = data[i];
-        if (byte < 32 || byte > 126 || byte == '"') {
+        // Escape control chars, extended ASCII, and JSON-meaningful characters
+        if (byte < 32 || byte > 126 || byte == '"' || byte == '\\' ||
+            byte == ',' || byte == '\'' || byte == '{' || byte == '}' ||
+            byte == '[' || byte == ']' || byte == ':') {
             if (byte >= 0xC0 && i + 1 < length && (data[i + 1] & 0xC0) == 0x80) {
                 uint16_t code_point = ((uint16_t)(byte & 0x1F) << 6) | (uint16_t)(data[i + 1] & 0x3F);
                 if (code_point >= 0xD800 && code_point <= 0xDFFF) {
@@ -2750,6 +2778,11 @@ char* visualizeUTF8(const char *data, size_t length) {
 /* main execution loop */
 int cpu_exec(CPUState *cpu)
 {
+    static int sigterm_handler_registered = 0;
+    if (!sigterm_handler_registered) {
+        signal(SIGTERM, handler_sigterm);
+        sigterm_handler_registered = 1;
+    }
 
 #ifdef TARGET_ARM
     int exception_num = 2;
@@ -3189,6 +3222,33 @@ skip_to_pos:
 
 #ifdef NEW_MAPPING
 
+                if (afl_user_fork && terminate_loop) {
+                    terminate_loop = 0;
+                    DECAF_printf("print_fatal_signal:%x\n",pc);
+
+                    printf("into kernel error addr:%x\n", handle_addr);
+                    into_normal_execution = 0;
+                    tcg_handle_addr = 1;
+                    ask_addr = handle_addr;
+                    res_addr = 0xfffffffe;
+                    exit_status = 0;
+                    afl_wants_cpu_to_stop = 1;
+                    handle_addr = 0;
+                    ret = 0; 
+#ifdef FORK_OR_NOT
+                    int ret_value = 0;
+                    doneWork(ret_value);
+#endif
+
+                    if (debug) {
+                        FILE *fd_replay = fopen("debug/pc.log", "a+");
+                        fprintf(fd_replay, "[DEBUG] goto end; terminate_loop=%d\n", terminate_loop);
+                        fclose(fd_replay);
+                    }
+
+                    goto end;                     
+                }
+
                 if(afl_user_fork && handle_addr !=0) //normal execution
                 {
                     target_ulong tmp_pgd = DECAF_getPGD(cpu);
@@ -3475,7 +3535,14 @@ skip_to_pos:
                         fclose(fd);
                     }
 
-                    if(pgd == target_pgd)
+                    if (debug){
+                        FILE *fd= fopen("debug/pc.log","a+");
+                        fprintf(fd, "CRASH!\n");
+                        fclose(fd);
+                    }
+
+                    // if(pgd == target_pgd)
+                    if (1)
                     {
                         DECAF_printf("print_fatal_signal:%x\n",pc);
 
@@ -3734,10 +3801,7 @@ skip_to_pos:
                                 {
                                     int len;
 
-                                    if (ret_value_0 > 20)
-                                        len = 20;
-                                    else
-                                        len = ret_value_0;
+                                    len = ret_value_0;
 
                                     char pattern[len];
                                     memset(pattern, 0, sizeof(len));
@@ -3872,10 +3936,7 @@ skip_to_pos:
                                     target_ulong iov_msg_addr, msg_addr;
                                     int len;
 
-                                    if (ret_value_0 > 20)
-                                        len = 20;
-                                    else
-                                        len = ret_value_0;
+                                    len = ret_value_0;
 
                                     char pattern[len];
                                     memset(pattern, 0, sizeof(len));
@@ -3970,10 +4031,7 @@ skip_to_pos:
                                 {
                                     int len;
 
-                                    if (ret_value_0 > 20)
-                                        len = 20;
-                                    else
-                                        len = ret_value_0;
+                                    len = ret_value_0;
 
                                     char pattern[len];
                                     memset(pattern, 0, sizeof(len));
@@ -3993,10 +4051,10 @@ skip_to_pos:
                                     {
                                         FILE *fd_forkpoints = fopen("forkpoints.log", "a+");
 #if TARGET_LONG_BITS == 32
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, sizeof(pattern)));
-#else                                
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-8, visualizeUTF8(pattern, sizeof(pattern)));
-#endif                                        
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, len));
+#else
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-8, visualizeUTF8(pattern, len));
+#endif
                                         fclose(fd_forkpoints);
 
                                         int match_found = 0;
@@ -4117,7 +4175,7 @@ skip_to_pos:
                                 tlb_fill(cpu, a1, MMU_DATA_LOAD, cpu_mmu_index(env, true), 0);
                                 DECAF_read_mem(cpu, a1, sizeof(buf), buf);
                                 if (debug) {
-                                    fprintf(fd, "\nread DATA: %s\n", buf);
+                                    fprintf(fd, "\nread DATA (PID = %d): %s\n", state->pid, buf);
                                     printHexBuffer(fd, buf, ret_value_0);
                                 }
                             }
@@ -4983,11 +5041,11 @@ void handlePiperead(void *ctx)
         restart();
     }
     else if(res == 1){
-#ifdef TARGET_MIPS
-        printf("handle_addr:%x,%d, state:%x\n", handle_addr, handle_addr_prot, env->active_tc.PC);
-#elif defined(TARGET_ARM)
-        printf("handle_addr:%x,%d, state:%x\n", handle_addr, handle_addr_prot, env->regs[15]);
-#endif        
+// #ifdef TARGET_MIPS
+//         printf("handle_addr:%x,%d, state:%x\n", handle_addr, handle_addr_prot, env->active_tc.PC);
+// #elif defined(TARGET_ARM)
+//         printf("handle_addr:%x,%d, state:%x\n", handle_addr, handle_addr_prot, env->regs[15]);
+// #endif        
         reset_current_state(cpu); // add
         restart();
 

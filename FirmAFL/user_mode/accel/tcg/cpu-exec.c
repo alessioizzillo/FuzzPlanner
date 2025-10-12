@@ -170,7 +170,7 @@ static inline tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
                            itb->tc_ptr, cpu->cpu_index, itb->pc,
                            lookup_symbol(itb->pc));
 
-    if(debug || debug_pc)
+    if((debug || debug_pc) && itb->pc < 0x70000000)
     {
         FILE *fffp;
         fffp = fopen("debug/pc.log","a+");
@@ -178,7 +178,7 @@ static inline tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
             fprintf(fffp, "\n--------STARTED USER-MODE CHILD--------\n\n");
             first = 1;
         }
-        fprintf(fffp, "pc: 0x%lx, pid: %d\n", itb->pc, getpid());
+        fprintf(fffp, "(U) 0x%lx\n", itb->pc);
         fclose(fffp);
     }
 

@@ -32,7 +32,7 @@ export default function Home () {
           {selectedBrand && selectedFirmware && (
             <>
               <div className='flex items-center space-x-2'>
-                <label className='text-sm font-medium text-gray-300'>Analysis Run:</label>
+                <label className='text-sm font-medium text-gray-300'>Analyzed Run:</label>
                 <RunPicker
                   selectedRun={selectedRun}
                   onRunSelect={setSelectedRun}
@@ -62,7 +62,7 @@ export default function Home () {
                   }`}
                   onClick={() => setActiveTab('config')}
                 >
-                  ⚙️ Config Panel
+                  🚀 Fuzzing
                 </button>
                 <button
                   className={`px-4 py-2 flex-1 text-center transition-colors ${
@@ -76,7 +76,7 @@ export default function Home () {
                   }}
                   title={!selectedRun ? 'Select a run first to access Run Manager' : undefined}
                 >
-                  🚀 Run Manager
+                  ⚙️ Analysis
                 </button>
               </div>
 

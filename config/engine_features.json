@@ -32,7 +32,7 @@
   {
     "name": "AFL_NO_ARITH",
     "type": "boolean",
-    "default": "true"
+    "default": "false"
   },
   {
     "name": "AFL_NO_BITFLIP",
@@ -127,12 +127,12 @@
   {
     "name": "AFL_FUZZING_TIMEOUT",
     "type": "integer",
-    "default": 60
+    "default": 600
   },
   {
     "name": "AFL_CHILD_TIMEOUT",
     "type": "integer",
-    "default": 1
+    "default": 10
   },
   {
     "name": "AFL_INST_LIBS",

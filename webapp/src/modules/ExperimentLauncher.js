@@ -185,13 +185,17 @@ export default function ExperimentLauncher() {
       <div>
         <h2 className="text-lg font-bold mb-1 text-red-400 flex items-center gap-2">
           <Icon name="analyze" className="w-5 h-5" />
-          Analysis Parameters
+          Fork points
         </h2>
         {paramLoading
-          ? <p>Loading parameters…</p>
+          ? <p>Loading fork points…</p>
           : <select className="border px-2 py-1 bg-gray-800 text-gray-100 rounded w-full" value={paramIdx !== null ? paramIdx : ''} onChange={e => onParamSelect(e.target.value)}>
               <option value="">Select a parameter…</option>
-              {analysisParams.map((p, i) => <option key={i} value={i}>{p.syscall} | {p.pattern || 'no pattern'}</option>)}
+              {analysisParams.map((p, i) => {
+                const syscallShort = p.syscall?.length > 20 ? p.syscall.substring(0, 20) + '…' : p.syscall
+                const patternShort = p.pattern ? (p.pattern.length > 50 ? p.pattern.substring(0, 50) + '…' : p.pattern) : 'no fork points'
+                return <option key={i} value={i}>{syscallShort} | {patternShort}</option>
+              })}
             </select>
         }
       </div>

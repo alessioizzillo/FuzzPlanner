@@ -219,6 +219,19 @@ def next_run_folder(base_dir: str) -> str:
             return f"run_{max(nums) + 1}"
     return "run_0"
 
+def cleanup_progress_file_for_container(container_name: str) -> None:
+    progress_dir = os.path.join(TMP_DIR, 'progress')
+    if not os.path.exists(progress_dir):
+        return
+
+    progress_file = os.path.join(progress_dir, f'{container_name}.json')
+    if os.path.exists(progress_file):
+        try:
+            os.remove(progress_file)
+            print(f"Removed stale progress file: {progress_file}")
+        except OSError as e:
+            print(f"Warning: Failed to remove progress file {progress_file}: {e}")
+
 def get_next_name(dir_path: str, prefix: str) -> str:
     os.makedirs(dir_path, exist_ok=True)
     max_i = -1
@@ -418,6 +431,21 @@ def emulate() -> Response:
         append_csv_row(SCHEDULE_CSV, SCHEDULE_HEADER, ["", "", "", "1", "run_capture", os.path.join(brand, firmware), ""])
         success = run_container(SCHEDULE_CSV, LOGICAL_TO_PAIR, PAIR_TO_LOGICAL, None)
 
+        if success:
+            try:
+                with open(SCHEDULE_CSV, newline='') as fp:
+                    reader = csv.DictReader(fp)
+                    for row in reader:
+                        if (row.get('mode') == 'run_capture' and
+                            row.get('status') == 'running' and
+                            row.get('firmware') == os.path.join(brand, firmware)):
+                            container_name = row.get('container_name')
+                            if container_name:
+                                cleanup_progress_file_for_container(container_name)
+                            break
+            except Exception as e:
+                print(f"Warning: Failed to cleanup progress file: {e}")
+
         return ("OK", 200) if success else (jsonify({"status": "error", "message": "Emulation failed"}), 400)
 
 def compute_check_run_data(brand: str, firmware: str) -> dict:
@@ -605,6 +633,20 @@ def select() -> Response:
         return jsonify({"status": "error",
                         "message": "Container launch failed"}), 500
 
+    try:
+        with open(SCHEDULE_CSV, newline='') as fp:
+            reader = csv.DictReader(fp)
+            for row in reader:
+                if (row.get('mode') == 'select' and
+                    row.get('status') == 'running' and
+                    row.get('firmware') == os.path.join(brandId, firmwareId)):
+                    container_name = row.get('container_name')
+                    if container_name:
+                        cleanup_progress_file_for_container(container_name)
+                    break
+    except Exception as e:
+        print(f"Warning: Failed to cleanup progress file: {e}")
+
     return ("OK", 200)
 
 
@@ -681,7 +723,7 @@ def select_res() -> Response:
             "error": "Not found",
             "message": f"File not found: {file_path}"
         }), 404
-
+    
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             results = json.load(f)
@@ -967,6 +1009,8 @@ def execute():
         request_data = request.json 
         experiments_data_json = json.dumps(request_data, indent=2)
 
+        print(request_data)
+
         os.environ["EXPERIMENTS_DATA"] = experiments_data_json
 
         os.makedirs(TMP_DIR, exist_ok=True)
@@ -991,7 +1035,21 @@ def execute():
     if not success:
         return jsonify({"status": "error",
                         "message": "Container launch failed"}), 500
-    
+
+    try:
+        with open(SCHEDULE_CSV, newline='') as fp:
+            reader = csv.DictReader(fp)
+            for row in reader:
+                if (row.get('mode') == 'fuzz' and
+                    row.get('status') == 'running' and
+                    row.get('firmware') == os.path.join(brandId, firmwareId)):
+                    container_name = row.get('container_name')
+                    if container_name:
+                        cleanup_progress_file_for_container(container_name)
+                    break
+    except Exception as e:
+        print(f"Warning: Failed to cleanup progress file: {e}")
+
     return jsonify({"status": "OK"}), 200
 
 @app.route('/remove_select', methods=['POST'])
@@ -1421,6 +1479,9 @@ def analyze_pcap() -> Response:
                             row.get('status') == 'running'):
                             container_name = row.get('container_name')
                             break
+
+            if container_name:
+                cleanup_progress_file_for_container(container_name)
 
             return jsonify({
                 "status": "success",

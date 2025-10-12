@@ -1,0 +1,10 @@
+{
+    "brandId": "netgear",
+    "firmwareId": "JNR3210_Firmware_Version_1.1.0.14.zip",
+    "runId": "run_0",
+    "executableId": "mini_httpd",
+    "dataChannelId": "socket(domain:2,type:2,protocol:0){addr:0.0.0.0;port:80}",
+    "syscall": "4003",
+    "pc": "0x402140",
+    "pattern": "b'GET /setup.cgi?next_file=common/system.xml&timestamp=1747069880610 HTTP/1.1\\r\\nHost: 192.168.1.1\\r\\nConnection: keep-alive\\r\\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36\\r\\nAccept: */*\\r\\nReferer: http://192.168.1.1/BRS_top.html\\r\\nAccept-Encoding: gzip, deflate\\r\\nAccept-Language: en-US,en;q=0.9\\r\\n\\r\\n'"
+}

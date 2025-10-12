@@ -664,10 +664,10 @@ abi_long feed_input(int syscall_num, CPUArchState *env, int *network_handle)
 #endif
         if((syscall_num == 175  || syscall_num == 3 || syscall_num == 176) && (a0 == accept_fd) && feed_input_times == 0)
         {
-            if(program_id == 161161)
-            {
+            // if(program_id == 161161)
+            // {
                 feed_input_times++;
-            }
+            // }
 
             int flag = a3;
             int len = a2;
@@ -695,6 +695,11 @@ abi_long feed_input(int syscall_num, CPUArchState *env, int *network_handle)
             {
                 extern_struct->buf_read_index+=ret;
                 
+            }
+            if (debug){
+                FILE *fp= fopen("debug/pc.log","a+");
+                fprintf(fp, "Feeding... (%s)\n", buf);
+                fclose(fp);
             }
         }
         else if((a0 == accept_fd) && syscall_num == 140 )
@@ -726,6 +731,11 @@ abi_long feed_input(int syscall_num, CPUArchState *env, int *network_handle)
         else
         {
             *network_handle = 0;
+            if (debug){
+                FILE *fp= fopen("debug/pc.log","a+");
+                fprintf(fp, "*network_handle = 0\n");
+                fclose(fp);
+            }
         }
     }
     
@@ -1046,9 +1056,9 @@ void exit_func(CPUArchState *env, int syscall_num, int program_id)
 #endif
 
 #ifdef TARGET_MIPS
-        if (syscall_num == 1 || syscall_num == 246)
+        if (syscall_num == 1 || syscall_num == 246 || syscall_num == 11)
 #elif defined(TARGET_ARM)
-        if (syscall_num == 1 || syscall_num == 248)
+        if (syscall_num == 1 || syscall_num == 248 || syscall_num == 11)
 #endif
         {          
             normal_exit(syscall_num);
@@ -1126,6 +1136,11 @@ int determine_local_or_not(int syscall_num, int program_id, CPUArchState *env, i
         || syscall_num == 55 || syscall_num == 140 || syscall_num == 108)
     {
         file_syscall_fd = a0;
+        if (debug){
+            FILE *fp= fopen("debug/pc.log","a+");
+            fprintf(fp, "file_syscall_fd = %d\n", a0);
+            fclose(fp);
+        }
     }
     else if(syscall_num == 170 || syscall_num == 178 || syscall_num == 142) //connect, send, _newselect
     {
@@ -1160,16 +1175,31 @@ int determine_local_or_not(int syscall_num, int program_id, CPUArchState *env, i
         if(program_id== 90500 || program_id == 90501) 
         {
             local_or_not = 1; //zyw
+            if (debug){
+                FILE *fp= fopen("debug/pc.log","a+");
+                fprintf(fp, "local_or_not = 1\n", a0);
+                fclose(fp);
+            }
         }
         else
         {   
             
             local_or_not = 2;
+            if (debug){
+                FILE *fp= fopen("debug/pc.log","a+");
+                fprintf(fp, "local_or_not = 2\n", a0);
+                fclose(fp);
+            }
         }
     }
     else if((*file_opti == 1) || if_exist_local_fd(file_syscall_fd))
     {
         local_or_not = 1;
+        if (debug){
+            FILE *fp= fopen("debug/pc.log","a+");
+            fprintf(fp, "local_or_not = 1 (if_exist_local_fd)\n", a0);
+            fclose(fp);
+        }
     }
     else if(program_id == 10566 || program_id == 9054) //hnap
     {
@@ -1236,6 +1266,11 @@ int determine_local_or_not(int syscall_num, int program_id, CPUArchState *env, i
         {
 
             condition = local_or_not;
+            if (debug){
+                FILE *fp= fopen("debug/pc.log","a+");
+                fprintf(fp, "condition = %d\n", local_or_not);
+                fclose(fp);
+            }
         }             
     }
     return condition;
@@ -3598,6 +3633,14 @@ void cpu_loop(CPUMIPSState *env)
 #ifdef MEM_MAPPING   
                 int file_opti = 0;
                 int local_or_not = determine_local_or_not(syscall_num, program_id, env, &file_opti);
+                
+                if (debug) {
+                    FILE *fp = fopen("debug/pc.log", "a+");
+                    if (fp) {
+                        fprintf(fp, "syscall_num = %d, local_or_not = %d\n", syscall_num, local_or_not);
+                        fclose(fp);
+                    }                    
+                }
 
                 /*
                 else if(syscall_num == 178)
@@ -3642,16 +3685,26 @@ void cpu_loop(CPUMIPSState *env)
                 target_ulong a3 = env->regs[3];
 #endif
 
+                if (syscall_num == 142) {
+                    if (debug) {
+                        FILE *fp = fopen("debug/pc.log", "a+");
+                        if (fp) {
+                            fprintf(fp, "syscall_num = %d, NORMAL EXIT\n", syscall_num);
+                            fclose(fp);
+                        }                           
+                    }
+                    normal_exit(0);
+                }
+
 #ifdef LMBENCH //lmbench use fork system call for lat_pipe
                 if(local_or_not)
 #else
                 if(network_handle == 1)//network operation already handle
                 {
                     if (debug){
-                        FILE *fd= fopen("debug/post_fork_syscalls.log","a+");
+                        FILE *fd= fopen("debug/pc.log","a+");
                         if (fd){
-                            fprintf(fd, "USER-MODE (syscall tracing): SYSCALL %d (pc: %lx)", syscall_nr, pc);
-                            fprintf(fd, " (ret: %d, a0: %d, a1: %d, a2: %d, a3: %d)\n", ret, a0, a1, a2, a3);
+                            fprintf(fd, "(U) SYSCALL %d\n", syscall_nr);
                             fclose(fd);
                         }
                     }
@@ -6966,6 +7019,16 @@ target_ulong h2g_child(unsigned long x)
 #ifdef NEW_MAPPING
 static void handler(int sig_num, siginfo_t *si, void *ptr)
 {
+    if (debug) {
+        FILE *trace_fp = fopen("debug/pc.log", "a");
+        fprintf(trace_fp, "handler(): %d\n", sig_num);
+        fclose(trace_fp);
+    }
+
+    // if (sig_num == 11) {
+    //     bug_exit(0xffffffff);
+    // }
+
     CPUArchState *env = first_cpu->env_ptr;
     ucontext_t *uc = (ucontext_t *)ptr;
 #ifdef TARGET_MIPS
@@ -7330,6 +7393,14 @@ void parse_mapping_table(char *filename)
     res = fgets(strline, 100, fp);
     CP0_UserLocal = strtol(strline, NULL, 16);
     fclose(fp);
+    
+    if (debug) {
+        FILE *trace_fp = fopen("debug/pc.log", "a");
+        if(trace_fp) {
+            fprintf(trace_fp, "[DEBUG] accept_fd = %d\n", accept_fd);
+            fclose(trace_fp);
+        }
+    }
 }
 
 void open_write_pipe()

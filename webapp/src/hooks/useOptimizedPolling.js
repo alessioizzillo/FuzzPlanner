@@ -245,9 +245,9 @@ export function useOptimizedCheckRun(brandId, firmwareId, options = {}) {
           if (status === 'booting' || status === 'stopping') {
             return 1000
           }
-          // Medium polling when listening (emulation running)
-          if (status === 'listening') {
-            return 3000
+          // Medium polling when listening (emulation running) or when explicitly polling
+          if (status === 'listening' || isPolling) {
+            return 2000
           }
           // Slow polling when idle or paused
           return 8000
@@ -261,7 +261,7 @@ export function useOptimizedCheckRun(brandId, firmwareId, options = {}) {
         unsubscribeRef.current = null
       }
     }
-  }, [effectiveBrandId, effectiveFirmwareId])
+  }, [effectiveBrandId, effectiveFirmwareId, isPolling])
 
   const startPolling = useCallback(() => {
     setIsPolling(true)

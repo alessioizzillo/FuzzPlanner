@@ -1,0 +1,786 @@
+(S) 0x401500
+(S) 0x40a6e0
+(S) 0x401488
+(S) 0x4014ac
+(S) 0x401620
+(S) 0x40166c
+(S) 0x40169c
+(S) 0x4014c8
+(S) 0x40a240
+(S) 0x40a29c
+(S) 0x4014f0
+(S) 0x408204
+(S) 0x4082a4
+(S) 0x4082b8
+(S) 0x4082d8
+(S) 0x408304
+(S) 0x408318
+(S) 0x40898c
+(S) 0x4089a4
+(S) 0x4089bc
+(S) 0x4089d0
+(S) 0x408a10
+(S) 0x408a28
+(S) 0x408a34
+(S) 0x408a40
+(S) 0x408a6c
+(S) 0x408dec
+(S) 0x408e00
+(S) 0x408a74
+(S) 0x408a8c
+(S) 0x408ac0
+(S) 0x408ad8
+(S) 0x408b0c
+(S) 0x408b24
+(S) 0x408b5c
+(S) 0x408b74
+(S) 0x408b80
+(S) 0x408b98
+(S) 0x408e00
+(S) 0x408a98
+(S) 0x408aa4
+(S) 0x408dec
+(S) 0x408ba0
+(S) 0x408bb4
+(S) 0x408bd0
+(S) 0x408be0
+(S) 0x408c14
+(S) 0x408c2c
+(S) 0x408c60
+(S) 0x408c78
+(S) 0x408c84
+(S) 0x408cac
+(S) 0x408dec
+(S) 0x408e14
+(S) 0x408e38
+(S) 0x408e48
+(S) 0x408e7c
+(S) 0x408e98
+(S) 0x408eac
+(S) 0x408f18
+(S) 0x408f30
+(S) 0x408f50
+(S) 0x401e1c
+(S) 0x401e68
+(S) 0x401e88
+(S) 0x401e90
+(S) 0x40a590
+(S) 0x401ebc
+(S) 0x401ed4
+(S) 0x401ee8
+(S) 0x401f00
+(S) 0x401f08
+(S) 0x408f7c
+(S) 0x408fa0
+(S) 0x408fb0
+(S) 0x408fbc
+(S) 0x409064
+(S) 0x409084
+(S) 0x4090a0
+(S) 0x4090b0
+(S) 0x4090bc
+(S) 0x4090ec
+(S) 0x409104
+(S) 0x40912c
+(S) 0x409138
+(S) 0x409150
+(S) 0x409160
+(S) 0x4091c8
+(S) 0x4091d8
+(S) 0x4091e4
+(S) 0x4091f0
+(S) 0x409290
+(S) 0x4092b0
+(S) 0x4092c0
+(S) 0x4092dc
+(S) 0x4092f0
+(S) 0x4092c0
+(S) 0x409304
+(S) 0x409310
+(S) 0x40932c
+(S) 0x409340
+(S) 0x409310
+(S) 0x409354
+(S) 0x409368
+(S) 0x409380
+(S) 0x409388
+(S) 0x409388
+(S) 0x4093a0
+(S) 0x4093ac
+(S) 0x409418
+(S) 0x409424
+(S) 0x409470
+(S) 0x409488
+(S) 0x4094dc
+(S) 0x4094f8
+(S) 0x401808
+(S) 0x40181c
+(S) 0x40183c
+(S) 0x40954c
+(S) 0x4018f4
+(S) 0x40193c
+(S) 0x409564
+(S) 0x40184c
+(S) 0x401888
+(S) 0x401890
+(S) 0x4018a4
+(S) 0x40957c
+(S) 0x40958c
+(S) 0x4095a4
+(S) 0x402104
+(S) 0x40966c
+(S) 0x409678
+(S) 0x409688
+(S) 0x4096a0
+(S) 0x409798
+(S) 0x4097c8
+(S) 0x409478
+(S) 0x409688
+(S) 0x4096c0
+(S) 0x4096e8
+(S) 0x405e10
+(S) 0x4026cc
+(S) 0x4026e8
+(S) 0x40219c
+(S) 0x4021c0
+(S) 0x4021d8
+(S) 0x402708
+(S) 0x402754
+(S) 0x405e54
+(S) 0x405e70
+(S) 0x401fd4
+(S) 0x401fe8
+(S) 0x402000
+(S) 0x402018
+(S) 0x402074
+(S) 0x401ffc
+(S) 0x402020
+(S) 0x402034
+(S) 0x402044
+(S) 0x402058
+(S) 0x405eac
+(S) 0x405ee0
+(S) 0x405ef8
+(S) 0x401fc0
+(S) 0x402000
+(S) 0x405f40
+(S) 0x405f60
+(S) 0x405f98
+(S) 0x405fac
+(S) 0x405ffc
+(S) 0x406000
+(S) 0x406004
+(S) 0x40603c
+(S) 0x406050
+(S) 0x406080
+(S) 0x406094
+(S) 0x4060a0
+(S) 0x4060bc
+(S) 0x4062bc
+(S) 0x4060c4
+(S) 0x4060d8
+(S) 0x40611c
+(S) 0x406130
+(S) 0x406168
+(S) 0x40617c
+(S) 0x4061b4
+(S) 0x4061c8
+(S) 0x406200
+(S) 0x406214
+(S) 0x4062c0
+(S) 0x406188
+(S) 0x4061a0
+(S) 0x4062bc
+(S) 0x4061d4
+(S) 0x4061ec
+(S) 0x4062bc
+(S) 0x4062d4
+(S) 0x4062ec
+(S) 0x406338
+(S) 0x406364
+(S) 0x406370
+(S) 0x406398
+(S) 0x4063ac
+(S) 0x406404
+(S) 0x406428
+(S) 0x406460
+(S) 0x4016ec
+(S) 0x401700
+(S) 0x401724
+(S) 0x40173c
+(S) 0x401744
+(S) 0x401760
+(S) 0x406488
+(S) 0x40656c
+(S) 0x406580
+(S) 0x406608
+(S) 0x4066a8
+(S) 0x4066c4
+(S) 0x406a00
+(S) 0x406b9c
+(S) 0x406c00
+(S) 0x406cc4
+(S) 0x406ce0
+(S) 0x406d4c
+(S) 0x406e00
+(S) 0x406e0c
+(S) 0x40208c
+(S) 0x4020a4
+(S) 0x4020b0
+(S) 0x4020d4
+(S) 0x406e48
+(S) 0x406e5c
+(S) 0x406e84
+(S) 0x406e90
+(S) 0x406ea0
+(S) 0x406eb4
+(S) 0x406ec8
+(S) 0x406ee4
+(S) 0x406f28
+(S) 0x406f50
+(S) 0x406f68
+(S) 0x406f98
+(S) 0x407078
+(S) 0x407084
+(S) 0x40709c
+(S) 0x4070a8
+(S) 0x407088
+(S) 0x4070b4
+(S) 0x4070c8
+(S) 0x4070d4
+(S) 0x4070e4
+(S) 0x4070f0
+(S) 0x407100
+(S) 0x40710c
+(S) 0x40711c
+(S) 0x407128
+(S) 0x407138
+(S) 0x40717c
+(S) 0x407198
+(S) 0x407298
+(S) 0x4072b0
+(S) 0x4072d0
+(S) 0x407310
+(S) 0x407334
+(S) 0x40208c
+(S) 0x407378
+(S) 0x40738c
+(S) 0x407398
+(S) 0x4073f8
+(S) 0x407430
+(S) 0x40256c
+(S) 0x4025a8
+(S) 0x402628
+(S) 0x40259c
+(S) 0x4025a8
+(S) 0x40263c
+(S) 0x407444
+(S) 0x407484
+(S) 0x4074d0
+(S) 0x4074e4
+(S) 0x4074f0
+(S) 0x407504
+(S) 0x40751c
+(S) 0x407530
+(S) 0x407544
+(S) 0x407558
+(S) 0x40756c
+(S) 0x407588
+(S) 0x4075a0
+(S) 0x4075ac
+(S) 0x4075bc
+(S) 0x407658
+(S) 0x407664
+(S) 0x407678
+(S) 0x407694
+(S) 0x4076a0
+(S) 0x4076b8
+(S) 0x4076d0
+(S) 0x407724
+(S) 0x407868
+(S) 0x407880
+(S) 0x40795c
+(S) 0x40797c
+(S) 0x4045b8
+(S) 0x4045c4
+(S) 0x4045d0
+(S) 0x4045e0
+(S) 0x4045fc
+(S) 0x40460c
+(S) 0x403400
+(S) 0x40183c
+(S) 0x403454
+(S) 0x403470
+(S) 0x403484
+(S) 0x403494
+(S) 0x4034ac
+(S) 0x4034b8
+(S) 0x4034cc
+(S) 0x403780
+(S) 0x401b1c
+(S) 0x401b34
+(S) 0x401980
+(S) 0x4019a4
+(S) 0x4019ac
+(S) 0x40464c
+(S) 0x404658
+(S) 0x404664
+(S) 0x40467c
+(S) 0x4046c0
+(S) 0x403874
+(S) 0x403a80
+(S) 0x4046d0
+(S) 0x409954
+(S) 0x40996c
+(S) 0x409978
+(S) 0x4097e0
+(S) 0x409820
+(S) 0x40983c
+(S) 0x409844
+(S) 0x409854
+(S) 0x409860
+(S) 0x40987c
+(S) 0x409890
+(S) 0x4098bc
+(S) 0x4098f4
+(S) 0x4098a8
+(S) 0x4098b4
+(S) 0x409888
+(S) 0x409890
+(S) 0x4098c8
+(S) 0x409820
+(S) 0x4098dc
+(S) 0x4098f4
+(S) 0x4098f4
+(S) 0x4046f8
+(S) 0x404704
+(S) 0x404744
+(S) 0x404778
+(S) 0x403acc
+(S) 0x403b08
+(S) 0x403b20
+(S) 0x403b3c
+(S) 0x403b48
+(S) 0x403b5c
+(S) 0x403b9c
+(S) 0x401df8
+(S) 0x401e10
+(S) 0x4047c4
+(S) 0x4047e4
+(S) 0x4047fc
+(S) 0x404814
+(S) 0x40481c
+(S) 0x4048ac
+(S) 0x4048cc
+(S) 0x4048f4
+(S) 0x404910
+(S) 0x404930
+(S) 0x4049b8
+(S) 0x4049ec
+(S) 0x404a00
+(S) 0x404a58
+(S) 0x404a94
+(S) 0x404aa8
+(S) 0x404ac0
+(S) 0x404af8
+(S) 0x404b28
+(S) 0x404b7c
+(S) 0x404bac
+(S) 0x404be4
+(S) 0x404bf4
+(S) 0x404c38
+(S) 0x404c5c
+(S) 0x404c94
+(S) 0x404cb8
+(S) 0x404ce8
+(S) 0x404d00
+(S) 0x404d20
+(S) 0x404d34
+(S) 0x404d40
+(S) 0x404d58
+(S) 0x404d70
+(S) 0x404d8c
+(S) 0x404e20
+(S) 0x4050ec
+(S) 0x4050f8
+(S) 0x405104
+(S) 0x405120
+(S) 0x405150
+(S) 0x40515c
+(S) 0x40519c
+(S) 0x4051d4
+(S) 0x4026b4
+(S) 0x4051d4
+(S) 0x4055c4
+(S) 0x4055e4
+(S) 0x405604
+(S) 0x405628
+(S) 0x405674
+(S) 0x4056a0
+(S) 0x4056c8
+(S) 0x4056e0
+(S) 0x4056ec
+(S) 0x405240
+(S) 0x4026cc
+(S) 0x402710
+(S) 0x402728
+(S) 0x402680
+(S) 0x4052a0
+(S) 0x4052b0
+(S) 0x4052b8
+(S) 0x4052c4
+(S) 0x4052dc
+(S) 0x4052f0
+(S) 0x40534c
+(S) 0x40536c
+(S) 0x40539c
+(S) 0x4053a8
+(S) 0x4053b4
+(S) 0x4053c0
+(S) 0x4053cc
+(S) 0x405458
+(S) 0x405508
+(S) 0x402164
+(S) 0x405568
+(S) 0x405588
+(S) 0x4055a8
+(S) 0x40a980
+(S) 0x401560
+(S) 0x40158c
+(S) 0x4015ac
+(S) 0x4015c8
+(S) 0x4015e0
+(S) 0x401600
+(S) 0x4024e0
+(S) 0x4024f0
+(S) 0x4024f8
+(S) 0x402500
+(S) 0x401908
+[DEBUG] accept_fd = 5
+----------------------------------------------------------
+file_syscall_fd = 5
+condition = 0
+syscall_num = 3, local_or_not = 0
+Feeding... (GET /setup.cgi?next_file=common/system.xml&timestamp=1747069880610 HTTP/1.1
+zywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywHost: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_top.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+)
+(U) SYSCALL 4003
+
+--------STARTED USER-MODE CHILD--------
+
+(U) 0x405e10
+(U) 0x405e24
+condition = 0
+syscall_num = 27, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4027
+(S) SYSCALL 4027, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+(U) 0x405e2c
+(U) 0x4026a4
+(U) 0x4026e8
+(U) 0x40219c
+(U) 0x40a460
+(U) 0x4021c0
+(U) 0x4021d8
+(U) 0x402708
+(U) 0x40273c
+(U) 0x40a340
+(U) 0x402760
+(U) 0x405e54
+(U) 0x40a5c0
+(U) 0x405e70
+(U) 0x405e9c
+(U) 0x401fc0
+(U) 0x401fe8
+(U) 0x402000
+(U) 0x402018
+(U) 0x402074
+(U) 0x401ffc
+(U) 0x402000
+(U) 0x402020
+(U) 0x402034
+(U) 0x402044
+(U) 0x402058
+(U) 0x405eac
+(U) 0x405ee0
+(U) 0x40a940
+(U) 0x405ef4
+(U) 0x405f2c
+(U) 0x4062bc
+(U) 0x4062c8
+(U) 0x405f40
+(U) 0x405f4c
+(U) 0x40a4d0
+(U) 0x405f60
+(U) 0x405f98
+(U) 0x405fac
+(U) 0x405ff0
+(U) 0x406000
+(U) 0x406004
+(U) 0x40603c
+(U) 0x406050
+(U) 0x406080
+(U) 0x406094
+(U) 0x4060c4
+(U) 0x4060d8
+(U) 0x40611c
+(U) 0x406130
+(U) 0x406168
+(U) 0x40617c
+(U) 0x4061b4
+(U) 0x4061c8
+(U) 0x406200
+(U) 0x406214
+(U) 0x4062c0
+(U) 0x406188
+(U) 0x40a8b0
+(U) 0x4061a0
+(U) 0x4062bc
+(U) 0x40613c
+(U) 0x406154
+(U) 0x4062bc
+(U) 0x4061d4
+(U) 0x4061ec
+(U) 0x4062bc
+(U) 0x4062d4
+(U) 0x4062ec
+(U) 0x406338
+(U) 0x40a700
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+condition = 0
+syscall_num = 5, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4005
+(S) SYSCALL 4005, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+file_syscall_fd = 4
+condition = 0
+syscall_num = 54, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4054
+(S) SYSCALL 4054, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+file_syscall_fd = 4
+condition = 0
+syscall_num = 3, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4003
+(S) SYSCALL 4003, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 4
+condition = 0
+syscall_num = 6, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4006
+(S) SYSCALL 4006, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+condition = 1
+syscall_num = 106, local_or_not = 1
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+condition = 0
+syscall_num = 5, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4005
+(S) SYSCALL 4005, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+file_syscall_fd = 4
+condition = 0
+syscall_num = 54, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4054
+(S) SYSCALL 4054, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 4
+condition = 0
+syscall_num = 3, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4003
+(S) SYSCALL 4003, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+file_syscall_fd = 4
+condition = 0
+syscall_num = 3, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4003
+(S) SYSCALL 4003, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+file_syscall_fd = 4
+condition = 0
+syscall_num = 6, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4006
+(S) SYSCALL 4006, target_pgd: 0xf30e000, new_pgd = 0xf30e000
+condition = 1
+syscall_num = 106, local_or_not = 1
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+file_syscall_fd = 2
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+(U) 0x406358
+handler(): 11
+CRASH!

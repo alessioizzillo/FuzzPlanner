@@ -1,0 +1,340 @@
+(S) 0x401ea0
+(S) 0x401ecc
+(S) 0x401e30
+(S) 0x4016f4
+(S) 0x401888
+(S) 0x4018f0
+(S) 0x40f100
+(S) 0x40f188
+(S) 0x40174c
+(S) 0x40f034
+(S) 0x40f044
+(S) 0x40f0e8
+(S) 0x40f05c
+(S) 0x40f078
+(S) 0x402128
+(S) 0x40216c
+(S) 0x401cd0
+(S) 0x402194
+(S) 0x405204
+(S) 0x40524c
+(S) 0x404890
+(S) 0x4048cc
+(S) 0x4048e4
+(S) 0x405720
+(S) 0x405278
+(S) 0x40525c
+(S) 0x40570c
+(S) 0x4049f0
+(S) 0x404a28
+(S) 0x404a40
+(S) 0x405270
+(S) 0x40525c
+(S) 0x404a90
+(S) 0x404acc
+(S) 0x404b48
+(S) 0x405288
+(S) 0x4052ac
+[DEBUG] accept_fd = 5
+----------------------------------------------------------
+file_syscall_fd = 5
+condition = 0
+syscall_num = 3, local_or_not = 0
+Feeding... (pidfile /var/zzzzzzzzzzzzzzrun/udhcpd.pid
+start 192.168.1.100
+end 192.168.1.149
+max_leawzywzywzywzywzywzywzywzywzywzywses 254
+interface zywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyweth0)
+(U) SYSCALL 4003
+
+--------STARTED USER-MODE CHILD--------
+
+(U) 0x4052dc
+(U) 0x4052f0
+(U) 0x401e50
+(U) 0x405308
+(U) 0x40531c
+(U) 0x401be0
+(U) 0x405340
+(U) 0x405360
+(U) 0x405384
+(U) 0x401e00
+(U) 0x4053a4
+(U) 0x4053c4
+(U) 0x401d80
+(U) 0x4053ec
+(U) 0x40540c
+(U) 0x405430
+(U) 0x401e20
+(U) 0x405450
+(U) 0x405464
+(U) 0x401ae0
+(U) 0x40547c
+(U) 0x405490
+(U) 0x4054bc
+(U) 0x4054e4
+(U) 0x4054f8
+(U) 0x4054c8
+(U) 0x40553c
+(U) 0x4049f0
+(U) 0x404a6c
+(U) 0x401e80
+(U) 0x404a7c
+(U) 0x404a30
+condition = 0
+syscall_num = 45, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4045
+(S) SYSCALL 4045, target_pgd: 0xf639000, new_pgd = 0xf639000
+handler(): 11
+(U) 0x404a40
+(U) 0x405554
+(U) 0x4054fc
+(U) 0x4054c8
+(U) 0x405528
+(U) 0x4052c4
+(U) 0x404890
+(U) 0x4048cc
+(U) 0x4048e4
+(U) 0x405324
+file_syscall_fd = 5
+condition = 0
+syscall_num = 3, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4003
+(S) SYSCALL 4003, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x405610
+(U) 0x405498
+(U) 0x4054bc
+(U) 0x404afc
+(U) 0x404b48
+(U) 0x404b6c
+(U) 0x404a90
+(U) 0x404acc
+(U) 0x404bd4
+(U) 0x401c30
+(U) 0x404c24
+(U) 0x404c40
+(U) 0x404c60
+(U) 0x401d30
+(U) 0x404c80
+(U) 0x404c90
+(U) 0x404c6c
+(U) 0x404c98
+(U) 0x404c6c
+(U) 0x404cac
+(U) 0x404cb8
+(U) 0x404cdc
+(U) 0x404cec
+(U) 0x404d1c
+(U) 0x404d48
+(U) 0x404d68
+(U) 0x404ddc
+(U) 0x40d6c8
+(U) 0x40d630
+(U) 0x40d6b8
+(U) 0x40d720
+(U) 0x40d80c
+(U) 0x401a80
+(U) 0x40d820
+(U) 0x40d840
+(U) 0x401a30
+(U) 0x40d874
+(U) 0x40d8e8
+(U) 0x40d774
+(U) 0x404df8
+(U) 0x404d80
+(U) 0x404d88
+(U) 0x404d94
+(U) 0x404dac
+(U) 0x40d64c
+(U) 0x40d66c
+(U) 0x40d6b8
+(U) 0x40d88c
+(U) 0x40d8ac
+(U) 0x40d8fc
+(U) 0x40d8ec
+(U) 0x40d774
+(U) 0x404cbc
+(U) 0x404db0
+(U) 0x405000
+(U) 0x40501c
+(U) 0x404f64
+(U) 0x404d74
+(U) 0x404ddc
+(U) 0x40d680
+(U) 0x40d670
+(U) 0x40d6b8
+(U) 0x40d8c4
+(U) 0x40d8b0
+(U) 0x40d8fc
+(U) 0x40d680
+(U) 0x40d6a0
+(U) 0x40d6b4
+(U) 0x40d8c4
+(U) 0x40d8e4
+(U) 0x40d774
+file_syscall_fd = 5
+condition = 0
+syscall_num = 3, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4003
+(S) SYSCALL 4003, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x405630
+(U) 0x401d00
+file_syscall_fd = 5
+condition = 0
+syscall_num = 6, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4006
+(S) SYSCALL 4006, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x405644
+(U) 0x4021dc
+(U) 0x40ecc0
+(U) 0x40ecf4
+(U) 0x401e40
+condition = 0
+syscall_num = 5, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4005
+(S) SYSCALL 4005, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40ed10
+(U) 0x40ed80
+(U) 0x40ed90
+(U) 0x401dd0
+(U) 0x40edac
+(U) 0x4019c0
+(U) 0x40edc8
+file_syscall_fd = 1
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+(U) 0x40edf4
+file_syscall_fd = 1
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+(U) 0x40ee10
+(U) 0x40ed64
+(U) 0x4021f8
+(U) 0x40ee24
+(U) 0x40ef24
+(U) 0x402214
+(U) 0x40d6bc
+(U) 0x402234
+(U) 0x402244
+condition = 0
+syscall_num = 45, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4045
+(S) SYSCALL 4045, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x4022d4
+handler(): 11
+handler(): 11
+handler(): 11
+handler(): 11
+handler(): 11
+handler(): 11
+(U) 0x402318
+(U) 0x4061cc
+condition = 0
+syscall_num = 5, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4005
+(S) SYSCALL 4005, target_pgd: 0xf639000, new_pgd = 0xf639000
+file_syscall_fd = 5
+condition = 0
+syscall_num = 54, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4054
+(S) SYSCALL 4054, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40621c
+(U) 0x406230
+(U) 0x406258
+(U) 0x401c70
+file_syscall_fd = 5
+condition = 0
+syscall_num = 3, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4003
+(S) SYSCALL 4003, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40626c
+(U) 0x406480
+file_syscall_fd = 5
+condition = 0
+syscall_num = 6, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4006
+(S) SYSCALL 4006, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x406494
+(U) 0x402334
+(U) 0x401c40
+(U) 0x402360
+(U) 0x402374
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 5, local_or_not = 1
+*network_handle = 0
+file_syscall_fd = 6
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 54, local_or_not = 1
+*network_handle = 0
+(U) 0x402404
+(U) 0x402414
+(U) 0x401a10
+file_syscall_fd = 6
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 3, local_or_not = 1
+*network_handle = 0
+file_syscall_fd = 6
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 3, local_or_not = 1
+*network_handle = 0
+(U) 0x402448
+file_syscall_fd = 6
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 6, local_or_not = 1
+*network_handle = 0
+(U) 0x402464
+(U) 0x402490
+(U) 0x402638
+(U) 0x40d910
+(U) 0x40d974
+(U) 0x401ac0
+condition = 0
+syscall_num = 183, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4183
+(S) SYSCALL 4183, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40d998
+(U) 0x40d9a8
+(U) 0x401950
+(U) 0x40d9cc
+(U) 0x40d9dc
+(U) 0x401980
+file_syscall_fd = 5
+condition = 0
+syscall_num = 54, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4054
+(S) SYSCALL 4054, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40d9f8
+(U) 0x40dc2c
+(U) 0x40dc54
+(U) 0x40dc70
+(U) 0x40dc8c
+(U) 0x40dac4
+(U) 0x40dad4
+file_syscall_fd = 1
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+(U) 0x40daf0
+handler(): 11

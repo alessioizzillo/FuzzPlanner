@@ -94,6 +94,7 @@
 /* Lots of globals, but mostly for the status UI and other things where it
    really makes no sense to haul them around as function parameters. */
 
+int debug = 0;
 int stage_max_par = 0;
 EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
           *out_file,                  /* File to fuzz, if any             */
@@ -156,6 +157,7 @@ static s32 out_fd,                    /* Persistent fd for out_file       */
 
 static s32 forksrv_pid,               /* PID of the fork server           */
            child_pid = -1,            /* PID of the fuzzed program        */
+           system_pid = -1,           /* PID of QEMU system (if any)      */
            out_dir_fd = -1;           /* FD of the lock file              */
 
 EXP_ST u8* trace_bits;                /* SHM with instrumentation bitmap  */
@@ -2312,6 +2314,12 @@ static u8 run_target(char** argv, u32 timeout) {
   int status = 0;
   u32 tb4;
 
+  if (debug) {
+    FILE *fd= fopen("debug/pc.log","a+");
+    fprintf(fd, "----------------------------------------------------------\n");
+    fclose(fd);
+  }
+
   child_timed_out = 0;
 
   /* After this memset, trace_bits[] are effectively volatile, so we
@@ -2466,6 +2474,21 @@ static u8 run_target(char** argv, u32 timeout) {
     }
     else if (ret == 0) {
       if (child_pid > 0) {
+        // Also send SIGTERM to QEMU system mode if present
+        if (system_pid > 0) {
+          if (debug) {
+              FILE *fd_replay = fopen("debug/pc.log", "a+");
+              fprintf(fd_replay, "[DEBUG] send SIGTERM to system PID=%d\n", system_pid);
+              fclose(fd_replay);
+          }
+          kill(system_pid, SIGTERM);
+          sleep(5);
+        }
+        if (debug) {
+            FILE *fd_replay = fopen("debug/pc.log", "a+");
+            fprintf(fd_replay, "[DEBUG] send SIGTERM to child PID=%d\n", child_pid);
+            fclose(fd_replay);
+        }
         kill(child_pid, SIGTERM);
         res = read(fsrv_st_fd, &status, 4);
         if (res != 4) {
@@ -7351,7 +7374,8 @@ static void usage(u8* argv0) {
        "  -M / -S id    - distributed mode (see parallel_fuzzing.txt)\n"
        "  -C            - crash exploration mode (the peruvian rabbit thing)\n"
        "  -V            - show version number and exit\n\n"
-       "  -b cpu_id     - bind the fuzzing process to the specified CPU core\n\n"
+       "  -b cpu_id     - bind the fuzzing process to the specified CPU core\n"
+       "  -s pid        - PID of QEMU system process (for timeout handling)\n\n"
 
        "For additional tips, please consult %s/README.\n\n",
 
@@ -8022,6 +8046,10 @@ int main(int argc, char** argv) {
 
   doc_path = access(DOC_PATH, F_OK) ? "docs" : DOC_PATH;
 
+  char *env_var_debug = getenv("DEBUG");
+  if (env_var_debug && !strcmp(env_var_debug, "1"))
+      debug = 1;
+
   char *tmp = getenv("AFL_FUZZING_TIMEOUT");
   if(tmp == NULL){
     perror("Error: no env \"AFL_FUZZING_TIMEOUT\" found!");
@@ -8041,7 +8069,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:b:t:T:dnCB:S:M:x:QV")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:b:t:T:s:dnCB:S:M:x:QV")) > 0)
 
     switch (opt) {
 
@@ -8162,6 +8190,19 @@ int main(int argc, char** argv) {
 
           if (sscanf(optarg, "%u", &cpu_to_bind) < 1 ||
               optarg[0] == '-') FATAL("Bad syntax used for -b");
+
+          break;
+
+      }
+
+      case 's': { /* system PID for QEMU system mode */
+
+          if (system_pid != -1) FATAL("Multiple -s options not supported");
+
+          if (sscanf(optarg, "%d", &system_pid) < 1 ||
+              optarg[0] == '-') FATAL("Bad syntax used for -s");
+
+          if (system_pid <= 0) FATAL("Invalid system PID value for -s");
 
           break;
 

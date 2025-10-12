@@ -1049,12 +1049,46 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
 
     update_progress(container_name, "booting", 0.0, "Starting fuzz experiment...")
 
-    subprocess.Popen(
+    qemu_proc = subprocess.Popen(
         ["sudo","-E","./run.sh",
          "-r", os.path.basename(os.path.dirname(firmware)),
          os.path.join(FIRMWARE_DIR, firmware),
          container_name,"0.0.0.0"]
     )
+
+    time.sleep(5)
+    system_pid = None
+    try:
+        result = subprocess.check_output(
+            ["pgrep", "-f", "qemu-system"],
+            text=True
+        ).strip()
+
+        if result:
+            pids = result.split('\n')
+            for pid in pids:
+                try:
+                    cmdline = open(f"/proc/{pid}/cmdline", 'r').read()
+                    if "qemu-system" in cmdline and container_name in cmdline:
+                        system_pid = pid
+                        break
+                except:
+                    continue
+
+            if not system_pid and pids:
+                system_pid = pids[0]
+    except subprocess.CalledProcessError:
+        pass
+    except Exception as e:
+        print(f"[-] Error finding QEMU system PID: {e}")
+
+    if system_pid:
+        print(f"[+] QEMU system PID: {system_pid}")
+        with open(os.path.join(work_dir, "system_pid"), 'w') as f:
+            f.write(system_pid)
+    else:
+        print("[-] Warning: Could not determine QEMU system PID")
+
     for elapsed in range(int(sleep_duration)):
         time.sleep(1)
         progress = 0.1 + (0.3 * elapsed / sleep_duration)
@@ -1163,6 +1197,16 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
 
     print(f"Using executable path: {executable_path}")
 
+    # Read system_pid from file
+    system_pid_file = os.path.join(work_dir, "system_pid")
+    system_pid = None
+    if os.path.exists(system_pid_file):
+        with open(system_pid_file, 'r') as f:
+            system_pid = f.read().strip()
+        print(f"[+] Using QEMU system PID: {system_pid}")
+    else:
+        print("[-] Warning: system_pid file not found")
+
     command = []
     # command += ["gdb", "--batch", "--ex", "set follow-fork-mode child", "--ex", "run", "--ex", "bt", "--args"]
     command += ["chroot", "."]
@@ -1174,6 +1218,8 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
     command += ["-o", "outputs"]
     command += ["-x", "keywords"]
     command += ["-b", cpu_to_bind]
+    if system_pid:
+        command += ["-s", system_pid]  # Pass system PID to afl-fuzz
     command += [executable_path]
     command += ["@@"]
 

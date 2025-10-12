@@ -18,7 +18,7 @@ export default function App ({ Component, pageProps }) {
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
         <Component {...pageProps} />
-        <PollingDebugPanel />
+        {/* <PollingDebugPanel /> */}
       </StoreProvider>
     </QueryClientProvider>
   )

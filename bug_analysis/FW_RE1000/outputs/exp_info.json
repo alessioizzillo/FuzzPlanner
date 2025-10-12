@@ -1,0 +1,10 @@
+{
+    "brandId": "linksys",
+    "firmwareId": "FW_RE1000_1.0.02.001_US_20120214_SHIPPING.bin",
+    "runId": "run_0",
+    "executableId": "udhcpd",
+    "dataChannelId": "file{path:/tmp/udhcpd-br0.conf}",
+    "syscall": "4003",
+    "pc": "0x401a28",
+    "pattern": "b'pidfile /var/run/udhcpd.pid\\nstart 192.168.1.100\\nend 192.168.1.149\\nmax_leases 254\\ninterface br0\\nwan_interface \\nremaining yes\\nauto_time 30\\nlease_file /tmp/udhcpd.leases\\npidfile /var/run/udhcpd.pid\\nstart 192.168.1.100\\nend 192.168.1.149\\nmax_leases 254\\ninterfac'"
+}

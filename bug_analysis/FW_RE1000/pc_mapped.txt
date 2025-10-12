@@ -1,0 +1,232 @@
+(S) 0x401ea0	_start
+(S) 0x401ecc	sub_401ea8
+(S) 0x401e30	__uClibc_start_main
+(S) 0x4016f4	_init
+(S) 0x401888	sub_401888
+(S) 0x40f100	sub_40f100
+(S) 0x40174c	_init
+(S) 0x40f034	main
+(S) 0x40f0e8	sub_40f0d8
+(S) 0x40f05c	main
+(S) 0x402128	udhcpd_main
+(S) 0x401cd0	memset
+(S) 0x402194	udhcpd_main
+(S) 0x405204	read_config
+(S) 0x404890	sub_404890
+(S) 0x405720	read_config
+(S) 0x4049f0	sub_4049f0
+(S) 0x405270	read_config
+(S) 0x404a90	sub_404a90
+(S) 0x404b48	sub_404afc
+(S) 0x405288	read_config
+[DEBUG] accept_fd = 5
+----------------------------------------------------------
+file_syscall_fd = 5
+condition = 0
+syscall_num = 3, local_or_not = 0
+Feeding... (pidfile /var/zzzzzzzzzzzzzzrun/udhcpd.pid
+start 192.168.1.100
+end 192.168.1.149
+max_leawzywzywzywzywzywzywzywzywzywzywses 254
+interface zywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyweth0)
+(U) SYSCALL 4003
+
+--------STARTED USER-MODE CHILD--------
+
+(U) 0x4052dc	read_config
+(U) 0x401e50	strchr
+(U) 0x405308	read_config
+(U) 0x401be0	strncpy
+(U) 0x405340	read_config
+(U) 0x401e00	strspn
+(U) 0x4053a4	read_config
+(U) 0x401d80	strcspn
+(U) 0x4053ec	read_config
+(U) 0x401e20	strlen
+(U) 0x405450	read_config
+(U) 0x401ae0	isspace
+(U) 0x40547c	read_config
+(U) 0x4049f0	sub_4049f0
+(U) 0x401e80	free
+(U) 0x404a7c	sub_4049f0
+condition = 0
+syscall_num = 45, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4045
+(S) SYSCALL 4045, target_pgd: 0xf639000, new_pgd = 0xf639000
+handler(): 11
+(U) 0x404a40	sub_4049f0
+(U) 0x405554	read_config
+(U) 0x404890	sub_404890
+(U) 0x405324	read_config
+file_syscall_fd = 5
+condition = 0
+syscall_num = 3, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4003
+(S) SYSCALL 4003, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x405610	read_config
+(U) 0x404afc	sub_404afc
+(U) 0x404a90	sub_404a90
+(U) 0x404bd4	sub_404bd4
+(U) 0x401c30	strtok
+(U) 0x404c24	sub_404bd4
+(U) 0x401d30	strcmp
+(U) 0x404c80	sub_404bd4
+(U) 0x40d6c8	attach_option
+(U) 0x40d630	find_option
+(U) 0x40d720	attach_option
+(U) 0x401a80	malloc
+(U) 0x40d820	attach_option
+(U) 0x401a30	memcpy
+(U) 0x40d874	attach_option
+(U) 0x404df8	sub_404bd4
+(U) 0x40d64c	find_option
+(U) 0x40d88c	attach_option
+(U) 0x404cbc	sub_404bd4
+(U) 0x40d680	find_option
+(U) 0x40d8c4	attach_option
+(U) 0x40d680	find_option
+(U) 0x40d8c4	attach_option
+file_syscall_fd = 5
+condition = 0
+syscall_num = 3, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4003
+(S) SYSCALL 4003, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x405630	read_config
+(U) 0x401d00	fclose
+file_syscall_fd = 5
+condition = 0
+syscall_num = 6, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4006
+(S) SYSCALL 4006, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x405644	read_config
+(U) 0x4021dc	udhcpd_main
+(U) 0x40ecc0	pidfile_acquire
+(U) 0x401e40	open
+condition = 0
+syscall_num = 5, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4005
+(S) SYSCALL 4005, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40ed10	pidfile_acquire
+(U) 0x401dd0	__errno_location
+(U) 0x40edac	pidfile_acquire
+(U) 0x4019c0	strerror
+(U) 0x40edc8	pidfile_acquire
+file_syscall_fd = 1
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+(U) 0x40edf4	pidfile_acquire
+file_syscall_fd = 1
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+(U) 0x40ee10	pidfile_acquire
+(U) 0x4021f8	udhcpd_main
+(U) 0x40ee24	pidfile_write_release
+(U) 0x402214	udhcpd_main
+(U) 0x40d6bc	find_option
+(U) 0x402234	udhcpd_main
+condition = 0
+syscall_num = 45, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4045
+(S) SYSCALL 4045, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x4022d4	udhcpd_main
+handler(): 11
+handler(): 11
+handler(): 11
+handler(): 11
+handler(): 11
+handler(): 11
+(U) 0x402318	udhcpd_main
+(U) 0x4061cc	read_leases
+condition = 0
+syscall_num = 5, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4005
+(S) SYSCALL 4005, target_pgd: 0xf639000, new_pgd = 0xf639000
+file_syscall_fd = 5
+condition = 0
+syscall_num = 54, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4054
+(S) SYSCALL 4054, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40621c	read_leases
+(U) 0x401c70	fread
+file_syscall_fd = 5
+condition = 0
+syscall_num = 3, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4003
+(S) SYSCALL 4003, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40626c	read_leases
+file_syscall_fd = 5
+condition = 0
+syscall_num = 6, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4006
+(S) SYSCALL 4006, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x406494	read_leases
+(U) 0x402334	udhcpd_main
+(U) 0x401c40	memcmp
+(U) 0x402360	udhcpd_main
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 5, local_or_not = 1
+*network_handle = 0
+file_syscall_fd = 6
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 54, local_or_not = 1
+*network_handle = 0
+(U) 0x402404	udhcpd_main
+(U) 0x401a10	fscanf
+file_syscall_fd = 6
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 3, local_or_not = 1
+*network_handle = 0
+file_syscall_fd = 6
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 3, local_or_not = 1
+*network_handle = 0
+(U) 0x402448	udhcpd_main
+file_syscall_fd = 6
+local_or_not = 1 (if_exist_local_fd)
+condition = 1
+syscall_num = 6, local_or_not = 1
+*network_handle = 0
+(U) 0x402464	udhcpd_main
+(U) 0x40d910	read_interface
+(U) 0x401ac0	socket
+condition = 0
+syscall_num = 183, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4183
+(S) SYSCALL 4183, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40d998	read_interface
+(U) 0x401950	strcpy
+(U) 0x40d9cc	read_interface
+(U) 0x401980	ioctl
+file_syscall_fd = 5
+condition = 0
+syscall_num = 54, local_or_not = 0
+*network_handle = 0
+determine_if_skip 4054
+(S) SYSCALL 4054, target_pgd: 0xf639000, new_pgd = 0xf639000
+(U) 0x40d9f8	read_interface
+file_syscall_fd = 1
+local_or_not = 2
+condition = 2
+syscall_num = 4, local_or_not = 2
+*network_handle = 0
+(U) 0x40daf0	read_interface
+handler(): 11

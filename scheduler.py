@@ -136,8 +136,9 @@ def assign_names(csv_file: str, idx: int, num_cores: int,
     lock = lock_file(SCHEDULE_LOCK)
     rows = list(csv.reader(open(csv_file, newline='')))
     headers = rows[0]
-    
-    for h in ('status', 'exp_name', 'container_name'):
+
+    required_headers = ['status', 'exp_name', 'container_name', 'num_cores', 'mode', 'firmware', 'pcap_name']
+    for h in required_headers:
         if h not in headers:
             headers.append(h)
     i_status = headers.index('status')

@@ -19,7 +19,7 @@ export function accessorCwe (row) {
 export function accessorListen (row) {
   let maxListen = 0
   Object.values(row.listenChannelsById).forEach(ch => {
-    if (!row.borderChannelsById[ch.id]) maxListen = Math.max(maxListen, ch.data.score)
+    maxListen = Math.max(maxListen, ch.data.score)
   })
   return maxListen
 }

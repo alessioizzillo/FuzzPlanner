@@ -20,7 +20,7 @@ out_dir = None
 source_code_path = None
 
 priv_keywords = ["progs.priv"]                    # TO SET. It may be empty ("").
-pub_keywords = ["progs.gpl", "apps/public/", "opensource"]      # TO SET. It is always full.
+pub_keywords = ["progs.gpl", "apps/public/", "apps/", "opensource"]      # TO SET. It is always full.
 
 # MIPS_o32
 input_syscalls = {'read':'4003', 'readv':'4145', 'recv':'4175', 'recvfrom':'4176', 'recvmsg':'4177', 'recvmmsg':'4335', 'preadv':'4330'}
@@ -147,12 +147,12 @@ def static_analysis():
             matching_files = findfiles(source_code_path, filepath_name)
 
             if priv_keywords:
-                if (sum(matching_files.count(privk) for privk in priv_keywords) >= sum(matching_files.count(pubk) for pubk in pub_keywords)) or "httpd" in filepath_name:
+                if (sum(matching_files.count(privk) for privk in priv_keywords) >= sum(matching_files.count(pubk) for pubk in pub_keywords)):
                     executable_files_dict["/"+os.path.relpath(filepath, extracted_firm_path)] = {"type" : type, "interpreter" : interpreter, "is_proprietary" : True, "symlink_target" : None}
                 else:
                     executable_files_dict["/"+os.path.relpath(filepath, extracted_firm_path)] = {"type" : type, "interpreter" : interpreter, "is_proprietary" : False, "symlink_target" : None}
             else:
-                if (sum(matching_files.count(pubk) for pubk in pub_keywords)) and "httpd" not in filepath_name:
+                if (sum(matching_files.count(pubk) for pubk in pub_keywords)):
                     executable_files_dict["/"+os.path.relpath(filepath, extracted_firm_path)] = {"type" : type, "interpreter" : interpreter, "is_proprietary" : False, "symlink_target" : None}
                 else:
                     executable_files_dict["/"+os.path.relpath(filepath, extracted_firm_path)] = {"type" : type, "interpreter" : interpreter, "is_proprietary" : True, "symlink_target" : None}
@@ -833,7 +833,8 @@ if __name__ == "__main__":
 
     os.makedirs(out_dir, exist_ok=True)
 
-    if os.path.isdir(static_out_dir):
+    # if os.path.isdir(static_out_dir):
+    if False:
         print("\nSTATIC ANALYSIS ALREADY DONE!")
         with open(static_out_dir+"/data/executable_files.json") as file:
             executable_files = json.load(file)

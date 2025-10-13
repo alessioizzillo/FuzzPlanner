@@ -26,6 +26,7 @@ FIRMAE_DIR = os.path.join(BASE_DIR, "FirmAE")
 PCAP_DIR = os.path.join(BASE_DIR, "pcap")
 TAINT_DIR = os.path.join(BASE_DIR, "taint_analysis")
 FIRMWARE_DIR = os.path.join(BASE_DIR, "firmwares")
+FIRM_SOURCES_DIR = os.path.join(BASE_DIR, "firm_sources")
 SCRIPTS_DIR = os.path.join(BASE_DIR, "scripts")
 SCHEDULE_CSV = os.path.join(TMP_DIR, "schedule.csv")
 LOCK_DIR = TMP_DIR
@@ -684,7 +685,7 @@ def pcap_replay(firmware: str, container_name: str = None, pcap_name: str = None
             "python3", script, combined, out,
             os.path.join(work_dir, "full_system_syscall.log"),
             os.path.join(work_dir, "image_backup"),
-            os.path.join(FIRMWARE_DIR, combined),
+            os.path.join(FIRM_SOURCES_DIR, combined),
             FACT_IP, FACT_PORT, "None"
         ]
 

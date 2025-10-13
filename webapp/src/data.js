@@ -446,7 +446,7 @@ function getEdges (runGraph, timeSpan, conf) {
   )).sort((a, b) => a.logix - b.logix)
 }
 
-export function getRunView ({ runGraph, timeSpan, conf }) {
+export function getRunView ({ runGraph, timeSpan, conf, executableFiles = [] }) {
   const data = {
     binariesById: {},
     metadata: {
@@ -456,6 +456,29 @@ export function getRunView ({ runGraph, timeSpan, conf }) {
     conf
   }
   if (Object.keys(runGraph).length === 0) return data
+
+  executableFiles.forEach(execFile => {
+    if (!data.binariesById[execFile.id]) {
+      data.binariesById[execFile.id] = {
+        id: execFile.id,
+        data: {
+          exec: execFile,
+          symt: execFile.type === 'symlink' && executableFiles.find(e => e.id === execFile.symlink_target)
+            ? executableFiles.find(e => e.id === execFile.symlink_target)
+            : null,
+          proc: null
+        },
+        listenChannelsById: {},
+        borderChannelsById: {},
+        withinReadChannelsById: {},
+        spawnParentExecsById: {},
+        withinWriteChannelsById: {},
+        spawnChildExecsById: {},
+        processesById: {}
+      }
+    }
+  })
+
   const edges = getEdges(runGraph, timeSpan, conf)
   function handleExecutable (ex) {
     const id = ex.exec.id
@@ -542,7 +565,74 @@ export function getRunView ({ runGraph, timeSpan, conf }) {
     }
   }
   edges.forEach(handleEdge)
-  console.log(data)
+
+  const binariesBeforeFilter = Object.keys(data.binariesById).length
+  const filteredBinariesById = {}
+  const allThresholdsZero = conf.listenThreshold === 0 && conf.borderThreshold === 0 && conf.withinThreshold === 0
+
+  Object.entries(data.binariesById).forEach(([id, binary]) => {
+    const hasAnyChannel =
+      Object.keys(binary.listenChannelsById).length > 0 ||
+      Object.keys(binary.borderChannelsById).length > 0 ||
+      Object.keys(binary.withinReadChannelsById).length > 0 ||
+      Object.keys(binary.withinWriteChannelsById).length > 0
+
+    if (allThresholdsZero) {
+      if (hasAnyChannel) {
+        console.log(`[FILTER DEBUG] Binary ${id} PASSES (all thresholds=0, has channels)`)
+        filteredBinariesById[id] = binary
+      } else {
+        console.log(`[FILTER DEBUG] Binary ${id} FAILS (all thresholds=0, no channels)`)
+      }
+      return
+    }
+
+    const maxListenScore = Object.values(binary.listenChannelsById).length > 0
+      ? Math.max(...Object.values(binary.listenChannelsById).map(ch => ch.data.score))
+      : 0
+    const maxBorderScore = Object.values(binary.borderChannelsById).length > 0
+      ? Math.max(...Object.values(binary.borderChannelsById).map(ch => ch.data.score))
+      : 0
+    const maxWithinReadScore = Object.values(binary.withinReadChannelsById).length > 0
+      ? Math.max(...Object.values(binary.withinReadChannelsById).map(ch => ch.data.score))
+      : 0
+    const maxWithinWriteScore = Object.values(binary.withinWriteChannelsById).length > 0
+      ? Math.max(...Object.values(binary.withinWriteChannelsById).map(ch => ch.data.score))
+      : 0
+
+    const maxWithinScore = Math.max(maxWithinReadScore, maxWithinWriteScore)
+
+    const meetsListenThreshold = maxListenScore >= conf.listenThreshold
+    const meetsBorderThreshold = maxBorderScore >= conf.borderThreshold
+    const meetsWithinThreshold = maxWithinScore >= conf.withinThreshold
+
+    const passesAllThresholds = meetsListenThreshold && meetsBorderThreshold && meetsWithinThreshold
+
+    const scores = {
+      listen: maxListenScore,
+      border: maxBorderScore,
+      within: maxWithinScore
+    }
+    const passes = {
+      listen: meetsListenThreshold,
+      border: meetsBorderThreshold,
+      within: meetsWithinThreshold
+    }
+
+    if (passesAllThresholds) {
+      console.log(`[FILTER DEBUG] Binary ${id} PASSES all thresholds:`, scores, passes, 'thresholds:', conf)
+      filteredBinariesById[id] = binary
+    } else {
+      console.log(`[FILTER DEBUG] Binary ${id} FAILS thresholds:`, scores, passes, 'thresholds:', conf)
+    }
+  })
+
+  data.binariesById = filteredBinariesById
+  console.log('[FILTER DEBUG] Applied thresholds (AND logic):', conf)
+  console.log('[FILTER DEBUG] All thresholds zero:', allThresholdsZero)
+  console.log('[FILTER DEBUG] Binaries before filter:', binariesBeforeFilter)
+  console.log('[FILTER DEBUG] Binaries after filter:', Object.keys(filteredBinariesById).length)
+  console.log('[FILTER DEBUG] Filtered edge count:', edges.length)
   return data
 }
 

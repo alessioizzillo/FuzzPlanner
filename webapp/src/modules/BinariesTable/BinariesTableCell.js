@@ -36,8 +36,9 @@ function Binary ({ cRef, dms, value }) {
       <div>{value.exec.id}</div>
       <div className='ml-2 text-xs text-gray-400 text-ellipsis whitespace-nowrap'>
         {value.symt !== null && value.symt?.id && `-> ${value.symt.id}`}
-        {value.symt === null && value.exec.type === 'binary' && 'bin'}
-        {value.symt === null && value.exec.type === 'script' && 'script'}
+        {value.exec.type === 'symlink' && (value.symt === null || !value.symt?.id) && value.exec.symlink_target && `-> ${value.exec.symlink_target}`}
+        {value.exec.type === 'binary' && 'bin'}
+        {value.exec.type === 'script' && 'script'}
       </div>
     </div>
   )

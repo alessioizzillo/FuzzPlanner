@@ -74,7 +74,8 @@ export function useSetSelectedRun () {
           const { metadata, binariesById } = getRunView({
             runGraph: selectedRunGraph,
             timeSpan: initialState.selectedRunView.timeSpan,
-            conf: initialState.selectedRunView.conf
+            conf: initialState.selectedRunView.conf,
+            executableFiles
           })
 
           console.log('[DEBUG] Run View:', { metadata, binariesById })
@@ -108,7 +109,8 @@ export function useSetSelectedRunView () {
     ({ timeSpan, conf }) => {
       const t = timeSpan || state.selectedRunView.timeSpan
       const c = conf || state.selectedRunView.conf
-      const { metadata, binariesById } = getRunView({ runLogs: state.selectedRunLogs, runGraph: state.selectedRunGraph, timeSpan: t, conf: c })
+      const executableFiles = Object.values(state.selectedRunData.executableFilesById || {})
+      const { metadata, binariesById } = getRunView({ runLogs: state.selectedRunLogs, runGraph: state.selectedRunGraph, timeSpan: t, conf: c, executableFiles })
       setState(pr => ({
         ...pr,
         selectedRunView: {
@@ -128,7 +130,8 @@ export function useSetSelectedRunViewConfEntry () {
       setState(pr => {
         const conf = { ...pr.selectedRunView.conf, [id]: v }
         const timeSpan = pr.selectedRunView.timeSpan
-        const { metadata, binariesById } = getRunView({ runLogs: pr.selectedRunLogs, runGraph: pr.selectedRunGraph, timeSpan, conf })
+        const executableFiles = Object.values(pr.selectedRunData.executableFilesById || {})
+        const { metadata, binariesById } = getRunView({ runLogs: pr.selectedRunLogs, runGraph: pr.selectedRunGraph, timeSpan, conf, executableFiles })
         return {
           ...pr,
           selectedRunView: {

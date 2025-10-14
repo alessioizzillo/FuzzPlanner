@@ -201,7 +201,7 @@ export default function ExperimentLauncher() {
 
       <div>
         <h2 className="text-lg font-bold mb-1 text-red-400 flex items-center gap-2">
-        🔀 Fork points
+        🔀 Fork Points
         </h2>
         {paramLoading
           ? <p>Loading fork points…</p>

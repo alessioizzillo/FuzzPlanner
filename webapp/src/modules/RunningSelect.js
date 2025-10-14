@@ -170,8 +170,8 @@ export default function RunningSelectExperiments({ selectedBinaryFromTable }) {
 
   return (
     <div className="w-full space-y-6">
-      <div className="text-base font-semibold text-white-700">
-        Running Data Channel Analyses
+      <div className="text-[16px] font-semibold text-white">
+        Running Selective Seed Collection Tasks
       </div>
       <div className="max-h-52 overflow-auto bg-white border border-gray-300 rounded">
         {running.length > 0 ? (
@@ -183,8 +183,8 @@ export default function RunningSelectExperiments({ selectedBinaryFromTable }) {
         )}
       </div>
 
-      <div className="text-base font-semibold text-white-700">
-        Completed Data Channel Analyses
+      <div className="text-[15px] font-semibold text-white">
+        Completed Selective Seed Collection Tasks
       </div>
       <div className="max-h-52 overflow-auto bg-white border border-gray-300 rounded">
         {done.length > 0 ? (

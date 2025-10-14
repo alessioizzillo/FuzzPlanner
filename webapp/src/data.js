@@ -658,33 +658,46 @@ export function getBinaryGraph ({ binId, binariesById, depth = { inProc: 1, inDa
   }
   let maxEdgesEntries = 0
   function visitBinary (id, depth) {
+    if (!binariesById[id]) {
+      return
+    }
+
     updateBinary(id)
     const d = { inProc: depth.inProc - 1, inData: depth.inData - 1, outProc: depth.outProc - 1, outData: depth.outData - 1 }
     const bin = binariesById[id]
+
     for (const spawned of Object.values(bin.spawnChildExecsById)) {
-      updateBinary(spawned.id)
-      updateSpawn(id, spawned.id, spawned.entries)
-      if (depth.outProc > 0) visitBinary(spawned.id, d)
+      if (binariesById[spawned.id]) {
+        updateBinary(spawned.id)
+        updateSpawn(id, spawned.id, spawned.entries)
+        if (depth.outProc > 0) visitBinary(spawned.id, d)
+      }
     }
     for (const spawner of Object.values(bin.spawnParentExecsById)) {
-      updateBinary(spawner.id)
-      updateSpawn(spawner.id, id, spawner.entries)
-      if (depth.inProc > 0) visitBinary(spawner.id, d)
+      if (binariesById[spawner.id]) {
+        updateBinary(spawner.id)
+        updateSpawn(spawner.id, id, spawner.entries)
+        if (depth.inProc > 0) visitBinary(spawner.id, d)
+      }
     }
     for (const readChan of Object.values(bin.withinReadChannelsById)) {
       updateChannel(readChan)
       for (const writer of (Object.values(readChan.binariesById))) {
-        updateBinary(writer.id)
-        updateWithin(writer.id, id, readChan.id, writer.entries)
-        if (depth.inData > 0) visitBinary(writer.id, d)
+        if (binariesById[writer.id]) {
+          updateBinary(writer.id)
+          updateWithin(writer.id, id, readChan.id, writer.entries)
+          if (depth.inData > 0) visitBinary(writer.id, d)
+        }
       }
     }
     for (const writeChan of Object.values(bin.withinWriteChannelsById)) {
       updateChannel(writeChan)
       for (const reader of (Object.values(writeChan.binariesById))) {
-        updateBinary(reader.id)
-        updateWithin(id, reader.id, writeChan.id, reader.entries)
-        if (depth.outData > 0) visitBinary(reader.id, d)
+        if (binariesById[reader.id]) {
+          updateBinary(reader.id)
+          updateWithin(id, reader.id, writeChan.id, reader.entries)
+          if (depth.outData > 0) visitBinary(reader.id, d)
+        }
       }
     }
     for (const borderChan of Object.values(bin.borderChannelsById)) {
@@ -694,6 +707,10 @@ export function getBinaryGraph ({ binId, binariesById, depth = { inProc: 1, inDa
   }
   function updateBinary (id) {
     const bin = binariesById[id]
+    if (!bin) {
+      console.warn(`[BINARY GRAPH] Binary ${id} not found in binariesById`)
+      return
+    }
     const { exec, symt } = bin.data
     if (!nodesById.binaries[id]) {
       nodesById.binaries[id] = {

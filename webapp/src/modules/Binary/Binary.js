@@ -35,15 +35,15 @@ export default function Binary ({ className, binary }) {
     <div className='flex flex-col w-full overflow-y-auto h-120'>
       <div className='px-2 w-full'>
         <div className='flex items-center h-12 text-sm'>
-          <span className='font-semibold text-gray-300 mr-4'>Channel Filters:</span>
+          <span className='font-semibold text-black dark:text-gray-300 mr-4'>Channel Filters:</span>
           <input className='' type='checkbox' id='listen' name='listen' checked={listenChecked} onChange={handleOnChangeListen} />
-          <label className='w-20 pl-2' htmlFor='listen'>Listen</label>
+          <label className='w-20 pl-2 text-black dark:text-gray-200' htmlFor='listen'>Listen</label>
           <input className='' type='checkbox' id='border' name='border' checked={borderChecked} onChange={handleOnChangeBorder} />
-          <label className='w-20 pl-2' htmlFor='border'>Border</label>
+          <label className='w-20 pl-2 text-black dark:text-gray-200' htmlFor='border'>Border</label>
           <input className='' type='checkbox' id='read' name='read' checked={readChecked} onChange={handleOnChangeRead} />
-          <label className='w-20 pl-2' htmlFor='read'>Read</label>
+          <label className='w-20 pl-2 text-black dark:text-gray-200' htmlFor='read'>Read</label>
           <input className='' type='checkbox' id='write' name='write' checked={writeChecked} onChange={handleOnChangeWrite} />
-          <label className='w-20 pl-2' htmlFor='write'>Write</label>
+          <label className='w-20 pl-2 text-black dark:text-gray-200' htmlFor='write'>Write</label>
         </div>
         <ChannelsTable
           binary={binary}

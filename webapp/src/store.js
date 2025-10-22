@@ -31,7 +31,8 @@ export const initialState = {
   fuzzExperimentsByFirmware: {},
   selectedPcap: null,
   selectedPcapAnalysis: {},
-  pcapsByFirmware: {}
+  pcapsByFirmware: {},
+  theme: 'dark'
 }
 
 const useValue = () => useStateReact(initialState)

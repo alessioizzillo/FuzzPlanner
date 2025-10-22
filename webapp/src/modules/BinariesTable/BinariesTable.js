@@ -90,7 +90,7 @@ export default function BinariesTable ({ className, binaries, sorting, setSortin
           <Fragment key={row.id}>
             <tr
               key={row.id}
-              className={classNames('border-y border-slate-500', currentBinary?.id === row.original.id ? 'bg-slate-700' : '')}
+              className={classNames('border-y border-gray-400 dark:border-slate-500', currentBinary?.id === row.original.id ? 'bg-gray-200 dark:bg-slate-700' : '')}
               onMouseEnter={() => { setCurrentBinary(row.original) }}
               onMouseLeave={() => { setCurrentBinary(null) }}
             >
@@ -102,7 +102,7 @@ export default function BinariesTable ({ className, binaries, sorting, setSortin
             </tr>
             {selectedBinary?.id === row.original.id && (
               <tr>
-                <td className='bg-gray-900' colSpan={row.getVisibleCells().length} onClick={() => console.log(row.original)}>
+                <td className='bg-gray-100 dark:bg-gray-900 border-2 border-gray-400 dark:border-gray-700' colSpan={row.getVisibleCells().length} onClick={() => console.log(row.original)}>
                   <Binary binary={row.original} />
                 </td>
               </tr>

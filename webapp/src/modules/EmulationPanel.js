@@ -174,10 +174,10 @@ export default function EmulationPanel() {
   if (!brandId || !firmwareId) return null
 
   return (
-    <div className="flex flex-col border p-4 my-2 space-y-4">
+    <div className="flex flex-col border-2 border-gray-400 dark:border-gray-700 p-4 my-2 space-y-4 bg-gray-100 dark:bg-transparent rounded">
       <div className="flex items-center space-x-4">
         <button
-          className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50"
+          className="px-3 py-1 bg-blue-700 dark:bg-blue-600 text-white font-semibold rounded disabled:opacity-50 hover:bg-blue-800 dark:hover:bg-blue-700 transition-colors"
           onClick={onCreateImage}
           disabled={!brandId || !firmwareId || imgLoading || hasImage || createImageMutation.isLoading || imgData?.status === 'running'}
         >
@@ -185,9 +185,9 @@ export default function EmulationPanel() {
             ? 'Creating...'
             : 'Create Image'}
         </button>
-        <span>
+        <span className="text-black dark:text-gray-200">
           Image status:&nbsp;
-          <strong>
+          <strong className="text-black dark:text-white">
             {imgLoading
               ? 'Checking...'
               : hasImage
@@ -201,29 +201,29 @@ export default function EmulationPanel() {
         </span>
 
         <button
-          className="px-3 py-1 bg-green-600 text-white rounded disabled:opacity-50"
+          className="px-3 py-1 bg-green-700 dark:bg-green-600 text-white font-semibold rounded disabled:opacity-50 hover:bg-green-800 dark:hover:bg-green-700 transition-colors"
           onClick={onStart}
           disabled={!hasImage || !buttonConfig.start.enabled || (isOperationPending && pendingOperation === 'start')}
         >
           {getDisplayLabel('start')}
         </button>
         <button
-          className="px-3 py-1 bg-yellow-600 text-white rounded disabled:opacity-50"
+          className="px-3 py-1 bg-yellow-700 dark:bg-yellow-600 text-white font-semibold rounded disabled:opacity-50 hover:bg-yellow-800 dark:hover:bg-yellow-700 transition-colors"
           onClick={onPause}
           disabled={!hasImage || !buttonConfig.pause.enabled || (isOperationPending && (pendingOperation === 'pause' || pendingOperation === 'stop'))}
         >
           {getDisplayLabel('pause')}
         </button>
         <button
-          className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-50"
+          className="px-3 py-1 bg-red-700 dark:bg-red-600 text-white font-semibold rounded disabled:opacity-50 hover:bg-red-800 dark:hover:bg-red-700 transition-colors"
           onClick={onStop}
           disabled={!hasImage || !buttonConfig.stop.enabled || (isOperationPending && pendingOperation === 'stop')}
         >
           {getDisplayLabel('stop')}
         </button>
-        <span>
+        <span className="text-black dark:text-gray-200">
           Status:&nbsp;
-          <strong>
+          <strong className="text-black dark:text-white">
             {status}
             {status === 'listening' && statusData?.ip ? (
               <> — Connect to IP: <strong>{statusData.ip}</strong></>

@@ -40,7 +40,7 @@ function getSettings (colId) {
 
 function Channel ({ cRef, dms, value }) {
   return (
-    <div ref={cRef} className='h-10 overflow-hidden text-sm text-left w-60 text-ellipsis' style={{ direction: 'rtl' }}>
+    <div ref={cRef} className='h-10 overflow-hidden text-sm text-left w-60 text-ellipsis text-black dark:text-gray-200' style={{ direction: 'rtl' }}>
       {value.id}
     </div>
   )
@@ -145,7 +145,7 @@ function mapRole (role) {
 }
 function Role ({ cRef, dms, value }) {
   return (
-    <div ref={cRef} className='h-6 text-sm'>
+    <div ref={cRef} className='h-6 text-sm text-black dark:text-gray-200'>
       {mapRole(value)}
     </div>
   )

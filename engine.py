@@ -1014,7 +1014,7 @@ def fuzz(firmware: str, out_dir: str, container_name: str) -> bool:
 
     os.environ["EXECUTION_MODE"] = "2"
     os.environ["FUZZ"] = "1"
-    os.environ["DEBUG"] = "1"
+    # os.environ["DEBUG"] = "1"
     setup_mounts(work_dir)
 
     status = open("/proc/self/status").read()

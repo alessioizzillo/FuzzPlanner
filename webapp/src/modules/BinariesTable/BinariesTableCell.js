@@ -33,8 +33,8 @@ function getSettings (colId) {
 function Binary ({ cRef, dms, value }) {
   return (
     <div ref={cRef} className='w-40 h-10 overflow-hidden text-sm text-left text-ellipsis whitespace-nowrap' style={{ direction: 'ltr' }}>
-      <div>{value.exec.id}</div>
-      <div className='ml-2 text-xs text-gray-400 text-ellipsis whitespace-nowrap'>
+      <div className='text-black dark:text-gray-200'>{value.exec.id}</div>
+      <div className='ml-2 text-xs text-gray-700 dark:text-gray-400 text-ellipsis whitespace-nowrap'>
         {value.symt !== null && value.symt?.id && `-> ${value.symt.id}`}
         {value.exec.type === 'symlink' && (value.symt === null || !value.symt?.id) && value.exec.symlink_target && `-> ${value.exec.symlink_target}`}
         {value.exec.type === 'binary' && 'bin'}

@@ -24,7 +24,7 @@ export default function RunManager({ className }) {
   if (!selectedRun) {
     return (
       <div className={classNames('flex items-center justify-center h-full', className)}>
-        <p className="text-gray-500">No run selected. Please choose a run to view its analysis.</p>
+        <p className="text-black dark:text-gray-500 font-medium">No run selected. Please choose a run to view its analysis.</p>
       </div>
     )
   }
@@ -32,14 +32,14 @@ export default function RunManager({ className }) {
   if (!runView || !runView.binariesById || Object.keys(runView.binariesById).length === 0) {
     return (
       <div className={classNames('flex items-center justify-center h-full', className)}>
-        <p className="text-gray-500">Loading run data…</p>
+        <p className="text-black dark:text-gray-500 font-medium">Loading run data…</p>
       </div>
     )
   }
 
   return (
     <div className={classNames('flex flex-col h-full max-h-full overflow-hidden', className)}>
-      
+
       <div className='flex flex-1 overflow-hidden'>
 
         <div className='flex-initial overflow-auto max-h-full'>
@@ -56,7 +56,7 @@ export default function RunManager({ className }) {
 
         {binariesTableSelectedBinary && binariesTableSelectedBinary.id ? (
           <BinaryGraph
-            className='flex-auto pt-2 mx-2 border-l'
+            className='flex-auto pt-2 mx-2 border-l-2 border-gray-400 dark:border-gray-700'
             binary={binariesTableSelectedBinary}
             setSelectedBinary={setBinariesTableSelectedBinary}
           />
@@ -64,9 +64,9 @@ export default function RunManager({ className }) {
           <div className='flex-auto' />
         )}
 
-        <div className="flex flex-col flex-none pl-2 border-l w-80 overflow-hidden">
-          <RunViewConf className="flex-auto border-b" />
-          
+        <div className="flex flex-col flex-none pl-2 border-l-2 border-gray-400 dark:border-gray-700 w-80 overflow-hidden">
+          <RunViewConf className="flex-auto border-b-2 border-gray-400 dark:border-gray-700" />
+
           <div className="flex flex-col flex-auto mt-2">
             <RunningSelectExperiments className="flex-auto" selectedBinaryFromTable={binariesTableSelectedBinary} />
           </div>
@@ -74,7 +74,7 @@ export default function RunManager({ className }) {
       </div>
 
       <Timeline
-        className='flex-none pt-2 mt-2 border-t border-gray-300 h-36'
+        className='flex-none pt-2 mt-2 border-t-2 border-gray-400 dark:border-gray-300 h-36'
         currentBinary={currentBinary}
         selectedBinary={binariesTableSelectedBinary}
       />

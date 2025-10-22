@@ -9,7 +9,7 @@ export default function Bar ({ cRef, dms, value, colorScale = interpolateViridis
           dms.marginTop
         ].join(',')})`}
         >
-          <text x={0} y={dms.boundedHeight / 2} dominantBaseline='central' className='text-sm fill-gray-400'>{value}</text>
+          <text x={0} y={dms.boundedHeight / 2} dominantBaseline='central' className='text-sm fill-black dark:fill-gray-400'>{value}</text>
         </g>
         <g transform={`translate(${[
           dms.marginLeft,

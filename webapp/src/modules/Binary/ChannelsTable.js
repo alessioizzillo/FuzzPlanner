@@ -56,7 +56,7 @@ export default function ChannelsTable ({ className, binary, channels, sorting, s
       <tbody>
         {table.getRowModel().rows.map(row => (
           <Fragment key={row.id}>
-            <tr key={row.id} className='border-y border-slate-500'>
+            <tr key={row.id} className='border-y border-gray-400 dark:border-slate-500'>
               {row.getVisibleCells().map(cell => (
                 <td key={cell.id} className='p-2 cursor-pointer'>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -65,7 +65,7 @@ export default function ChannelsTable ({ className, binary, channels, sorting, s
             </tr>
             {row.getIsExpanded() && (
               <tr>
-                <td className='bg-gray-900' colSpan={row.getVisibleCells().length} onClick={() => console.log(row.original)}>
+                <td className='bg-gray-100 dark:bg-gray-900 text-black dark:text-gray-200' colSpan={row.getVisibleCells().length} onClick={() => console.log(row.original)}>
                   {row.original.id}
                 </td>
               </tr>

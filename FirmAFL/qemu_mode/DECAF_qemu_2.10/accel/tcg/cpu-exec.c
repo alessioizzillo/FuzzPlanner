@@ -47,8 +47,15 @@ int count_142 = 0;
 int count_3 = 0;
 int sys_count = 0;
 
-int target_replay_fd = 0;
-int target_replay_syscall = 0;
+#define MAX_TRACKED_FDS 64
+typedef struct {
+    int fd;
+    int syscall_nr;
+    int active;
+} TrackedFD;
+
+TrackedFD tracked_fds[MAX_TRACKED_FDS];
+int num_tracked_fds = 0;
 
 int CP0_UserLocal = 0;
 
@@ -149,6 +156,67 @@ typedef struct {
     int protocol;
 } LINKLAYERSocketInfo;
 
+
+static void add_tracked_fd(int fd, int syscall_nr) {
+    for (int i = 0; i < num_tracked_fds; i++) {
+        if (tracked_fds[i].fd == fd && tracked_fds[i].active) {
+            tracked_fds[i].syscall_nr = syscall_nr;
+            return;
+        }
+    }
+
+    if (num_tracked_fds < MAX_TRACKED_FDS) {
+        tracked_fds[num_tracked_fds].fd = fd;
+        tracked_fds[num_tracked_fds].syscall_nr = syscall_nr;
+        tracked_fds[num_tracked_fds].active = 1;
+        num_tracked_fds++;
+    } else {
+        for (int i = 0; i < MAX_TRACKED_FDS; i++) {
+            if (!tracked_fds[i].active) {
+                tracked_fds[i].fd = fd;
+                tracked_fds[i].syscall_nr = syscall_nr;
+                tracked_fds[i].active = 1;
+                return;
+            }
+        }
+    }
+}
+
+static int is_tracked_fd(int fd, int syscall_nr) {
+    int is_read_or_close_syscall = (syscall_nr == 4003 || syscall_nr == 4175 ||
+                                     syscall_nr == 4176 || syscall_nr == 4177 ||
+                                     syscall_nr == 4006);
+
+    for (int i = 0; i < num_tracked_fds; i++) {
+        if (tracked_fds[i].active && tracked_fds[i].fd == fd) {
+            if (is_read_or_close_syscall) {
+                return 1;
+            }
+            if (tracked_fds[i].syscall_nr == syscall_nr) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+static void remove_tracked_fd(int fd) {
+    for (int i = 0; i < num_tracked_fds; i++) {
+        if (tracked_fds[i].fd == fd && tracked_fds[i].active) {
+            tracked_fds[i].active = 0;
+            return;
+        }
+    }
+}
+
+static void update_tracked_fd(int old_fd, int new_fd) {
+    for (int i = 0; i < num_tracked_fds; i++) {
+        if (tracked_fds[i].fd == old_fd && tracked_fds[i].active) {
+            tracked_fds[i].fd = new_fd;
+            return;
+        }
+    }
+}
 
 void extractFDs(const char* input, int* fd1, int* fd2) {
     const char* firstUnderscore = strchr(input, '_');
@@ -2965,104 +3033,90 @@ int cpu_exec(CPUState *cpu)
                 {
                     if (syscall_nr == target_syscalls[0] || syscall_nr == target_syscalls[1] || syscall_nr == target_syscalls[2] || syscall_nr == target_syscalls[3])
                     {
-                        if (!target_replay_fd)
+                        if (syscall_nr == 4176 || syscall_nr == 4177)   //recvfrom, recvmsg
                         {
-                            if (syscall_nr == 4176 || syscall_nr == 4177)   //recvfrom, recvmsg
-                            {
-                                int argument;
-                                if (syscall_nr == 4176)
-                                    argument = a4;
-                                else
-                                    argument = a1;
+                            int argument;
+                            if (syscall_nr == 4176)
+                                argument = a4;
+                            else
+                                argument = a1;
 
-                                char *target_sock_params = NULL;
-                                char sock_params[100] = {0};
+                            char *target_sock_params = NULL;
+                            char sock_params[100] = {0};
 
-                                if (execution_mode)
-                                    target_sock_params = extractParams(target_channel);
+                            if (execution_mode)
+                                target_sock_params = extractParams(target_channel);
 
-                                unsigned short family;
-                                tlb_fill(cpu, argument, MMU_DATA_LOAD, cpu_mmu_index(env, true), 0);
-                                DECAF_read_mem(cpu, argument, sizeof(unsigned short), &family);
-                                if (family == 1 || family == 256)
-                                { // AF_UNIX
-                                    struct sockaddr_un sockaddr;
-                                    DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_un), &sockaddr);
-                                    sprintf(sock_params, "path:%s", sockaddr.sun_path);
-                                }
-                                else if (family == 2 || family == 512)
-                                { // AF_INET
-                                    struct sockaddr_in sockaddr;
-                                    DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_in), &sockaddr);
-                                    char *addr = inet_ntoa(sockaddr.sin_addr);
-                                    sprintf(sock_params, "addr:%s; port:%d", addr, ntohs(sockaddr.sin_port));
-                                }
-                                else if (family == 10 || family == 2560)
-                                { // AF_INET6
-                                    struct sockaddr_in sockaddr;
-                                    DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_in), &sockaddr);
-                                    char *addr = inet_ntoa(sockaddr.sin_addr);
-                                    sprintf(sock_params, "addr:%s; port:%d", addr, ntohs(sockaddr.sin_port));
-                                }
-                                else if (family == 16 || family == 4096)
-                                { // AF_NETLINK
-                                    struct sockaddr_nl sockaddr;
-                                    DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_nl), &sockaddr);
-                                    sprintf(sock_params, "pid:%d; groups:%d", ntohl(sockaddr.nl_pid), ntohl(sockaddr.nl_groups));                            
-                                }
-                                else if (family == 17 || family == 4352)
-                                { // AF_PACKET
-                                    struct sockaddr_ll sockaddr;
-                                    char *p;
-                                    char x[8];
-                                    DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_ll), &sockaddr);
-                                    memcpy(x, sockaddr.sll_addr, 8);
-                                    p = &sockaddr;
-                                    sprintf(sock_params, "ifindex:%d; protocol:%d", ntohl(sockaddr.sll_ifindex), ntohs(sockaddr.sll_protocol));
-                                }
+                            unsigned short family;
+                            tlb_fill(cpu, argument, MMU_DATA_LOAD, cpu_mmu_index(env, true), 0);
+                            DECAF_read_mem(cpu, argument, sizeof(unsigned short), &family);
+                            if (family == 1 || family == 256)
+                            { // AF_UNIX
+                                struct sockaddr_un sockaddr;
+                                DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_un), &sockaddr);
+                                sprintf(sock_params, "path:%s", sockaddr.sun_path);
+                            }
+                            else if (family == 2 || family == 512)
+                            { // AF_INET
+                                struct sockaddr_in sockaddr;
+                                DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_in), &sockaddr);
+                                char *addr = inet_ntoa(sockaddr.sin_addr);
+                                sprintf(sock_params, "addr:%s; port:%d", addr, ntohs(sockaddr.sin_port));
+                            }
+                            else if (family == 10 || family == 2560)
+                            { // AF_INET6
+                                struct sockaddr_in sockaddr;
+                                DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_in), &sockaddr);
+                                char *addr = inet_ntoa(sockaddr.sin_addr);
+                                sprintf(sock_params, "addr:%s; port:%d", addr, ntohs(sockaddr.sin_port));
+                            }
+                            else if (family == 16 || family == 4096)
+                            { // AF_NETLINK
+                                struct sockaddr_nl sockaddr;
+                                DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_nl), &sockaddr);
+                                sprintf(sock_params, "pid:%d; groups:%d", ntohl(sockaddr.nl_pid), ntohl(sockaddr.nl_groups));
+                            }
+                            else if (family == 17 || family == 4352)
+                            { // AF_PACKET
+                                struct sockaddr_ll sockaddr;
+                                char *p;
+                                char x[8];
+                                DECAF_read_mem(cpu, a1, sizeof(struct sockaddr_ll), &sockaddr);
+                                memcpy(x, sockaddr.sll_addr, 8);
+                                p = &sockaddr;
+                                sprintf(sock_params, "ifindex:%d; protocol:%d", ntohl(sockaddr.sll_ifindex), ntohs(sockaddr.sll_protocol));
+                            }
 
-                                int match = 0;
+                            int match = 0;
 
-                                if (target_channel) {
-                                    if (ignore_addr && (family == 2 || family == 512 || family == 10 || family == 2560)) {
-                                        char *target_port_str = strstr(target_sock_params, "port:");
-                                        char *runtime_port_str = strstr(sock_params, "port:");
-                                        if (target_port_str && runtime_port_str) {
-                                            match = strcmp(target_port_str + 5, runtime_port_str + 5) == 0;
-                                            if (debug && match) {
-                                                FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                                fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (port-only match): target=%s, runtime=%s\n", state->into_syscall, target_sock_params, sock_params);
-                                                fclose(fd_replay);
-                                            }
-                                        }
-                                    } else {
-                                        match = strcmp(target_sock_params, sock_params) == 0;
+                            if (target_channel) {
+                                if (ignore_addr && (family == 2 || family == 512 || family == 10 || family == 2560)) {
+                                    char *target_port_str = strstr(target_sock_params, "port:");
+                                    char *runtime_port_str = strstr(sock_params, "port:");
+                                    if (target_port_str && runtime_port_str) {
+                                        match = strcmp(target_port_str + 5, runtime_port_str + 5) == 0;
                                         if (debug && match) {
                                             FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                            fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (full match): %s\n", state->into_syscall, target_sock_params);
+                                            fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (port-only match): target=%s, runtime=%s\n", state->into_syscall, target_sock_params, sock_params);
                                             fclose(fd_replay);
                                         }
                                     }
-
-                                    if (execution_mode && match)
-                                    {
-                                        target_replay_syscall = syscall_nr;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (syscall_nr == 4003 || syscall_nr == 4175)     //read, recv
-                            {
-                                if (a0 == target_replay_fd){
-                                    if (debug) {
+                                } else {
+                                    match = strcmp(target_sock_params, sock_params) == 0;
+                                    if (debug && match) {
                                         FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                        fprintf(fd_replay, "SYSCALL_NR: %d, FD: %d\n", syscall_nr, target_replay_fd);
+                                        fprintf(fd_replay, "SYSCALL_NR: %d, SOCK_PARAMS (full match): %s\n", state->into_syscall, target_sock_params);
                                         fclose(fd_replay);
                                     }
+                                }
 
-                                    target_replay_syscall = syscall_nr;
+                                if (execution_mode && match) {
+                                    add_tracked_fd(a0, state->into_syscall);
+                                    if (debug) {
+                                        FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
+                                        fprintf(fd_replay, "RECVFROM/RECVMSG: Tracking FD %d with syscall %d\n", a0, state->into_syscall);
+                                        fclose(fd_replay);
+                                    }
                                 }
                             }
                         }
@@ -3650,7 +3704,7 @@ skip_to_pos:
                                 if (debug) {
                                     fd_replay = fopen("debug/full_debug_replay.log", "a+");
                                 }
-                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec) && !target_replay_fd)
+                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec))
                                 {
                                     if (state->into_syscall == init_syscalls[0] || state->into_syscall == init_syscalls[1] || state->into_syscall == init_syscalls[2])
                                     {
@@ -3659,8 +3713,8 @@ skip_to_pos:
                                         sprintf(tmp_path, "path:%s", path);
                                         if (!strcmp(tmp_path, target_path))
                                         {
-                                            target_replay_fd = ret_value_0;
-                                            if (debug) fprintf(fd_replay, "OPEN: target_replay_fd: %d\n", target_replay_fd);
+                                            add_tracked_fd(ret_value_0, state->into_syscall);
+                                            if (debug) fprintf(fd_replay, "OPEN: FD %d added to tracked_fds\n", ret_value_0);
                                         }
                                         free(target_path);
                                     }
@@ -3747,9 +3801,9 @@ skip_to_pos:
                                         }
                                     }
 
-                                    if (execution_mode && !target_replay_fd && match)
+                                    if (execution_mode && match)
                                     {
-                                        target_replay_fd = a0;
+                                        add_tracked_fd(a0, state->into_syscall);
                                     }
                                 }
                             }
@@ -3796,8 +3850,8 @@ skip_to_pos:
                                 }
                                 else
                                     fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
-                            
-                                if (execution_mode && target_replay_syscall == state->into_syscall && !strcmp(target_exec, state->procname))
+
+                                if (execution_mode && !strcmp(target_exec, state->procname) && is_tracked_fd(a0, state->into_syscall))
                                 {
                                     int len;
 
@@ -3811,17 +3865,17 @@ skip_to_pos:
 
                                     if (debug) {
                                         FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                        fprintf(fd_replay, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                        fprintf(fd_replay, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d (FD tracked: %d)\n\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4, a0);
                                         fclose(fd_replay);
                                     }
 
-                                    if (execution_mode)
+                                    if (execution_mode && len > 0)
                                     {
                                         FILE *fd_forkpoints = fopen("forkpoints.log", "a+");
 #if TARGET_LONG_BITS == 32
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, len));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%d,%d,%s\n", state->into_syscall, cur_program_pc-4, a0, len, visualizeUTF8(pattern, len));
 #else
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-8, visualizeUTF8(pattern, len));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%d,%d,%s\n", state->into_syscall, cur_program_pc-8, a0, len, visualizeUTF8(pattern, len));
 #endif
 
                                         fclose(fd_forkpoints);
@@ -3930,8 +3984,8 @@ skip_to_pos:
                                 }
                                 else
                                     fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
-                            
-                                if (execution_mode && target_replay_syscall == state->into_syscall && !strcmp(target_exec, state->procname))
+
+                                if (execution_mode && !strcmp(target_exec, state->procname) && is_tracked_fd(a0, state->into_syscall))
                                 {
                                     target_ulong iov_msg_addr, msg_addr;
                                     int len;
@@ -3949,17 +4003,17 @@ skip_to_pos:
 
                                     if (debug) {
                                         FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                        fprintf(fd_replay, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
+                                        fprintf(fd_replay, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d (FD tracked: %d)\n\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4, a0);
                                         fclose(fd_replay);
-                                    } 
+                                    }
 
-                                    if (execution_mode)
+                                    if (execution_mode && len > 0)
                                     {
                                         FILE *fd_forkpoints = fopen("forkpoints.log", "a+");
 #if TARGET_LONG_BITS == 32
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, len));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%d,%d,%s\n", state->into_syscall, cur_program_pc-4, a0, len, visualizeUTF8(pattern, len));
 #else
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-8, visualizeUTF8(pattern, len));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%d,%d,%s\n", state->into_syscall, cur_program_pc-8, a0, len, visualizeUTF8(pattern, len));
 #endif
 
                                         fclose(fd_forkpoints);
@@ -4027,7 +4081,7 @@ skip_to_pos:
                             {
                                 fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
 
-                                if (execution_mode && target_replay_syscall == state->into_syscall && !strcmp(target_exec, state->procname))
+                                if (execution_mode && !strcmp(target_exec, state->procname) && is_tracked_fd(a0, state->into_syscall))
                                 {
                                     int len;
 
@@ -4043,17 +4097,17 @@ skip_to_pos:
 
                                     if (debug) {
                                         FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
-                                        fprintf(fd_replay, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n0x%lx\n%s\n\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4, cur_program_pc-4, pattern);
+                                        fprintf(fd_replay, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n0x%lx\n%s (FD tracked: %d)\n\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4, cur_program_pc-4, pattern, a0);
                                         fclose(fd_replay);
-                                    }                      
+                                    }
 
-                                    if (execution_mode)
+                                    if (execution_mode && len > 0)
                                     {
                                         FILE *fd_forkpoints = fopen("forkpoints.log", "a+");
 #if TARGET_LONG_BITS == 32
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-4, visualizeUTF8(pattern, len));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%d,%d,%s\n", state->into_syscall, cur_program_pc-4, a0, len, visualizeUTF8(pattern, len));
 #else
-                                        fprintf(fd_forkpoints, "%d,0x%lx,%s\n", state->into_syscall, cur_program_pc-8, visualizeUTF8(pattern, len));
+                                        fprintf(fd_forkpoints, "%d,0x%lx,%d,%d,%s\n", state->into_syscall, cur_program_pc-8, a0, len, visualizeUTF8(pattern, len));
 #endif
                                         fclose(fd_forkpoints);
 
@@ -4118,7 +4172,7 @@ skip_to_pos:
                             }
                             else if (state->into_syscall == 4042) // pipe
                             {
-                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec) && !target_replay_fd)
+                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec))
                                 {
                                     if (state->into_syscall == init_syscalls[0] || state->into_syscall == init_syscalls[1] || state->into_syscall == init_syscalls[2])
                                     {
@@ -4126,7 +4180,7 @@ skip_to_pos:
                                         extractFDs(target_channel, &fd1, &fd2);
                                         if (ret_value_0 == fd1 && ret_value_1 == fd2)
                                         {
-                                            target_replay_fd = ret_value_0;
+                                            add_tracked_fd(ret_value_0, state->into_syscall);
                                         }
                                     }
                                 }
@@ -4134,19 +4188,31 @@ skip_to_pos:
                             }
                             else if (state->into_syscall == 4168) // accept
                             {
-                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec) && target_replay_fd)
+                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec))
                                 {
-                                    if (target_replay_fd == a0)
-                                        target_replay_fd = ret_value_0;
+                                    if (ret_value_0 > 0) {
+                                        add_tracked_fd(ret_value_0, state->into_syscall);
+                                        if (debug) {
+                                            FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
+                                            fprintf(fd_replay, "ACCEPT: Tracking new connection FD %d from listening socket %d\n", ret_value_0, a0);
+                                            fclose(fd_replay);
+                                        }
+                                    }
                                 }
                                 fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             }
                             else if (state->into_syscall == 4006) // close
                             {
-                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec) && target_replay_fd)
+                                if (execution_mode && target_exec && !strcmp(state->procname, target_exec))
                                 {
-                                    // if (target_replay_fd == a0)
-                                    //     target_replay_fd = 0;
+                                    if (is_tracked_fd(a0, state->into_syscall)) {
+                                        remove_tracked_fd(a0);
+                                        if (debug) {
+                                            FILE *fd_replay = fopen("debug/full_debug_replay.log", "a+");
+                                            fprintf(fd_replay, "CLOSE: Removed FD %d from tracking\n", a0);
+                                            fclose(fd_replay);
+                                        }
+                                    }
                                 }
                                 fprintf(fd, "%d,%lu,%d,%d,%s,%d,%d,%d,%d,%d,%d,%d,%d\n", err, milliseconds, state->pid, state->par_pid, state->procname, state->into_syscall, ret_value_0, ret_value_1, a0, a1, a2, a3, a4);
                             }                            
@@ -4177,6 +4243,11 @@ skip_to_pos:
                                 if (debug) {
                                     fprintf(fd, "\nread DATA (PID = %d): %s\n", state->pid, buf);
                                     printHexBuffer(fd, buf, ret_value_0);
+                                    
+                                    FILE *fd2 = fopen("debug/full_debug_replay.log", "a+");
+                                    fprintf(fd2, "\nread DATA (PID = %d): %s\n", state->pid, buf);
+                                    printHexBuffer(fd2, buf, ret_value_0);
+                                    fclose(fd2);
                                 }
                             }
 

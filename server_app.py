@@ -543,7 +543,7 @@ def pause_and_analyze() -> Response:
     if os.path.exists(pcap_source):
         pcap_dir = os.path.join(BASE_DIR, "pcap", brand, firmware, "http")
         os.makedirs(pcap_dir, exist_ok=True)
-        pcap_dest = os.path.join(pcap_dir, "user_interaction.pcap")
+        pcap_dest = os.path.join(pcap_dir, get_next_name(pcap_dir, "user_interaction")+".pcap")
         shutil.copy(pcap_source, pcap_dest)
         print(f"[INFO] PCAP copied to {pcap_dest} - use Analysis button to analyze")
     return jsonify({"status": "paused"}), 200

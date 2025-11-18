@@ -918,20 +918,33 @@ def select(container_name: str, firmware: str) -> None:
                     skipped_empty += 1
                     continue
 
-                parts = line.split(",")
-                if len(parts) < 3:
-                    print(f"Warning: Invalid forkpoint entry at line {line_num}: {line}", file=sys.stderr)
+                parts = line.split(",", 4)
+                if len(parts) < 5:
+                    print(f"Warning: Invalid forkpoint entry at line {line_num} (expected 5 fields): {line}", file=sys.stderr)
                     skipped_invalid += 1
                     continue
 
-                syscall, pc, pattern = parts[:3]
+                syscall, pc, fd, length, pattern = parts
 
                 syscall = syscall.strip()
                 pc = pc.strip()
+                fd = fd.strip()
+                length = length.strip()
                 pattern = pattern.strip()
 
-                if not syscall or not pc or not pattern:
-                    print(f"Warning: Skipping forkpoint with empty data at line {line_num}: syscall='{syscall}', pc='{pc}', pattern='{pattern}'", file=sys.stderr)
+                if not syscall or not pc or not fd or not length or not pattern:
+                    print(f"Warning: Skipping forkpoint with empty data at line {line_num}", file=sys.stderr)
+                    skipped_invalid += 1
+                    continue
+
+                try:
+                    expected_len = int(length)
+                    if expected_len < 0:
+                        print(f"Warning: Invalid negative length {expected_len} at line {line_num}", file=sys.stderr)
+                        skipped_invalid += 1
+                        continue
+                except ValueError:
+                    print(f"Warning: Invalid length field '{length}' at line {line_num}", file=sys.stderr)
                     skipped_invalid += 1
                     continue
 
@@ -949,6 +962,8 @@ def select(container_name: str, firmware: str) -> None:
                 entries.append({
                     "syscall": syscall,
                     "pc": pc,
+                    "fd": fd,
+                    "length": length,
                     "pattern": pattern
                 })
             

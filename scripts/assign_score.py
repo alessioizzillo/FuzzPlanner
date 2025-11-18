@@ -149,7 +149,7 @@ def assign_score(data_channels_dict):
         if data_channels_dict[id]["kind"] == "inet_socket" or data_channels_dict[id]["kind"] == "inet6_socket":
             data_channels_dict[id]['score'] = 1.0
         elif data_channels_dict[id]["kind"] == "pipe" or data_channels_dict[id]["kind"] == "unix_socket":
-            data_channels_dict[id]['score'] = 0.0
+            data_channels_dict[id]['score'] = 0.5
         elif id == 'file{path:}':
             data_channels_dict[id]['score'] = 0.0
         else:
